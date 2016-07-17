@@ -1,0 +1,35 @@
+{
+  "name": "html5-boilerplate",
+  "version": "0.1.0",
+  "description": "HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Arvind Ravulavaru",
+  "license": "MIT",
+  "dependencies": {
+    "dot": "^1.0.3",
+    "ejs": "^2.4.2",
+    "gulp": "^3.6.2",
+    "gulp-connect": "^2.0.5",
+    "jquery": "^3.1.0",
+    "modernizr": "^3.3.1",
+    "morphdom": "^1.4.6",
+    "page": "^1.7.1",
+    "snabbdom": "^0.5.0"
+  },
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-preset-es2015-rollup": "^1.1.1",
+    "gulp-ejs": "^2.1.2",
+    "gulp-util": "^3.0.7",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-buble": "^0.12.1",
+    "rollup-plugin-commonjs": "^3.1.0",
+    "rollup-plugin-node-resolve": "^1.7.1",
+    "rollup-plugin-string": "^2.0.2",
+    "rollup-watch": "^2.5.0",
+    "webpack-stream": "^3.2.0"
+  }
+}
