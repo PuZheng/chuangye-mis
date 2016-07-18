@@ -18,10 +18,6 @@ page('/invoice', function (ctx, next) {
            [page.accountTerms, [
              {id: 1, name: "2016-06"},
              {id: 2, name: "2016-07"}
-           ]],
-           [page.subjects, [
-             {id: 1, name: "科目1"},
-             {id: 2, name: "科目2"}
            ]]
           );
 });

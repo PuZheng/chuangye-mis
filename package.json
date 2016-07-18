@@ -24,6 +24,7 @@
     "babel-preset-es2015-rollup": "^1.1.1",
     "gulp-ejs": "^2.1.2",
     "gulp-util": "^3.0.7",
+    "qiniu": "^6.1.11",
     "rollup-plugin-babel": "^2.6.1",
     "rollup-plugin-buble": "^0.12.1",
     "rollup-plugin-commonjs": "^3.1.0",
