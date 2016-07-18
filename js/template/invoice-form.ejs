@@ -23,15 +23,6 @@
     </div>
   </div>
   <div class="required inline field">
-    <label for="">科目</label>
-    <select class="ui selection dropdown" name="subject">
-      <option value="">请选择科目</option>
-      <% subjects.forEach(function (s) { %>
-        <option value="<%= s.id %>"><%= s.id %></option>
-      <% }) %>
-    </select>
-  </div>
-  <div class="required inline field">
     <label for="">(实际)销售方</label>
     <select class="ui search selection dropdown" name="vendor" value="">
       <option value="">选择销售方</option>

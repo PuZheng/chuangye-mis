@@ -5,10 +5,8 @@ var uniqueId = function () {
   };
 }();
 
-var makeSlot = function (tag, initial) {
+var makeSlot = function (initial) {
   return function (p) {
-    p.name = tag;
-    p.__tag = tag;
     p.value = initial;
     p.cbs = [];
     p.onChangeCbs = [];

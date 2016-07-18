@@ -3,23 +3,21 @@ import * as domDriver from './dom-driver.js';
 import pageTpl from './template/invoice.ejs';
 import spuFormTpl from './template/invoice-form.ejs';
 
-export const loading = x('loading');
-export const invoice = x('invoice');
-export const vendorCandidates = x('vendorCandidates');
-export const purchaserCandidates = x('purchaserCandidates');
-export const accountTerms = x('accountTerms');
-export const subjects = x('subjects');
+export const loading = x().tag('loading');
+export const invoice = x().tag('invoice');
+export const vendorCandidates = x().tag('vendorCandidates');
+export const purchaserCandidates = x().tag('purchaserCandidates');
+export const accountTerms = x().tag('accountTerms');
 
 const invoiceForm = x.connect(
-  invoice, vendorCandidates, purchaserCandidates, accountTerms, subjects,
+  invoice, vendorCandidates, purchaserCandidates, accountTerms,
   function (invoice, vendorCandidates, 
-            purchaserCandidates, accountTerms, subjects) {
+            purchaserCandidates, accountTerms) {
   return ejs.render(spuFormTpl, {
     invoice,
     vendorCandidates,
     purchaserCandidates,
     accountTerms,
-    subjects
   });
 }).tag('invoiceForm');
   
