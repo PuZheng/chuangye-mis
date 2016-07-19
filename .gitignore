@@ -4,6 +4,9 @@ node_modules
 js/bundle.js
 config.json
 /semantic/dist/
+/dist/
+js/bundle*
+js/rev-manifest.json
 #### joe made this: http://goel.io/joe
 
 #####=== Vim ===#####

@@ -17,7 +17,6 @@ var makeSlot = function (initial) {
     p.__id = uniqueId();
     p.bind(p);
     p.tag = function (tag) {
-      p.name = tag;
       p.__tag = tag;
       return p;
     };
