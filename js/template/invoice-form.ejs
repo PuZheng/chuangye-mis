@@ -1,24 +1,40 @@
-<div class="ui form">
+<form class="ui form <%= loading? 'loading': ''%>">
+  <div class="inline field">
+    <label for="">发票类型</label>
+    <select class="ui selection dropdown" name="invoiceType">
+      <option value="">选择发票类型</option>
+      <% invoiceTypes.forEach(function (t) { %>
+        <option value="<%= t.id %>" 
+          <% if (invoice.invoiceTypeId == t.id) { %>selected<% } %>>
+          <%= t.name %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
   <div class="required inline field">
     <label for="">发票日期</label>
-    <input type="date" name="date">
+    <input type="date" name="date" value="<%= (invoice.date? moment(invoice.date): moment()).format('YYYY-MM-DD') %>">
   </div>
   <div class="required inline field">
     <label for="">发票号码</label>
-    <input type="text" name="number">
+    <input type="text" name="number" value="<%= invoice.number || '' %>">
   </div>
   <div class="required inline field">
     <label for="">会计账期</label>
-    <select class="ui selection dropdown" name="accountTerm">
+    <select class="account-term ui selection dropdown" name="accountTerm">
       <option value="">请选择会计账期</option>
       <% accountTerms.forEach(function (t) { %>
-        <option value="<%= t.id %>"><%= t.name %></option>
+        <option value="<%= t.id %>"
+          <% if (invoice.accountTermId == t.id) { %>selected<% } %>
+          >
+          <%= t.name %>
+        </option>
       <% }) %>
     </select>
   </div>
   <div class="inline field">
-    <div class="ui checkbox">
-      <input type="checkbox" name="isVAT">
+    <div class="is-vat ui checkbox">
+      <input type="checkbox" name="isVAT" <%= invoice.isVAT && "checked" %>>
       <label for="">是否是增值税</label>
     </div>
   </div>
@@ -26,23 +42,31 @@
     <label for="">(实际)销售方</label>
     <select class="ui search selection dropdown" name="vendor" value="">
       <option value="">选择销售方</option>
-      <% vendorCandidates.forEach(function (vendor) { %>
-        <option value=<%= vendor.id %>><%= vendor.name %></option>
+      <% vendors.forEach(function (v) { %>
+        <option value=<%= v.id %>
+        <%= invoice.vendorId == v.id? 'selected': '' %>
+        >
+        <%= v.name %>
+      </option>
       <% }) %>
     </select>
   </div>
   <div class="required inline field">
     <label for="">(实际)购买方</label>
-    <select class="ui search selection dropdown" name="vendor" value="">
+    <select class="ui search selection dropdown" name="purchaser" value="">
       <option value="">选择购买方</option>
-      <% purchaserCandidates.forEach(function (purchaser) { %>
-        <option value=<%= purchaser.id %>><%= purchaser.name %></option>
+      <% purchasers.forEach(function (p) { %>
+        <option value=<%= p.id %>
+        <%= invoice.purchaserId == p.id? 'selected': '' %>
+        >
+        <%= p.name %>
+      </option>
       <% }) %>
     </select>
   </div>
   <div class="inline field">
     <label for="">备注信息</label>
-    <textarea name="note" rows="12"></textarea>
+    <textarea name="note" rows="4"></textarea>
   </div>
   <hr>
   
@@ -55,4 +79,4 @@
       width: 24em;
     }
   </style>
-</div>
+</form>

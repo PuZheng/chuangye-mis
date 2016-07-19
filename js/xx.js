@@ -6,36 +6,34 @@ var uniqueId = function () {
 }();
 
 var makeSlot = function (initial) {
-  return function (p) {
-    p.value = initial;
-    p.cbs = [];
-    p.onChangeCbs = [];
-    p.change = function (onChange) {
-      p.onChangeCbs.push(onChange);
-    };
-    p.children = [];
-    p.__id = uniqueId();
-    p.bind(p);
-    p.tag = function (tag) {
-      p.__tag = tag;
-      return p;
-    };
-    return p;
-  }(function (newValue) {
+  var slot = function (newValue) {
     if (newValue === undefined) {
-      return this.value;
+      return slot.value;
     } else {
-      var oldValue = this.value;
-      this.value = newValue; 
-      this.onChangeCbs.forEach(function (cb) {
+      var oldValue = slot.value;
+      slot.value = newValue; 
+      slot.onChangeCbs.forEach(function (cb) {
         cb(newValue);
       });
-      this.cbs.forEach(function (cb) {
+      slot.cbs.forEach(function (cb) {
         cb(newValue);
       });
       return oldValue;
     }
-  });
+  };
+  slot.value = initial;
+  slot.cbs = [];
+  slot.onChangeCbs = [];
+  slot.change = function (onChange) {
+    slot.onChangeCbs.push(onChange);
+  };
+  slot.children = [];
+  slot.id = uniqueId();
+  slot.tag = function (tag) {
+    slot.tag = tag;
+    return slot;
+  };
+  return slot;
 };
 
 var connect = function () {
@@ -50,7 +48,7 @@ var connect = function () {
     slot.children.push(ret);
   });
   ret.refresh = function () {
-    this.apply(this, [computeValue(...slots.map((slot) => slot.apply(slot)))]);
+    ret.apply(ret, [computeValue(...slots.map((slot) => slot.apply(slot)))]);
   };
   return ret;
 };
@@ -60,15 +58,17 @@ var update = function (...slotValuePairs) {
     slot.value = value;
   });
   // find all the slots that depends on, remove duplicates and refresh them
-  var toUpdate = [];
-  slotValuePairs.map(([slot, value]) => slot.children).forEach(function (children) {
-    children.forEach(function (child) {
-      if (!(child.__id in toUpdate)) {
-        toUpdate[child.__id] = child;
+  var toUpdate = {};
+  slotValuePairs.forEach(function ([slot, value]) {
+    slot.children.forEach(function (child) {
+      if (!(child.id in toUpdate)) {
+        toUpdate[child.id] = child;
       }
     });
   });
-  toUpdate.forEach((slot) => slot.refresh.apply(slot));
+  for (var id in toUpdate) {
+    toUpdate[id].refresh();
+  }
 };
 
 export default (function (p) {
