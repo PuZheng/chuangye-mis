@@ -63,7 +63,6 @@ gulp.task('dist', ['rollup', 'collect-dist', 'rev', 'rev-replace'],
 
 gulp.task('default', ['connect', 'watch']);
 
-
 gulp.task('rollup', function () {
   var plugins = [
     nodeResolve({
@@ -75,7 +74,7 @@ gulp.task('rollup', function () {
     string({
       include: 'js/template/*.ejs',
     }),
-    // buble(),
+    buble(),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(rollupUglify());

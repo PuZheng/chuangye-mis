@@ -1,7 +1,8 @@
+<% var disabled = invoice.status == 'completed'? 'disabled': '' %>
 <form class="ui form <%= loading? 'loading': ''%>">
   <div class="inline field">
     <label for="">发票类型</label>
-    <select class="ui selection dropdown" name="invoiceType">
+    <select class="ui selection dropdown" name="invoiceType" <%= disabled %>>
       <option value="">选择发票类型</option>
       <% invoiceTypes.forEach(function (t) { %>
         <option value="<%= t.id %>" 
@@ -13,11 +14,11 @@
   </div>
   <div class="required inline field">
     <label for="">发票日期</label>
-    <input type="date" name="date" value="<%= (invoice.date? moment(invoice.date): moment()).format('YYYY-MM-DD') %>">
+    <input type="date" name="date" value="<%= (invoice.date? moment(invoice.date): moment()).format('YYYY-MM-DD') %>" <%= disabled %>>
   </div>
   <div class="required inline field">
     <label for="">发票号码</label>
-    <input type="text" name="number" value="<%= invoice.number || '' %>">
+    <input type="text" name="number" value="<%= invoice.number || '' %>" <%= disabled %>>
   </div>
   <div class="required inline field">
     <label for="">会计账期</label>
@@ -34,13 +35,13 @@
   </div>
   <div class="inline field">
     <div class="is-vat ui checkbox">
-      <input type="checkbox" name="isVAT" <%= invoice.isVAT && "checked" %>>
+      <input type="checkbox" name="isVAT" <%= invoice.isVAT && "checked" %> <%= disabled %>>
       <label for="">是否是增值税</label>
     </div>
   </div>
   <div class="required inline field">
     <label for="">(实际)销售方</label>
-    <select class="ui search selection dropdown" name="vendor" value="">
+    <select class="ui search selection dropdown" name="vendor" value="" <%= disabled %>>
       <option value="">选择销售方</option>
       <% vendors.forEach(function (v) { %>
         <option value=<%= v.id %>
@@ -53,7 +54,7 @@
   </div>
   <div class="required inline field">
     <label for="">(实际)购买方</label>
-    <select class="ui search selection dropdown" name="purchaser" value="">
+    <select class="ui search selection dropdown" name="purchaser" value="" <%= disabled %>>
       <option value="">选择购买方</option>
       <% purchasers.forEach(function (p) { %>
         <option value=<%= p.id %>
@@ -66,11 +67,17 @@
   </div>
   <div class="inline field">
     <label for="">备注信息</label>
-    <textarea name="note" rows="4"></textarea>
+    <textarea name="notes" rows="4" <%= disabled %>><%= invoice.notes %></textarea>
+  </div>
+  <div class="inline field">
+    <label for="">物料明细</label>
+    <%- materialsEditor %>
   </div>
   <hr>
-  
   <input type="submit" class="ui green button" value="提交">
+  <% if (invoice.id && invoice.status != 'completed') { %>
+  <input type="submit" class="ui button" value="标记完成">
+  <% } %>
   <style scoped>
     .ui.form .inline.field > label:first-child {
       width: 8em;

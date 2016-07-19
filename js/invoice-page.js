@@ -5,6 +5,7 @@ import spuFormTpl from './template/invoice-form.ejs';
 import moment from 'moment';
 import toastr from 'toastr';
 import page from 'page';
+import materialsEditorTpl from './template/materials-editor.ejs';
 
 export const invoiceTypes = x([]).tag('invoiceTypes');
 export const loading = x(false).tag('loading');
@@ -13,11 +14,19 @@ export const vendors = x([]).tag('vendors');
 export const purchasers = x([]).tag('purchasers');
 export const accountTerms = x([]).tag('accountTerms');
 
+export const materialsEditor = x.connect(
+  invoice, function (invoice) {
+    return ejs.render(materialsEditorTpl, {
+      invoice
+    });
+  }
+);
+
 export const invoiceForm = x.connect(
-  loading, invoiceTypes, invoice, vendors, purchasers, accountTerms,
+  loading, invoiceTypes, invoice, vendors, purchasers, accountTerms, materialsEditor,
   function (loading, invoiceTypes, invoice, 
             vendors, 
-            purchasers, accountTerms) {
+            purchasers, accountTerms, materialsEditor) {
   return ejs.render(spuFormTpl, {
     loading,
     invoiceTypes,
@@ -25,14 +34,17 @@ export const invoiceForm = x.connect(
     vendors,
     purchasers,
     accountTerms,
+    materialsEditor,
     moment,
   });
 }).tag('invoiceForm');
+
   
-export const view = x.connect(loading, invoiceForm, 
-                           (loading, invoiceForm) => {
+export const view = x.connect(loading, invoice, invoiceForm, 
+                           (loading, invoice, invoiceForm) => {
   return ejs.render(pageTpl, {
-    invoiceForm
+    invoice,
+    invoiceForm,
   });
 }).tag('invoicePage');
 
@@ -107,9 +119,19 @@ domDriver.mount(view, container, (node) => {
       }));
     }
   });
+  $node.find('[name=number]').change(function (e) {
+    invoice(Object.assign(invoice(), {
+      number: this.value,
+    }));
+  });
   $node.find('[name=date]').change(function (e) {
     invoice(Object.assign(invoice(), {
       date: this.value,
+    }));
+  });
+  $node.find('[name=notes]').change(function (e) {
+    invoice(Object.assign(invoice(), {
+      notes: this.value,
     }));
   });
 });

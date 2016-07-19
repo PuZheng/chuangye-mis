@@ -18,15 +18,29 @@ page('/invoice/:id?', function (ctx, next) {
       ]],
       [pg.loading, false]
     ];
-    ctx.params.id && args.push([pg.invoice, {
-      invoiceTypeId: 1,
-      date: '2016-06-17',
-      number: '123456',
-      accountTermId: 1,
-      isVAT: true,
-      vendorId: 11,
-      purchaserId: 1,
-    }]);
+    if (ctx.params.id) {
+      args = args.concat([
+        [pg.invoice, {
+          id: 1,
+          invoiceTypeId: 1,
+          date: '2016-06-17',
+          number: '123456',
+          accountTermId: 1,
+          isVAT: true,
+          vendorId: 11,
+          purchaserId: 1,
+          notes: 'lorem',
+        }],
+        [pg.vendors, [
+          {id: 11, name: "张三"},
+          {id: 22, name: "外部客户1"}
+        ]], 
+        [pg.purchasers, [
+          {id: 1, name: "厂部"},
+          {id: 2, name: "外部客户1"}
+        ]]
+      ]);
+    }
     x.update(...args);
   }, 500);
 });
