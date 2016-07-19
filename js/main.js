@@ -2,7 +2,6 @@ import page from 'page';
 import * as invoicePage from './invoice-page.js';
 import x from './xx.js';
 
-
 page('/invoice', function (ctx, next) {
   const page = invoicePage;
   x.update([page.loading, false], 
