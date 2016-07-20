@@ -9,6 +9,7 @@
   "author": "Arvind Ravulavaru",
   "license": "MIT",
   "dependencies": {
+    "classnames": "^2.2.5",
     "dot": "^1.0.3",
     "ejs": "^2.4.2",
     "gulp": "^3.6.2",
@@ -20,6 +21,7 @@
     "page": "^1.7.1",
     "ramda": "^0.21.0",
     "snabbdom": "^0.5.0",
+    "snabbdom-jsx": "^0.3.0",
     "toastr": "^2.1.2"
   },
   "devDependencies": {

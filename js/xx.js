@@ -47,11 +47,7 @@ var makeSlot = function (initial) {
     if (newValue === undefined) {
       return slot.value;
     } else {
-      if (opt.debug) {
-        console.debug(`xx: slot ${slot.tag} changed`);
-        console.dir(slot.value);
-        console.dir(newValue);
-      }
+      opt.debug && console.debug(`xx: slot ${slot.tag} updated`, slot.value, newValue);
       var oldValue = slot.value;
       slot.value = newValue; 
       slot.onChangeCbs.forEach(function (cb) {
@@ -99,6 +95,7 @@ var connect = function () {
 
 var update = function (...slotValuePairs) {
   slotValuePairs.forEach(function ([slot, value]) {
+    opt.debug && console.debug(`slot ${slot.tag} updated`, slot.value, value);
     slot.value = value;
   });
   // order offsprings by level

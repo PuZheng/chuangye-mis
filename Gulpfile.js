@@ -74,7 +74,10 @@ gulp.task('rollup', function () {
     string({
       include: 'js/template/*.ejs',
     }),
-    buble(),
+    buble({
+      // custom JSX pragma (see below)
+      jsx: 'html',
+    }),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(rollupUglify());
