@@ -152,7 +152,11 @@ export default x.connect(
           </div>
           <div className="inline field">
             <label for="">备注信息</label>
-            <textarea name="notes" rows="4" disabled={ disabled }>{ invoice.notes || '' }</textarea>
+            <textarea name="notes" rows="4" disabled={ disabled } 
+              style={ { 
+              display: 'inline-block',
+              width: '24em',
+              } }>{ invoice.notes || '' }</textarea>
           </div>
           <div className="inline field">
             <label for="">物料明细</label>

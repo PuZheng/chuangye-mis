@@ -97,6 +97,9 @@ textarea {
    Author's custom styles
    ========================================================================== */
 
+.ui.form .inline.field > label {
+    width: 12em;
+}
 
 
 
