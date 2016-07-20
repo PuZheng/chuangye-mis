@@ -1,34 +1,78 @@
-var uniqueId = function () {
+var _uniqueId = function () {
   var i = 1;
   return function () {
     return i++;
   };
 }();
 
+/**
+ * collect offsprings by levels
+ * */
+var collectOffsprings = function (...slots) {
+  var offsprings = {};
+  var collectOffspringsWithLevel = function collectOffspringsWithLevel(slots, level) {
+    slots.forEach(function (slot) {
+      if (!(slot.id in offsprings)) {
+        offsprings[slot.id] = {
+          slot,
+          level
+        };
+      } else {
+        offsprings[slot.id].level = Math.max(offsprings[slot.id].level, level);
+      }
+      slot.children.length && collectOffspringsWithLevel(slot.children, level + 1);
+    });
+  };
+  slots.forEach(function (slot) {
+    collectOffspringsWithLevel(slot.children, 0);
+  });
+  var ret = [];
+  var currentLevel = -1;
+  var slots;
+  var offspringsOrderedByLevel = Object.keys(offsprings).map(
+    (k) => offsprings[k]).sort((a, b) => a.level - b.level);
+  offspringsOrderedByLevel.forEach(function ({slot, level}) {
+    if (level > currentLevel) {
+      slots = [];
+      ret.push(slots);
+      currentLevel = level;
+    }
+    slots.push(slot);
+  });
+  return ret;
+};
+
 var makeSlot = function (initial) {
   var slot = function (newValue) {
     if (newValue === undefined) {
       return slot.value;
     } else {
+      if (opt.debug) {
+        console.debug(`xx: slot ${slot.tag} changed`);
+        console.dir(slot.value);
+        console.dir(newValue);
+      }
       var oldValue = slot.value;
       slot.value = newValue; 
       slot.onChangeCbs.forEach(function (cb) {
         cb(newValue);
       });
-      slot.cbs.forEach(function (cb) {
-        cb(newValue);
+      collectOffsprings(slot).forEach(function (slots) {
+        slots.forEach((slot) => {
+          opt.debug && console.debug(`xx: slot ${slot.tag} will be refreshed`);
+          slot.refresh();
+        });
       });
       return oldValue;
     }
   };
   slot.value = initial;
-  slot.cbs = [];
   slot.onChangeCbs = [];
   slot.change = function (onChange) {
     slot.onChangeCbs.push(onChange);
   };
   slot.children = [];
-  slot.id = uniqueId();
+  slot.id = _uniqueId();
   slot.tag = function (tag) {
     slot.tag = tag;
     return slot;
@@ -39,16 +83,16 @@ var makeSlot = function (initial) {
 var connect = function () {
   var args = [...arguments];
   var ret = makeSlot();
-  var computeValue = args[args.length - 1];
+  ret.valueFunc = args[args.length - 1];
   var slots = args.slice(0, args.length - 1);
-  slots.forEach(function (slot, i) {
-    slot.cbs.push(function (v) {
-      ret.apply(ret, [computeValue(...slots.map((slot_, j) => (i === j)? v: slot_.apply(slot_)))]);
-    });
+  slots.forEach(function (slot) {
     slot.children.push(ret);
   });
   ret.refresh = function () {
-    ret.apply(ret, [computeValue(...slots.map((slot) => slot.apply(slot)))]);
+    ret.value = ret.valueFunc(...slots.map((slot) => slot.apply(slot)));
+    ret.onChangeCbs.forEach(function (cb) {
+      cb(ret.value);
+    });
   };
   return ret;
 };
@@ -57,23 +101,25 @@ var update = function (...slotValuePairs) {
   slotValuePairs.forEach(function ([slot, value]) {
     slot.value = value;
   });
-  // find all the slots that depends on, remove duplicates and refresh them
-  var toUpdate = {};
-  slotValuePairs.forEach(function ([slot, value]) {
-    slot.children.forEach(function (child) {
-      if (!(child.id in toUpdate)) {
-        toUpdate[child.id] = child;
-      }
+  // order offsprings by level
+  collectOffsprings(...slotValuePairs.map(([slot, value]) => slot)).forEach(function (slots) {
+    slots.forEach(function (slot) {
+      opt.debug && console.debug(`xx: slot ${slot.tag} will be refreshed`);
+      slot.refresh();
     });
   });
-  for (var id in toUpdate) {
-    toUpdate[id].refresh();
-  }
+};
+
+var opt = {};
+
+var init = function (opt_ = {}) {
+  opt.debug = !!opt_.debug;
 };
 
 export default (function (p) {
   p.slot = makeSlot;
   p.connect = connect;
   p.update = update;
+  p.init = init;
   return p;
 })((initial) => makeSlot(initial));

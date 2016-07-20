@@ -20,7 +20,7 @@ export const materialsEditor = x.connect(
       invoice
     });
   }
-);
+).tag('materialsEditor');
 
 export const invoiceForm = x.connect(
   loading, invoiceTypes, invoice, vendors, purchasers, accountTerms, materialsEditor,
@@ -50,6 +50,7 @@ export const view = x.connect(loading, invoice, invoiceForm,
 
 var container = document.getElementById('main');
 var $invoiceTypeDropdown;
+var initialized = {};
 
 domDriver.mount(view, container, (node) => {
 
@@ -119,11 +120,13 @@ domDriver.mount(view, container, (node) => {
       }));
     }
   });
-  $node.find('[name=number]').change(function (e) {
-    invoice(Object.assign(invoice(), {
-      number: this.value,
-    }));
-  });
+  if (!initialized['$number']) {
+    initialized['$number'] = $node.find('[name=number]').change(function (e) {
+      invoice(Object.assign(invoice(), {
+        number: this.value,
+      }));
+    });
+  }
   $node.find('[name=date]').change(function (e) {
     invoice(Object.assign(invoice(), {
       date: this.value,

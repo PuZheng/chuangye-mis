@@ -2,6 +2,8 @@ import page from 'page';
 import * as invoicePage from './invoice-page.js';
 import x from './xx.js';
 
+x.init({ debug: true });
+
 page('/invoice/:id?', function (ctx, next) {
   var pg = invoicePage;
   pg.loading(true);
