@@ -25,7 +25,7 @@ const view = x.connect(loading, invoice, form,
       </div>
     </div>
   </div>);
-}).tag('invoice-page');
+}).setTag('invoice-page');
 
 var container = document.getElementById('main');
 var $invoiceTypeDropdown;

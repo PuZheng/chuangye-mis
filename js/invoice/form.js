@@ -97,10 +97,10 @@ const onInserted = function (vnode) {
   let $elm = $(vnode.elm);
   $elm.find('[name=invoiceType]').dropdown({
     onChange: function (value, text, $choice) {
-      loading(true);
+      loading.val(true);
       setTimeout(function () {
         x.update(
-          [invoice, Object.assign(invoice(), {
+          [invoice, Object.assign(invoice.val(), {
             invoiceTypeId: value,
           })],
           [loading, false],
@@ -118,56 +118,56 @@ const onInserted = function (vnode) {
   });
   $elm.find('[name=accountTerm]').dropdown({
     onChange: function (value, text, $choice) {
-      invoice(Object.assign(invoice(), {
+      invoice.patch({
         accountTermId: value,
-      }));
+      });
     }
   });
   $elm.find('.is-vat.ui.checkbox').checkbox({
     onChecked: function () {
-      invoice(Object.assign(invoice(), {
+      invoice.patch({
         isVAT: true, 
-      }));
+      });
     },
     onUnchecked: function () {
-      invoice(Object.assign(invoice(), {
+      invoice.patch({
         isVAT: false, 
-      }));
+      });
     }
   });
   $elm.find('[name=vendor].ui.dropdown').dropdown({
     onChange: function (value, text, $choice) {
-      invoice(Object.assign(invoice(), {
+      invoice.patch({
         vendorId: value,
-      }));
+      });
     }
   });
   $elm.find('[name=purchaser].ui.dropdown').dropdown({
     onChange: function (value, text, $choice) {
-      invoice(Object.assign(invoice(), {
+      invoice.patch({
         purchaserId: value,
-      }));
+      });
     }
   });
   $elm.find('[name=notes]').change(function (e) {
-    invoice(Object.assign(invoice(), {
+    invoice.patch({
       notes: this.value,
-    }));
+    });
   });
   $elm.find('[name=number]').change(function (e) {
-    invoice(Object.assign(invoice(), {
+    invoice.patch({
       number: this.value,
-    }));
+    });
   });
 };
 
 const onDateChange = function (e) {
-  invoice(Object.assign(invoice(), {
+  invoice.patch({
     date: this.value,
-  }));
+  });
 };
 
 export default x.connect(
   loading, invoiceTypes, invoice, vendors, purchasers, accountTerms,
   invoiceFormValueFunc
-).tag('invoice-form');
+).setTag('invoice-form');

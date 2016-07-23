@@ -6,7 +6,7 @@ x.init({ debug: true });
 
 page('/invoice/:id?', function (ctx, next) {
   var app = invoiceApp;
-  app.loading(true);
+  app.loading.val(true);
   setTimeout(function () {
     var args = [
       [app.invoiceTypes, [

@@ -77,6 +77,10 @@ gulp.task('rollup', function () {
     buble({
       // custom JSX pragma (see below)
       jsx: 'html',
+      transforms: {
+        arrow: true,
+        dangerousForOf: true
+      },
     }),
   ];
   if (process.env.ENV === 'production') {
