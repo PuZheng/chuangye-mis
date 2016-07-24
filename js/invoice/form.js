@@ -1,6 +1,5 @@
-import classNames from 'classnames';
 import moment from 'moment';
-import {invoice, invoiceTypes, loading, vendors, purchasers, accountTerms} from './data-slots.js';
+import {invoice, invoiceTypes, loading, vendors, purchasers, accountTerms, selectedInvoiceType} from './data-slots.js';
 import x from '../xx.js';
 import R from 'ramda';
 import tmpl from '../../template/invoice/form.ejs';
@@ -8,14 +7,14 @@ import once from 'once';
 import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
 import entityStore from '../store/entity-store.js';
+import materialsEditor from './materials-editor.js';
 
 const errors = x({}).setTag('invoice-form-errors');
-const selectedInvoiceType = x({}).setTag('invoice-form-selected-invoice-type');
 
 function invoiceFormValueFunc(
   errors, loading, invoiceTypes, 
   invoice, vendors, purchasers, 
-  accountTerms, selectedInvoiceType
+  accountTerms, selectedInvoiceType, materialsEditor
 ) {
   return ejs.render(tmpl, {
     self: this,
@@ -27,7 +26,8 @@ function invoiceFormValueFunc(
     purchasers,
     accountTerms,
     moment,
-    selectedInvoiceType
+    selectedInvoiceType,
+    materialsEditor,
   });
 }
 
@@ -128,12 +128,13 @@ var initDropdowns = function (node) {
 
 export default {
   view: x.connect(
-  errors, loading, invoiceTypes, invoice, vendors, purchasers, accountTerms, selectedInvoiceType,
+  errors, loading, invoiceTypes, invoice, vendors, purchasers, accountTerms, selectedInvoiceType, materialsEditor.view,
   invoiceFormValueFunc
   ).setTag('invoice-form'),
   config: function (node) {
     bindEvents(node);
     initDropdowns(node);
+    materialsEditor.config($(node).find('#' + materialsEditor.view.token()));
   },
   performInvoiceTypeSelection: function () {
     onInvoiceTypeChange(invoice.val().invoiceTypeId);

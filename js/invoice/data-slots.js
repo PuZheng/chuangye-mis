@@ -6,3 +6,4 @@ export const invoice = x({}).setTag('invoice');
 export const vendors = x([]).setTag('vendors');
 export const purchasers = x([]).setTag('purchasers');
 export const accountTerms = x([]).setTag('account-terms');
+export const selectedInvoiceType = x({}).setTag('invoice-form-selected-invoice-type');

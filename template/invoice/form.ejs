@@ -1,0 +1,92 @@
+<form class="ui form <%= loading && 'loading' %>" id=<%= self.token() %>>
+  <div class="inline field">
+    <label for="">发票类型</label>
+    <select name="invoiceType" class="ui dropdown selection">
+      <option value="">请选择发票类型</option>
+      <% invoiceTypes.forEach( function (t) { %>
+        <option value="<%= t.id %>"
+        <%= invoice.invoiceTypeId == t.id && 'selected' %>
+        ><%= t.name %></option>
+      <% } ) %>
+    </select>
+  </div>
+  <div class="required inline field">
+    <label for="">发票日期</label>
+    <input type="date" name="date" 
+    value=<%= (invoice.date? moment(invoice.date): moment()).format('YYYY-MM-DD') %> >
+  </div>
+  <div class="required inline field">
+    <label for="">发票号码</label>
+    <input type="text" name="number" value=<%= invoice.number || '' %> >
+  </div>
+  <div class="required inline field">
+    <label for="">会计账期</label>
+    <select class="ui selection dropdown" name="accountTerm">
+      <option value="">请选择会计帐期</option>
+      <% accountTerms.forEach(function (t) { %>
+        <option value="<%= t.id %>"
+        <%= invoice.accountTermId == t.id && 'selected' %>
+        ><%= t.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="inline field">
+    <div class="is-vat ui checkbox disabled">
+      <input type="checkbox" name="isVAT" disabled <%= invoice.isVAT && 'checked' %>>
+      <label for="">是否是增值税</label>
+    </div>
+  </div>
+
+  <% if (vendors && vendors.length) { %>
+  <div class="required inline field">
+    <label for="">(实际)销售方</label>
+    <select class="ui search selection dropdown" name="vendor">
+      <option value="">选择销售方</option>
+      <% vendors.forEach(function (v) { %>
+        <option value=<%= v.id %> <%= invoice.vendorId == v.id && 'selected' %>>
+        <%= v.name %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+  <% } %>
+
+  <% if (purchasers && purchasers.length) { %>
+  <div class="required inline field">
+    <label for="">(实际)购买方</label>
+    <select class="ui search selection dropdown" name="purchaser">
+      <option value="">选择购买方</option>
+      <% purchasers.forEach(function (p) { %>
+        <option value=<%= p.id %> <%= invoice.purchaserId == p.id && 'selected' %>>
+        <%= p.name %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+  <% } %>
+
+  <% if (selectedInvoiceType.materialTypeId != undefined) { %>
+    <div class="inline field materials-editor">
+      <label for="">物料明细</label>
+      <%- materialsEditor %>
+    </div>
+  <% } %>
+
+  <div class="inline field">
+    <label for="">备注信息</label>
+    <textarea name="notes" rows="4"><%= invoice.notes || '' %></textarea>
+  </div>
+
+  <hr />
+  <input type="submit" class="ui green button" value="提交" />
+  <style scoped>
+    #<%= self.token() %> textarea {
+      display: inline-block;
+      width: 24em;
+    }
+    #<%= self.token() %> .materials-editor > label + * {
+      display: inline-block;
+      width: 28em;
+    }
+  </style>
+</form>
