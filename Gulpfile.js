@@ -28,7 +28,7 @@ gulp.task('reload', function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch(['js/**/*.js', 'js/template/**/*.ejs', '!js/bundle.js'], ['rollup']);
+  gulp.watch(['js/**/*.js', 'template/**/*.ejs', '!js/bundle.js'], ['rollup']);
   gulp.watch(['./index.html', 'js/bundle.js', 'js/plugins.js', 'css/main.css'], ['reload']);
 });
 
@@ -72,11 +72,9 @@ gulp.task('rollup', function () {
     }),
     commonjs(),
     string({
-      include: 'js/template/*.ejs',
+      include: 'template/**/*.ejs',
     }),
     buble({
-      // custom JSX pragma (see below)
-      jsx: 'html',
       transforms: {
         arrow: true,
         dangerousForOf: true

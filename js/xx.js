@@ -1,7 +1,7 @@
 var _uniqueId = function () {
   var i = 1;
-  return function () {
-    return i++;
+  return function (prefix="") {
+    return prefix + i++;
   };
 }();
 
@@ -53,6 +53,10 @@ var Slot = function (initial) {
   this.offspringsByLevels = [];
 };
 
+Slot.prototype.token = function () {
+  return this.tag + '-' + this.id;
+};
+
 Slot.prototype.change = function (proc) {
   this.onChangeCbs.push(proc);
   return this;
@@ -85,7 +89,7 @@ Slot.prototype.val = function (newValue) {
 
 Slot.prototype.refresh = function () {
   this.value = this.valueFunc.apply(
-    null,
+    this,
     this.parents.map(parent => parent.val())
   );
   for (var cb of this.onChangeCbs) {
@@ -94,7 +98,16 @@ Slot.prototype.refresh = function () {
 };
 
 Slot.prototype.patch = function (obj) {
+  console.debug(`xx: slot ${this.tag} is about to be patched`, obj);
   this.val(Object.assign(this.val(), obj));
+};
+
+Slot.prototype.inc = function (cnt=1) {
+  this.val(this.val() + cnt);
+};
+
+Slot.prototype.dec = function (cnt=1) {
+  this.val(this.val() - cnt);
 };
 
 
