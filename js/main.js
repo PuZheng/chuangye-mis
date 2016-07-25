@@ -1,24 +1,40 @@
 import page from 'page';
-import * as invoicePage from './invoice-page.js';
+import invoiceApp from './invoice/main.js';
 import x from './xx.js';
+import invoiceTypeStore from './store/invoice-type-store.js';
+import accountTermStore from './store/account-term-store.js';
+import invoiceStore from './store/invoice-store.js';
+import R from 'ramda';
+import entityStore from './store/entity-store.js';
 
-page('/invoice', function (ctx, next) {
-  const page = invoicePage;
-  x.update([page.loading, false], 
-           [page.invoice, null], 
-           [page.vendorCandidates, [
-             {id: 11, name: "张三"},
-             {id: 22, name: "外部客户1"}
-           ]], 
-           [page.purchaserCandidates, [
-             {id: 1, name: "厂部"},
-             {id: 2, name: "外部客户1"}
-           ]],
-           [page.accountTerms, [
-             {id: 1, name: "2016-06"},
-             {id: 2, name: "2016-07"}
-           ]]
-          );
+x.init({ debug: true });
+
+
+page('/invoice/:id?', function (ctx, next) {
+  var app = invoiceApp;
+  var promises = [
+    invoiceTypeStore.list, 
+    accountTermStore.list,
+  ];
+  if (ctx.params.id) {
+    promises.push(invoiceStore.get(ctx.params.id));
+  }
+  app.loading.inc();
+  Promise.all(promises).then(function ([invoiceTypes, accountTerms, invoice]) {
+    var args = [
+      [app.invoiceTypes, invoiceTypes],
+      [app.accountTerms, accountTerms],
+      [app.loading, 0],
+    ];
+    if (ctx.params.id) {
+      args.push([app.invoice, invoice]);
+    } 
+    x.update(...args);
+    // ask to dropdown to perform on change event
+    if (ctx.params.id) {
+      app.page.performInvoiceTypeSelection();
+    }
+  });
 });
 
 page();

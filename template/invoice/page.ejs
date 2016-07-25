@@ -1,0 +1,14 @@
+<div class="ui grid container" data-x-id=<%= self.id %>>
+  <div class="row">
+    <div class="column">
+      <div class="ui top attached blue message">
+        <div class="ui header">
+          <div class="ui header"><%= invoice.id? `编辑发票-${invoice.number}`: '创建新发票' %></div>
+        </div>
+      </div>
+      <div class="ui bottom attached segment">
+        <%- form %>
+      </div>
+    </div>
+  </div>
+</div>
