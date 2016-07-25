@@ -65,7 +65,7 @@
   </div>
   <% } %>
 
-  <% if (selectedInvoiceType.materialTypeId != undefined) { %>
+  <% if (selectedInvoiceType.materialType != undefined) { %>
     <div class="inline field materials-editor">
       <label for="">物料明细</label>
       <%- materialsEditor %>
@@ -86,7 +86,7 @@
     }
     #<%= self.token() %> .materials-editor > label + * {
       display: inline-block;
-      width: 28em;
+      width: auto;
     }
   </style>
 </form>

@@ -9,7 +9,7 @@ export default {
             vendorType: 'supplier',
             purchaserType: 'tenant',
             isVAT: true,
-            materialTypeId: 1,
+            materialType: 'inbound',
           },
           { 
             id: 2, 
@@ -17,7 +17,7 @@ export default {
             vendorType: 'tenant',
             purchaserType: 'customer',
             isVAT: true,
-            materialTypeId: 2,
+            materialType: 'outbound',
           },
           { 
             id: 3, 

@@ -7,6 +7,7 @@ import once from 'once';
 import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
 import entityStore from '../store/entity-store.js';
+import materialSubjectStore from '../store/material-subject-store.js';
 import materialsEditor from './materials-editor.js';
 
 const errors = x({}).setTag('invoice-form-errors');
@@ -82,7 +83,8 @@ const onInvoiceTypeChange = function (value, text, $choice) {
     invoiceType.purchaserType?  entityStore.fetchList({
       type: invoiceType.purchaserType,
     }): [],
-  ]).then(function ([vendorsData, purchasersData]) {
+    invoiceType.materialType? materialSubjectStore.fetchList({ type: invoiceType.materialType }): [],
+  ]).then(function ([vendorsData, purchasersData, materialSubjects]) {
     x.update(
       [loading, loading.val() - 1],
       [invoice, Object.assign(invoice.val(), {
@@ -91,7 +93,8 @@ const onInvoiceTypeChange = function (value, text, $choice) {
       })],
       [selectedInvoiceType, invoiceType],
       [vendors, vendorsData],
-      [purchasers, purchasersData]
+      [purchasers, purchasersData],
+      [materialsEditor.materialSubjects, materialSubjects]
     );
   });
 };
@@ -134,7 +137,8 @@ export default {
   config: function (node) {
     bindEvents(node);
     initDropdowns(node);
-    materialsEditor.config($(node).find('#' + materialsEditor.view.token()));
+    let materialsEditorEl = node.querySelector('#' + materialsEditor.view.token());
+    materialsEditorEl && materialsEditor.config(materialsEditorEl);
   },
   performInvoiceTypeSelection: function () {
     onInvoiceTypeChange(invoice.val().invoiceTypeId);

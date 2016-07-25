@@ -24,7 +24,7 @@ var $invoiceTypeDropdown;
 var initialized = {};
 
 domDriver.mount(view, container, function (node) {
-  form.config($(node).find('#' + form.view.token()));
+  form.config(node.querySelector('#' + form.view.token()));
 });
 
 export default {
