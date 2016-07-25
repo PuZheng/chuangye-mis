@@ -57,7 +57,6 @@ var bindEvents = once(function (node) {
     });
   });
   $node.submit(function (e) {
-    debugger;
     validate(invoice.val()).then(function () {
       loading.inc();
       invoiceStore.save(invoice.val()).then(function (id) {
