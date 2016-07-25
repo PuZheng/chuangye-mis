@@ -9,6 +9,11 @@ const materialSubjects = x([]).setTag('material-subjects');
 const selectedMaterialSubject = x({}).setTag('selected-material-subject');
 // 正在编辑的物料单
 const materialNote = x({}).setTag('material-node');
+const errors = x({}).setTag('materials-editor-errors');
+
+const validate = function () {
+  return Promise.resolve();
+};
 
 function materialsEditorValueFunc(
   invoice, materialSubjects, selectedMaterialSubject,
@@ -40,7 +45,25 @@ var bindEvents = once(function (node) {
       taxRate: parseFloat(this.value),
     });
   });
-    
+  $node.find('button.add').click(function (e) {
+    e.preventDefault();
+    validate().then(function () {
+      x.update(
+        [invoice, Object.assign(invoice.val(), {
+          materialNotes: (invoice.val().materialNotes || []).concat(materialNote.val()),
+        })],
+        [materialNote, {}]
+      );
+    }).catch(errors.val);
+    return false;
+  });
+  $node.on('click', 'i.remove', function (e) {
+    let materialNotes = invoice.val().materialNotes;
+    materialNotes.splice($(this).data('idx'), 1);
+    invoice.patch({
+      materialNotes 
+    });
+  });
 });
 
 export default {
@@ -58,6 +81,7 @@ export default {
         x.update( 
                  [materialNote, Object.assign(materialNote.val(), {
                    materialSubjectId: value,
+                   materialSubject: R.find(R.propEq('id', value))(materialSubjects.val()),
                  })],
                  [selectedMaterialSubject, R.find(R.propEq('id', value))(materialSubjects.val())]
                 );

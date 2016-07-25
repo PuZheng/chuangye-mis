@@ -32,29 +32,32 @@
       <label for="">税额</label>
       <span><%= (materialNote.quantity || 0) * (materialNote.unitPrice || 0) * (materialNote.taxRate || 0) / 100 %>(元)</span>
     </div>
-    <input type="submit" class="ui button tiny green" value="添加">
+    <button class="add ui button tiny green">添加</button>
     <hr>
     <table class="ui very basic table striped compact">
       <thead>
         <tr>
           <th>物料类别</th>
           <th>数量</th>
-          <th>单价</th>
-          <th>总金额</th>
+          <th>单价(元)</th>
+          <th>总金额(元)</th>
           <th>税率</th>
-          <th>税额</th>
+          <th>税额(元)</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        <% invoice.materialNotes.forEach(function (mn) { %>
+        <% (invoice.materialNotes || []).forEach(function (mn, idx) { %>
         <tr>
-          <td><%= mn.materialSubjectId %></td>
+          <td><%= mn.materialSubject.name %></td>
           <td><%= mn.quantity %></td>
           <td><%= mn.unitPrice %></td>
           <td><%= mn.unitPrice * mn.quantity %></td>
           <td><%= mn.taxRate %></td>
           <td><%= mn.taxRate * mn.quantity * mn.unitPrice / 100.0 %></td>
+          <td>
+            <i class="ui icon remove red" data-idx=<%= idx %>></i>
+          </td>
         </tr>
         <% }) %>
       </tbody>

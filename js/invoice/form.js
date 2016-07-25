@@ -57,16 +57,14 @@ var bindEvents = once(function (node) {
     });
   });
   $node.submit(function (e) {
-    let invoice = invoice.val();
-    validate(invoice).then(function () {
+    debugger;
+    validate(invoice.val()).then(function () {
       loading.inc();
-      invoiceStore.save(invoice).then(function (id) {
+      invoiceStore.save(invoice.val()).then(function (id) {
         loading.dec();
         page('/invoice/' + id);
       });
-    }).catch(function (errors) {
-      errors.val(errors);
-    });
+    }).catch(errors.val);
     return false;
   });
 });

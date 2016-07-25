@@ -11,6 +11,20 @@ export default {
         vendorId: 11,
         purchaserId: 1,
         notes: 'lorem',
+        materialNotes: [
+          { 
+            id: 1, 
+            materialSubjectId: 2,  
+            materialSubject: {
+              id: 2,
+              name: '原材料1',
+              unit: 'kg',
+            },
+            quantity: 50,
+            unitPrice: 40,
+            taxRate: 17,
+          }
+        ],
       });
     }, 500);
   }),
