@@ -16,7 +16,7 @@ var objectValues = obj => (Object.values?  obj => Object.values(obj): function (
   return values;
 })(obj);
 
-var arrFlatten = arr => arr.reduce((sum, i) => sum.concat(i));
+var arrFlatten = arr => arr.reduce((sum, i) => sum.concat(i), []);
 
 var getLast = arr => arr[arr.length - 1];
 
@@ -40,7 +40,7 @@ var addChild = function (parent, child) {
 };
 
 
-var Slot = function (initial) {
+var Slot = function (initial, tag) {
   if (!(this instanceof Slot)) {
     return new Slot();
   }
@@ -51,19 +51,12 @@ var Slot = function (initial) {
   this.children = {};
   this.offsprings = {};
   this.offspringsByLevels = [];
-};
-
-Slot.prototype.token = function () {
-  return this.tag + '-' + this.id;
+  this.tag = tag;
+  this.token = this.tag + '-' + this.id;
 };
 
 Slot.prototype.change = function (proc) {
   this.onChangeCbs.push(proc);
-  return this;
-};
-
-Slot.prototype.setTag = function (tag) {
-  this.tag = tag;
   return this;
 };
 
@@ -85,6 +78,13 @@ Slot.prototype.val = function (newValue) {
       }
       return oldValue;
     }
+};
+
+Slot.prototype.update = function () {
+  this.val(this.valueFunc.apply(
+    this,
+    this.parents.map(parent => parent.val())
+  ));
 };
 
 Slot.prototype.refresh = function () {
@@ -114,14 +114,17 @@ Slot.prototype.dec = function (cnt=1) {
 /**
  * note! a child has only one chance to setup its parents
  * */
-var connect = function connect() {
-  var args = [...arguments];
-  var ret = new Slot();
-  ret.valueFunc = args[args.length - 1];
-  var slots = args.slice(0, args.length - 1);
+var connect = function connect(slots, valueFunc, tag) {
+  var self = new Slot(null, tag);
+  self.valueFunc = valueFunc;
   slots.forEach(function (slot) {
-    addChild(slot, ret);
+    addChild(slot, self);
   });
+  // create an initial value
+  self.value = self.valueFunc.apply(
+    self,
+    slots.map(parent => parent.val())
+  );
   // update ancestors update calculation path each level
   var ancestors = {};
   for (
@@ -131,11 +134,11 @@ var connect = function connect() {
       if (!(parent.id in ancestors)) {
         ancestors[parent.id] = parent;
       }
-      if (ret.id in parent.offsprings) {
-        parent.offsprings[ret.id].level = Math.max(parent.offsprings[ret.id].level, level);
+      if (self.id in parent.offsprings) {
+        parent.offsprings[self.id].level = Math.max(parent.offsprings[self.id].level, level);
       } else {
-        parent.offsprings[ret.id] = {
-          slot: ret,
+        parent.offsprings[self.id] = {
+          slot: self,
           level: level,
         };
       }
@@ -156,7 +159,7 @@ var connect = function connect() {
       slots.push(slot);
     });
   }
-  return ret;
+  return self;
 };
 
 var update = function (...slotValuePairs) {
@@ -213,4 +216,4 @@ export default (function (p) {
   p.update = update;
   p.init = init;
   return p;
-})((initial) => new Slot(initial));
+})((initial, tag) => new Slot(initial, tag));

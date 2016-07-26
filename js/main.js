@@ -1,9 +1,12 @@
 import page from 'page';
-import invoiceApp from './invoice/main.js';
+import invoiceObjectApp from './invoice/object-app.js';
+import voucherObjectApp from './voucher/object-app.js';
 import x from './xx.js';
 import invoiceTypeStore from './store/invoice-type-store.js';
 import accountTermStore from './store/account-term-store.js';
 import invoiceStore from './store/invoice-store.js';
+import voucherTypeStore from './store/voucher-type-store.js';
+import voucherSubjectStore from './store/voucher-subject-store.js';
 import R from 'ramda';
 import entityStore from './store/entity-store.js';
 
@@ -11,7 +14,7 @@ x.init({ debug: true });
 
 
 page('/invoice/:id?', function (ctx, next) {
-  var app = invoiceApp;
+  var app = invoiceObjectApp;
   var promises = [
     invoiceTypeStore.list, 
     accountTermStore.list,
@@ -35,6 +38,22 @@ page('/invoice/:id?', function (ctx, next) {
       app.page.performInvoiceTypeSelection();
     }
   });
+});
+
+page('/voucher/:id?', function (ctx, next) {
+  var app = voucherObjectApp;
+  app.loadingSlot.val(true);
+  Promise.all([
+    voucherTypeStore.list,
+    voucherSubjectStore.list,
+  ]).then(function ([voucherTypes, voucherSubjects]) {
+      x.update(
+        [app.voucherTypesSlot, voucherTypes],
+        [app.loadingSlot, false],
+        [app.voucherSubjectsSlot, voucherSubjects]
+      );
+    });
+  app.viewSlot.refresh();
 });
 
 page();

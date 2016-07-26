@@ -1,0 +1,71 @@
+<div class="ui form <%= loading? 'loading': '' %>" id="<%= self.token %>">
+  <div class="required inline field">
+    <label for="">凭证类型</label>
+    <select class="ui selection dropdown" name="voucherType">
+      <option value="">请选择凭证类型</option>
+      <% voucherTypes.forEach(function (t) { %>
+        <option value="<%= t.id %>"
+        <%= t.id == voucher.voucherTypeId? 'selected': '' %>
+        ><%= t.name %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="required inline field">
+    <label for="">项目名称</label>
+    <select class="ui search dropdown" name="voucherSubject">
+      <option value="">请选择项目名称</option>
+      <% voucherSubjects.forEach(function (s) { %>
+        <option value="<%= s.id %>"
+        <%= s.id == voucher.voucherSubjectId? 'selected': '' %>
+        ><%= s.name %></option>
+      <% }) %>
+    </select>
+    <span for=""><%= selectedVoucherSubject.comment %></span>
+  </div>
+  
+  <div class="required inline field">
+    <label for="">日期</label>
+    <input type="date" name="date" 
+    value=<%= (voucher.date? moment(voucher.date): moment()).format('YYYY-MM-DD') %> >
+  </div>
+  <div class="required inline field">
+    <label for="">凭证号</label>
+    <input type="text" name="number" value="<%= voucher.number %>">
+  </div>
+  <div class="inline field">
+    <div class="ui checkbox disabled">
+      <input type="checkbox" name="isPublic" <%= voucher.isPublic? 'checked': ''%>>
+      <label for="">是否进入总账</label>
+    </div>
+  </div>
+  <div class="required inline field">
+    <label for="">(实际)支付方</label>
+    <select class="ui search dropdown" name="payer">
+      <option value="">请选择支付方</option>
+      <% payers.forEach(function (p) { %>
+        <option value="<%= p.id %>"
+        <%= p.id == voucher.payerId? 'selected': '' %>
+        ><%= p.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="required inline field">
+    <label for="">(实际)收入方</label>
+    <select class="ui search dropdown" name="recipient">
+      <option value="">请选择收入方</option>
+      <% recipients.forEach(function (r) { %>
+        <option value="<%= r.id %>"
+        <%= r.id == voucher.recipientId? 'selected': '' %>
+        ><%= r.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="required inline field">
+    <label for="">备注</label>
+    <textarea name="comment" value=<%= voucher.comment %>></textarea>
+  </div>
+  <hr>
+  <button class="commit ui button green">提交</button>
+</div>
+

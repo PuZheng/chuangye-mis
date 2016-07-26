@@ -1,15 +1,15 @@
 import x from '../xx.js';
 import R from 'ramda';
 import {invoice, selectedInvoiceType} from './data-slots.js';
-import tmpl from '../../template/invoice/materials-editor.ejs';
+import tmpl from './materials-editor.ejs';
 import once from 'once';
 
-const materialSubjects = x([]).setTag('material-subjects');
+const materialSubjects = x([], 'material-subjects');
 // 选中的物料类型
-const selectedMaterialSubject = x({}).setTag('selected-material-subject');
+const selectedMaterialSubject = x({}, 'selected-material-subject');
 // 正在编辑的物料单
-const materialNote = x({}).setTag('material-node');
-const errors = x({}).setTag('materials-editor-errors');
+const materialNote = x({}, 'material-node');
+const errors = x({}, 'materials-editor-errors');
 
 const validate = function () {
   return Promise.resolve();
@@ -68,9 +68,9 @@ var bindEvents = once(function (node) {
 
 export default {
   view: x.connect(
-    invoice, materialSubjects, selectedMaterialSubject,
-    materialNote,
-    materialsEditorValueFunc),
+    [invoice, materialSubjects, selectedMaterialSubject,
+    materialNote],
+    materialsEditorValueFunc, 'materials-editor'),
   materialSubjects,
   config: function (node) {
     bindEvents(node);

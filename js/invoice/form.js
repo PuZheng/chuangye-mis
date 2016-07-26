@@ -2,7 +2,7 @@ import moment from 'moment';
 import {invoice, invoiceTypes, loading, vendors, purchasers, accountTerms, selectedInvoiceType} from './data-slots.js';
 import x from '../xx.js';
 import R from 'ramda';
-import tmpl from '../../template/invoice/form.ejs';
+import tmpl from './form.ejs';
 import once from 'once';
 import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
@@ -10,7 +10,7 @@ import entityStore from '../store/entity-store.js';
 import materialSubjectStore from '../store/material-subject-store.js';
 import materialsEditor from './materials-editor.js';
 
-const errors = x({}).setTag('invoice-form-errors');
+const errors = x({}, 'invoice-form-errors');
 
 function invoiceFormValueFunc(
   errors, loading, invoiceTypes, 
@@ -128,13 +128,14 @@ var initDropdowns = function (node) {
 
 export default {
   view: x.connect(
-  errors, loading, invoiceTypes, invoice, vendors, purchasers, accountTerms, selectedInvoiceType, materialsEditor.view,
-  invoiceFormValueFunc
-  ).setTag('invoice-form'),
+    [errors, loading, invoiceTypes, invoice, vendors, purchasers, accountTerms, selectedInvoiceType, 
+      materialsEditor.view],
+    invoiceFormValueFunc, 
+    'invoice-form'),
   config: function (node) {
     bindEvents(node);
     initDropdowns(node);
-    let materialsEditorEl = node.querySelector('#' + materialsEditor.view.token());
+    let materialsEditorEl = node.querySelector('#' + materialsEditor.view.token);
     materialsEditorEl && materialsEditor.config(materialsEditorEl);
   },
   performInvoiceTypeSelection: function () {
