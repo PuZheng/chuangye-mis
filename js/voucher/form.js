@@ -5,8 +5,11 @@ import tmpl from './form.ejs';
 import moment from 'moment';
 import R from 'ramda';
 import once from 'once';
+import page from 'page';
+import voucherStore from '../store/voucher-store.js';
 
 const selectedVoucherSubjectSlot = x({}, 'selected-voucher-subject');
+const errors = x({}, 'errors');
 
 const formValueFunc = function (
   loading, voucher, voucherTypes, voucherSubjects,
@@ -30,14 +33,34 @@ var viewSlot = x.connect([
   recipientsSlot, payersSlot, selectedVoucherSubjectSlot
 ], formValueFunc, 'voucher-form');
 
+const validate = function (voucher) {
+  return Promise.resolve(voucher);
+};
+
 const bindEvents = once(function ($node) {
     $node.find('[name=number]').change(function () {
       voucherSlot.patch({
         number: this.value,
       });
     });
+    $node.find('[name=comment]').change(function () {
+      voucherSlot.patch({
+        comment: this.value,
+      });
+    });
+    $node.find('[name=date]').change(function () {
+      voucherSlot.patch({
+        date: this.value,
+      });
+    });
     $node.find('button.commit').click(function () {
-      
+      loadingSlot.val(true);
+      validate(voucherSlot.val()).then(function () {
+        voucherStore.save(voucherSlot.val()).then(function (id) {
+          loadingSlot.val(false);
+          page('/voucher/' + id);
+        });
+      }).catch(errors.val);
     });
 });
 
