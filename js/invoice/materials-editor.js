@@ -1,15 +1,15 @@
 import x from '../xx.js';
 import R from 'ramda';
-import {invoice, selectedInvoiceType} from './data-slots.js';
-import tmpl from '../../template/invoice/materials-editor.ejs';
+import {invoiceSlot, selectedInvoiceType} from './data-slots.js';
+import tmpl from './materials-editor.ejs';
 import once from 'once';
 
-const materialSubjects = x([]).setTag('material-subjects');
+const materialSubjects = x([], 'material-subjects');
 // 选中的物料类型
-const selectedMaterialSubject = x({}).setTag('selected-material-subject');
+const selectedMaterialSubject = x({}, 'selected-material-subject');
 // 正在编辑的物料单
-const materialNote = x({}).setTag('material-node');
-const errors = x({}).setTag('materials-editor-errors');
+const materialNote = x({}, 'material-node');
+const errors = x({}, 'materials-editor-errors');
 
 const validate = function () {
   return Promise.resolve();
@@ -49,8 +49,8 @@ var bindEvents = once(function (node) {
     e.preventDefault();
     validate().then(function () {
       x.update(
-        [invoice, Object.assign(invoice.val(), {
-          materialNotes: (invoice.val().materialNotes || []).concat(materialNote.val()),
+        [invoiceSlot, Object.assign(invoiceSlot.val(), {
+          materialNotes: (invoiceSlot.val().materialNotes || []).concat(materialNote.val()),
         })],
         [materialNote, {}]
       );
@@ -58,9 +58,9 @@ var bindEvents = once(function (node) {
     return false;
   });
   $node.on('click', 'i.remove', function (e) {
-    let materialNotes = invoice.val().materialNotes;
+    let materialNotes = invoiceSlot.val().materialNotes;
     materialNotes.splice($(this).data('idx'), 1);
-    invoice.patch({
+    invoiceSlot.patch({
       materialNotes 
     });
   });
@@ -68,9 +68,9 @@ var bindEvents = once(function (node) {
 
 export default {
   view: x.connect(
-    invoice, materialSubjects, selectedMaterialSubject,
-    materialNote,
-    materialsEditorValueFunc),
+    [invoiceSlot, materialSubjects, selectedMaterialSubject,
+    materialNote],
+    materialsEditorValueFunc, 'materials-editor'),
   materialSubjects,
   config: function (node) {
     bindEvents(node);

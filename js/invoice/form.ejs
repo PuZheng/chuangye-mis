@@ -1,4 +1,4 @@
-<form class="ui form <%= loading && 'loading' %>" id=<%= self.token() %>>
+<form class="ui form <%= loading && 'loading' %>" id=<%= self.token %>>
   <div class="ui divided grid">
     <div class="eight wide column">
       <div class="inline field">
@@ -85,10 +85,10 @@
   <hr />
   <input type="submit" class="ui green button" value="提交" />
   <style scoped>
-    #<%= self.token() %> textarea {
+    #<%= self.token %> textarea {
       display: inline-block;
     }
-    #<%= self.token() %> .materials-editor > label + * {
+    #<%= self.token %> .materials-editor > label + * {
       display: inline-block;
       width: auto;
     }
