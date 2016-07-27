@@ -1,7 +1,6 @@
 var gulp = require('gulp');
 var connect = require('gulp-connect');
-var qiniu = require("qiniu");
-var fs = require('fs');
+var fs = require('mz/fs');
 var rev = require("gulp-rev");
 var revReplace = require("gulp-rev-replace");
 var rollup = require('rollup').rollup;
@@ -13,6 +12,10 @@ var rollupUglify = require('rollup-plugin-uglify');
 var fse = require('fs-extra');
 var glob = require('glob');
 var path = require('path');
+var cheerio = require('cheerio');
+var R = require('ramda');
+var co = require('co');
+var OSS = require('ali-oss');
 
 gulp.task('connect', function() {
   connect.server({
@@ -34,26 +37,30 @@ gulp.task('watch', function () {
 
 gulp.task('collect-dist', ['rollup'], function (cb) {
   var cnt = 0;
-  var copyCb = function (err) {
-    if (err) return console.error(err);
-    if (++cnt === files.length) {
-      cb();
+  co(function *() {
+    var content = yield fs.readFile('index.html');
+    let $ = cheerio.load(content);
+    // css and js
+    var filenames = $('script').map((idx, e) => $(e).attr('src')).get().concat(
+        $('link').map((idx, e) => $(e).attr('href')).get()
+    );
+    filenames.push('index.html');
+    // fonts
+    var fontsFiles = yield new Promise(function (resolve, reject) {
+      glob('semantic/dist/themes/default/assets/**/*', function (err, filenames) {
+        resolve(filenames);
+      });
+    });
+    filenames = filenames.concat(fontsFiles);
+    console.log('files to distribute: ', filenames);
+    for (var filename of filenames) {
+      yield new Promise(function (resolve, reject) {
+        fse.copy(filename, 'dist/' + filename, function (err) {
+          resolve();
+        });
+      }); 
     }
-  };
-  var files = [
-    'index.html',
-    'semantic/dist/semantic.min.css',
-    'css/normalize.css',
-    'css/main.css',
-    'js/vendor/modernizr-2.6.2.min.js',
-    'node_modules/jquery/dist/jquery.min.js',
-    'semantic/dist/semantic.min.js',
-    'node_modules/ejs/ejs.min.js',
-    'js/bundle.js',
-    'js/bundle.js.map'
-  ];
-  files.forEach(function (filename) {
-    fse.copy(filename, 'dist/' + filename, copyCb);
+    cb();
   });
 });
 
@@ -115,37 +122,31 @@ gulp.task('rev-replace', ['rev'], function(){
     .pipe(gulp.dest('dist'));
 });
 
-function uploadDir(bucket, dir, options) {
-  var putFileCb = function putFileCb(err, ret) {
-    if(!err) {
-      // 上传成功， 处理返回值
-      console.log(ret.hash, ret.key, ret.persistentId);       
-    } else {
-      // 上传失败， 处理返回代码
-      console.log(err);
-    }
-  };
-  glob('dist/**/*', function (err, files) {
-    for (var filename of files) {
-      var key = path.relative('dist', filename);
-      var putPolicy = new qiniu.rs.PutPolicy(`${bucket}:${key}`);
-      qiniu.io.putFile(putPolicy.token(), key, filename, 
-                       new qiniu.io.PutExtra(), putFileCb);
-    }
-  });
-}
- 
-gulp.task('deploy', function () {
-  fs.readFile('config.json', function (err, buf) {
-    var config = JSON.parse(buf.toString());
-    qiniu.conf.ACCESS_KEY = config.qiniuAccessKey;
-    qiniu.conf.SECRET_KEY = config.qiniuSecrectKey;
-    console.log(qiniu.conf);
-
-    //要上传的空间
-    uploadDir('chuangye-mis', 'dist', {
-      base: 'dist',
+var uploadDir = function * (client, dir, opts) {
+  var filenames = yield new Promise(function (resolve, reject) {
+    glob(dir + '/**/*', function (err, filenames) {
+      resolve(filenames);
     });
   });
+  for (var filename of filenames) {
+    if ((yield fs.stat(filename)).isFile()) {
+      var key = path.relative(opts.base, filename);
+      console.log('deploy ' + key);
+      var result = yield client.put(key, filename);
+      console.log(result);
+    }
+  };
+};
 
+gulp.task('deploy', ['dist'], function (cb) {
+  co(function * () {
+    var config = JSON.parse((yield fs.readFile('config.json')).toString());
+    var client = new OSS({
+      region: config.region,
+      accessKeyId: config.accessKeyId,
+      accessKeySecret: config.accessKeySecret
+    });
+    client.useBucket(config.bucket);
+    yield * uploadDir(client, 'dist', { base: 'dist' });
+  }).catch(console.error);
 });
