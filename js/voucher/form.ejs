@@ -12,9 +12,9 @@
   </div>
 
   <div class="required inline field">
-    <label for="">项目名称</label>
+    <label for="">项目</label>
     <select class="ui search dropdown" name="voucherSubject">
-      <option value="">请选择项目名称</option>
+      <option value="">请选择项目</option>
       <% voucherSubjects.forEach(function (s) { %>
         <option value="<%= s.id %>"
         <%= s.id == voucher.voucherSubjectId? 'selected': '' %>
@@ -63,7 +63,7 @@
   </div>
   <div class="required inline field">
     <label for="">备注</label>
-    <textarea name="comment" value=<%= voucher.comment %>></textarea>
+    <textarea name="comment"><%= voucher.comment %></textarea>
   </div>
   <hr>
   <button class="commit ui button green">提交</button>

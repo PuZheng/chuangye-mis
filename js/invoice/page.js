@@ -4,13 +4,13 @@ import domDriver from '../dom-driver.js';
 import toastr from 'toastr';
 import page from 'page';
 import form from './form.js';
-import { invoiceTypes, loading, invoice, vendors, purchasers, accountTerms } from './data-slots.js';
+import { invoiceTypes, loading, invoiceSlot, vendors, purchasers, accountTerms } from './data-slots.js';
 import morphdom from 'morphdom';
 import tmpl from './page.ejs';
 
 
 const view = x.connect(
-  [loading, invoice, form.view], 
+  [loading, invoiceSlot, form.view], 
   function (loading, invoice, form) {
     return ejs.render(tmpl, {
       self: this,
@@ -30,7 +30,4 @@ domDriver.mount(view, container, function (node) {
 
 export default {
   view,
-  performInvoiceTypeSelection: function () {
-    form.performInvoiceTypeSelection();
-  }
 };

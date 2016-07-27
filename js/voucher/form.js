@@ -11,6 +11,41 @@ import voucherStore from '../store/voucher-store.js';
 const selectedVoucherSubjectSlot = x({}, 'selected-voucher-subject');
 const errors = x({}, 'errors');
 
+var cbId = voucherSlot.change(function (voucher) {
+  if (voucher.id && voucher.voucherSubjectId) {
+    voucherSlot.offChange(cbId);
+    onVoucherSubjectChange(voucher.voucherSubjectId);
+  };
+});
+
+const onVoucherSubjectChange = function (value, text, $choice) {
+  value = parseInt(value);
+  var voucherSubject = R.find(R.propEq('id', value))(voucherSubjectsSlot.val());
+  x.update(
+    [loadingSlot, true],
+    [selectedVoucherSubjectSlot, voucherSubject],
+    [voucherSlot, Object.assign(voucherSlot.val(), {
+      isPublic: voucherSubject.isPublic,
+      voucherSubjectId: voucherSubject.id,
+      voucherSubject,
+    })]
+  );
+  Promise.all([
+    entityStore.fetchList({
+      type: voucherSubject.payerType,
+    }),
+    entityStore.fetchList({
+      type: voucherSubject.recipientType, 
+    }),
+  ]).then(function ([payers, recipients]) {
+    x.update(
+      [loadingSlot, false],
+      [payersSlot, payers],
+      [recipientsSlot, recipients]
+    );
+  });
+};
+
 const formValueFunc = function (
   loading, voucher, voucherTypes, voucherSubjects,
   recipients, payers, selectedVoucherSubject
@@ -77,33 +112,7 @@ export default {
       },
     });
     $node.find('[name=voucherSubject]').dropdown({
-      onChange: function (value, text, $choice) {
-        value = parseInt(value);
-        var voucherSubject = R.find(R.propEq('id', value))(voucherSubjectsSlot.val());
-        x.update(
-          [loadingSlot, true],
-          [selectedVoucherSubjectSlot, voucherSubject],
-          [voucherSlot, Object.assign(voucherSlot.val(), {
-            isPublic: voucherSubject.isPublic,
-            voucherSubjectId: voucherSubject.id,
-            voucherSubject,
-          })]
-        );
-        Promise.all([
-          entityStore.fetchList({
-            type: voucherSubject.payerType,
-          }),
-          entityStore.fetchList({
-            type: voucherSubject.recipientType, 
-          }),
-        ]).then(function ([payers, recipients]) {
-          x.update(
-            [loadingSlot, false],
-            [payersSlot, payers],
-            [recipientsSlot, recipients]
-          );
-        });
-      },
+      onChange: onVoucherSubjectChange,
     });
     $node.find('[name=recipient]').dropdown({
       onChange: function (value, text, $choice) {

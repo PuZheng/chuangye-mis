@@ -1,6 +1,6 @@
 import x from '../xx.js';
 import R from 'ramda';
-import {invoice, selectedInvoiceType} from './data-slots.js';
+import {invoiceSlot, selectedInvoiceType} from './data-slots.js';
 import tmpl from './materials-editor.ejs';
 import once from 'once';
 
@@ -49,8 +49,8 @@ var bindEvents = once(function (node) {
     e.preventDefault();
     validate().then(function () {
       x.update(
-        [invoice, Object.assign(invoice.val(), {
-          materialNotes: (invoice.val().materialNotes || []).concat(materialNote.val()),
+        [invoiceSlot, Object.assign(invoiceSlot.val(), {
+          materialNotes: (invoiceSlot.val().materialNotes || []).concat(materialNote.val()),
         })],
         [materialNote, {}]
       );
@@ -58,9 +58,9 @@ var bindEvents = once(function (node) {
     return false;
   });
   $node.on('click', 'i.remove', function (e) {
-    let materialNotes = invoice.val().materialNotes;
+    let materialNotes = invoiceSlot.val().materialNotes;
     materialNotes.splice($(this).data('idx'), 1);
-    invoice.patch({
+    invoiceSlot.patch({
       materialNotes 
     });
   });
@@ -68,7 +68,7 @@ var bindEvents = once(function (node) {
 
 export default {
   view: x.connect(
-    [invoice, materialSubjects, selectedMaterialSubject,
+    [invoiceSlot, materialSubjects, selectedMaterialSubject,
     materialNote],
     materialsEditorValueFunc, 'materials-editor'),
   materialSubjects,
