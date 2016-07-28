@@ -1,5 +1,5 @@
 import x from '../xx.js';
-import { voucherSlot, voucherTypesSlot, loadingSlot, voucherSubjectsSlot, recipientsSlot, payersSlot } from './data-slots.js';
+import { $$voucher, $$voucherTypes, $$loading, $$voucherSubjects, $$recipients, $$payers } from './data-slots.js';
 import entityStore from '../store/entity-store.js';
 import tmpl from './form.ejs';
 import moment from 'moment';
@@ -8,23 +8,23 @@ import once from 'once';
 import page from 'page';
 import voucherStore from '../store/voucher-store.js';
 
-const selectedVoucherSubjectSlot = x({}, 'selected-voucher-subject');
+const $$selectedVoucherSubject = x({}, 'selected-voucher-subject');
 const errors = x({}, 'errors');
 
-var cbId = voucherSlot.change(function (voucher) {
+var cbId = $$voucher.change(function (voucher) {
   if (voucher.id && voucher.voucherSubjectId) {
-    voucherSlot.offChange(cbId);
+    $$voucher.offChange(cbId);
     onVoucherSubjectChange(voucher.voucherSubjectId);
   };
 });
 
 const onVoucherSubjectChange = function (value, text, $choice) {
   value = parseInt(value);
-  var voucherSubject = R.find(R.propEq('id', value))(voucherSubjectsSlot.val());
+  var voucherSubject = R.find(R.propEq('id', value))($$voucherSubjects.val());
   x.update(
-    [loadingSlot, true],
-    [selectedVoucherSubjectSlot, voucherSubject],
-    [voucherSlot, Object.assign(voucherSlot.val(), {
+    [$$loading, true],
+    [$$selectedVoucherSubject, voucherSubject],
+    [$$voucher, Object.assign($$voucher.val(), {
       isPublic: voucherSubject.isPublic,
       voucherSubjectId: voucherSubject.id,
       voucherSubject,
@@ -39,9 +39,9 @@ const onVoucherSubjectChange = function (value, text, $choice) {
     }),
   ]).then(function ([payers, recipients]) {
     x.update(
-      [loadingSlot, false],
-      [payersSlot, payers],
-      [recipientsSlot, recipients]
+      [$$loading, false],
+      [$$payers, payers],
+      [$$recipients, recipients]
     );
   });
 };
@@ -63,9 +63,9 @@ const formValueFunc = function (
   });
 };
 
-var viewSlot = x.connect([
-  loadingSlot, voucherSlot, voucherTypesSlot, voucherSubjectsSlot,
-  recipientsSlot, payersSlot, selectedVoucherSubjectSlot
+var $$view = x.connect([
+  $$loading, $$voucher, $$voucherTypes, $$voucherSubjects,
+  $$recipients, $$payers, $$selectedVoucherSubject
 ], formValueFunc, 'voucher-form');
 
 const validate = function (voucher) {
@@ -74,25 +74,25 @@ const validate = function (voucher) {
 
 const bindEvents = once(function ($node) {
     $node.find('[name=number]').change(function () {
-      voucherSlot.patch({
+      $$voucher.patch({
         number: this.value,
       });
     });
     $node.find('[name=comment]').change(function () {
-      voucherSlot.patch({
+      $$voucher.patch({
         comment: this.value,
       });
     });
     $node.find('[name=date]').change(function () {
-      voucherSlot.patch({
+      $$voucher.patch({
         date: this.value,
       });
     });
     $node.find('button.commit').click(function () {
-      loadingSlot.val(true);
-      validate(voucherSlot.val()).then(function () {
-        voucherStore.save(voucherSlot.val()).then(function (id) {
-          loadingSlot.val(false);
+      $$loading.val(true);
+      validate($$voucher.val()).then(function () {
+        voucherStore.save($$voucher.val()).then(function (id) {
+          $$loading.val(false);
           page('/voucher/' + id);
         });
       }).catch(errors.val);
@@ -100,13 +100,13 @@ const bindEvents = once(function ($node) {
 });
 
 export default {
-  viewSlot,
+  $$view,
   config: function (node) {
-    const $node = $(document.getElementById(viewSlot.token));
+    const $node = $(document.getElementById($$view.token));
     bindEvents($node);
     $node.find('[name=voucherType]').dropdown({
       onChange: function (value, text, $choice) {
-        voucherSlot.patch({
+        $$voucher.patch({
           voucherTypeId: value,
         });
       },
@@ -116,14 +116,14 @@ export default {
     });
     $node.find('[name=recipient]').dropdown({
       onChange: function (value, text, $choice) {
-        voucherSlot.patch({
+        $$voucher.patch({
           recipientId: parseInt(value) ,
         });
       },
     });
     $node.find('[name=payer]').dropdown({
       onChange: function (value, text, $choice) {
-        voucherSlot.patch({
+        $$voucher.patch({
           payerId: parseInt(value),
         });
       },

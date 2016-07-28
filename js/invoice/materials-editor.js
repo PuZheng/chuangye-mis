@@ -1,15 +1,15 @@
 import x from '../xx.js';
 import R from 'ramda';
-import {invoiceSlot, selectedInvoiceType} from './data-slots.js';
+import {$$invoice, $$selectedInvoiceType} from './data-slots.js';
 import tmpl from './materials-editor.ejs';
 import once from 'once';
 
-const materialSubjects = x([], 'material-subjects');
+const $$materialSubjects = x([], 'material-subjects');
 // 选中的物料类型
-const selectedMaterialSubject = x({}, 'selected-material-subject');
+const $$selectedMaterialSubject = x({}, 'selected-material-subject');
 // 正在编辑的物料单
-const materialNote = x({}, 'material-node');
-const errors = x({}, 'materials-editor-errors');
+const $$materialNote = x({}, 'material-node');
+const $$errors = x({}, 'materials-editor-errors');
 
 const validate = function () {
   return Promise.resolve();
@@ -31,17 +31,17 @@ function materialsEditorValueFunc(
 var bindEvents = once(function (node) {
   let $node = $(node);
   $node.find('[name=quantity]').change(function (e) {
-    materialNote.patch({
+    $$materialNote.patch({
       quantity: parseFloat(this.value),
     });
   });
   $node.find('[name=unitPrice]').change(function (e) {
-    materialNote.patch({
+    $$materialNote.patch({
       unitPrice: parseFloat(this.value),
     });
   });
   $node.find('[name=taxRate]').change(function (e) {
-    materialNote.patch({
+    $$materialNote.patch({
       taxRate: parseFloat(this.value),
     });
   });
@@ -49,29 +49,29 @@ var bindEvents = once(function (node) {
     e.preventDefault();
     validate().then(function () {
       x.update(
-        [invoiceSlot, Object.assign(invoiceSlot.val(), {
-          materialNotes: (invoiceSlot.val().materialNotes || []).concat(materialNote.val()),
+        [$$invoice, Object.assign($$invoice.val(), {
+          $$materialNotes: ($$invoice.val().materialNotes || []).concat($$materialNote.val()),
         })],
-        [materialNote, {}]
+        [$$materialNote, {}]
       );
-    }).catch(errors.val);
+    }).catch($$errors.val);
     return false;
   });
   $node.on('click', 'i.remove', function (e) {
-    let materialNotes = invoiceSlot.val().materialNotes;
+    let materialNotes = $$invoice.val().materialNotes;
     materialNotes.splice($(this).data('idx'), 1);
-    invoiceSlot.patch({
+    $$invoice.patch({
       materialNotes 
     });
   });
 });
 
 export default {
-  view: x.connect(
-    [invoiceSlot, materialSubjects, selectedMaterialSubject,
-    materialNote],
+  $$view: x.connect(
+    [$$invoice, $$materialSubjects, $$selectedMaterialSubject,
+    $$materialNote],
     materialsEditorValueFunc, 'materials-editor'),
-  materialSubjects,
+  $$materialSubjects,
   config: function (node) {
     bindEvents(node);
     let $node = $(node);
@@ -79,11 +79,11 @@ export default {
       onChange: function (value, text, $choice) {
         value = parseInt(value);
         x.update( 
-                 [materialNote, Object.assign(materialNote.val(), {
+                 [$$materialNote, Object.assign($$materialNote.val(), {
                    materialSubjectId: value,
-                   materialSubject: R.find(R.propEq('id', value))(materialSubjects.val()),
+                   materialSubject: R.find(R.propEq('id', value))($$materialSubjects.val()),
                  })],
-                 [selectedMaterialSubject, R.find(R.propEq('id', value))(materialSubjects.val())]
+                 [$$selectedMaterialSubject, R.find(R.propEq('id', value))($$materialSubjects.val())]
                 );
       }
     });

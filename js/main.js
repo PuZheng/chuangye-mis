@@ -20,13 +20,13 @@ page('/invoice/:id?', function (ctx, next) {
     accountTermStore.list,
     ctx.params.id? invoiceStore.get(ctx.params.id): {},
   ];
-  app.loading.inc();
+  app.$$loading.inc();
   Promise.all(promises).then(function ([invoiceTypes, accountTerms, invoice]) {
     var args = [
-      [app.invoiceTypes, invoiceTypes],
-      [app.accountTerms, accountTerms],
-      [app.loading, 0],
-      [app.invoiceSlot, invoice]
+      [app.$$invoiceTypes, invoiceTypes],
+      [app.$$accountTerms, accountTerms],
+      [app.$$loading, 0],
+      [app.$$invoice, invoice]
     ];
     x.update(...args);
   });
@@ -34,7 +34,7 @@ page('/invoice/:id?', function (ctx, next) {
 
 page('/voucher/:id?', function (ctx, next) {
   var app = voucherObjectApp;
-  app.loadingSlot.val(true);
+  app.$$loading.val(true);
   var promises = [
     voucherTypeStore.list,
     voucherSubjectStore.list,
@@ -42,13 +42,13 @@ page('/voucher/:id?', function (ctx, next) {
   ];
   Promise.all(promises).then(function ([voucherTypes, voucherSubjects, voucher]) {
     x.update(
-      [app.voucherTypesSlot, voucherTypes],
-      [app.loadingSlot, false],
-      [app.voucherSubjectsSlot, voucherSubjects],
-      [app.voucherSlot, voucher]
+      [app.$$voucherTypes, voucherTypes],
+      [app.$$loading, false],
+      [app.$$voucherSubjects, voucherSubjects],
+      [app.$$voucher, voucher]
     );
   });
-  app.viewSlot.refresh();
+  app.$$view.refresh();
 });
 
 page();
