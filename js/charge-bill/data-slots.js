@@ -1,4 +1,5 @@
 import x from '../xx.js';
+import { $$chargeBilldef, $$chrageBillData } from './page.js';
 
 export const $$loading = x(false, 'loading');
-export const $$chargeBillDef = x({}, 'charge-bill-def');
+

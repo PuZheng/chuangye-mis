@@ -1,17 +1,19 @@
-import { $$loading, $$chargeBillDef } from './data-slots.js';
+import { $$loading } from './data-slots.js';
 import x from '../xx.js';
-import SmartGrid from '../smart-grid/smart-grid.js';
+import smartGrid from '../smart-grid/smart-grid.js';
 var h = virtualDom.h;
 
-const valueFunc = function (loading, chargeBillDef) {
+const valueFunc = function (loading, chargeBillDef, chargeBillData, smartGrid) {
   return h('.ui.grid.container',     
              h('.row',     
-               h('.column', new SmartGrid(chargeBillDef).vnode)
+               h('.column', smartGrid)
               )
           ); 
 };
 
-export const $$page = x.connect([$$loading, $$chargeBillDef], 
+export const $$chargeBillDef = smartGrid.$$def;
+export const $$chargeBillData = smartGrid.$$data;
+export const $$page = x.connect([$$loading, $$chargeBillDef, $$chargeBillData, smartGrid.$$view], 
                                 valueFunc, 'page');
 
 $$page.change(function () {
@@ -23,3 +25,4 @@ $$page.change(function () {
     rootNode = virtualDom.patch(rootNode, virtualDom.diff(oldVnode, vnode));
   };
 }());
+

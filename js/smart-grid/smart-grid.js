@@ -1,11 +1,15 @@
+import x from '../xx.js';
 var h = virtualDom.h;
 
-class SmartGrid {
-  constructor({def, data}) {
+const $$def = x({}, 'def');
+const $$data = x([], 'data');
 
-  }
-  get vnode() {
-    return h('h1', 'smart grid');
-  }
+var smartGridValueFunc = function (def, data) {
+  return h('h1', 'smart grid');
 };
-export default SmartGrid;
+
+export default {
+  $$view: x.connect([$$def, $$data], smartGridValueFunc),
+  $$def,
+  $$data
+};
