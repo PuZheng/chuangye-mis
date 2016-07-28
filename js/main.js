@@ -1,6 +1,7 @@
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app.js';
 import voucherObjectApp from './voucher/object-app.js';
+import chargeBillApp from './charge-bill/app.js';
 import x from './xx.js';
 import invoiceTypeStore from './store/invoice-type-store.js';
 import accountTermStore from './store/account-term-store.js';
@@ -8,6 +9,7 @@ import invoiceStore from './store/invoice-store.js';
 import voucherTypeStore from './store/voucher-type-store.js';
 import voucherSubjectStore from './store/voucher-subject-store.js';
 import voucherStore from './store/voucher-store.js';
+import chargeBillStore from './store/charge-bill-store.js';
 import R from 'ramda';
 import entityStore from './store/entity-store.js';
 
@@ -48,7 +50,17 @@ page('/voucher/:id?', function (ctx, next) {
       [app.$$voucher, voucher]
     );
   });
-  app.$$view.refresh();
+});
+
+page('/charge-bill/:id?', function (ctx, next) {
+  var app = chargeBillApp;
+  app.$$loading.val(true);
+  chargeBillStore.get(ctx.params.id).then(function (chargeBillDef) {
+    x.update(
+      [app.$$loading, false],
+      [app.$$chargeBillDef, chargeBillDef]
+    );
+  });
 });
 
 page();

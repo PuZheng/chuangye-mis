@@ -77,7 +77,9 @@ gulp.task('rollup', function () {
       browser: true,
       skip: ['moment']
     }),
-    commonjs(),
+    commonjs({
+      ignoreGlobal: true,
+    }),
     string({
       include: ['js/**/*.ejs'],
     }),

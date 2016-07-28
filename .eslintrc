@@ -17,6 +17,7 @@
     },
     "globals": {
         "ejs": true,
-        "$": true
+        "$": true,
+        "virtualDom": true
     }
 }
