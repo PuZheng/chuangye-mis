@@ -1,6 +1,6 @@
 import { $$loading } from './data-slots.js';
 import x from '../xx.js';
-import smartGrid from '../smart-grid/smart-grid.js';
+import smartGrid from '../../smart-grid/smart-grid.js';
 var h = virtualDom.h;
 
 const valueFunc = function (loading, chargeBillDef, chargeBillData, smartGrid) {
@@ -23,6 +23,8 @@ $$page.change(function () {
   container.appendChild(rootNode);
   return function (vnode) {
     rootNode = virtualDom.patch(rootNode, virtualDom.diff(oldVnode, vnode));
+    oldVnode = vnode;
+    smartGrid.didMount.apply(smartGrid, [rootNode]);
   };
 }());
 

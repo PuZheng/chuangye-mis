@@ -1,3 +1,5 @@
+import R from 'ramda';
+
 export default {
   get: function (id) {
     return new Promise(function (resolve, reject) {
@@ -7,7 +9,13 @@ export default {
           columns: 10, 
           rows: 2,
           grids: [
-            null,
+            R.repeat({
+              style: {
+                background: 'teal',
+                color: 'yellow',
+                fontWeight: 'bold',
+              }
+            }, 10),
             [
               {
                 type: 'INT',

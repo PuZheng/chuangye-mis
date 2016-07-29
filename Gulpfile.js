@@ -31,7 +31,7 @@ gulp.task('reload', function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch(['js/**/*.js', 'js/**/*.ejs', '!js/bundle.js'], ['rollup']);
+  gulp.watch(['smart-grid/**/*', 'js/**/*.js', 'js/**/*.ejs', '!js/bundle.js'], ['rollup']);
   gulp.watch(['./index.html', 'js/bundle.js', 'js/plugins.js', 'css/main.css'], ['reload']);
 });
 

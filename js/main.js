@@ -55,11 +55,11 @@ page('/voucher/:id?', function (ctx, next) {
 page('/charge-bill/:id?', function (ctx, next) {
   var app = chargeBillApp;
   app.$$loading.val(true);
-  chargeBillStore.get(ctx.params.id).then(function ({chargeBillDef, chargeBillData}) {
+  chargeBillStore.get(ctx.params.id).then(function ({ def, data }) {
     x.update(
       [app.$$loading, false],
-      [app.$$chargeBillDef, chargeBillDef],
-      [app.$$chargeBillData, chargeBillData]
+      [app.$$chargeBillDef, def],
+      [app.$$chargeBillData, data]
     );
   });
 });
