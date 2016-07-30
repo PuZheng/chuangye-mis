@@ -11,9 +11,8 @@ import voucherStore from '../store/voucher-store.js';
 const $$selectedVoucherSubject = x({}, 'selected-voucher-subject');
 const errors = x({}, 'errors');
 
-var cbId = $$voucher.change(function (voucher) {
+$$voucher.change(function (voucher) {
   if (voucher.id && voucher.voucherSubjectId) {
-    $$voucher.offChange(cbId);
     onVoucherSubjectChange(voucher.voucherSubjectId);
   };
 });

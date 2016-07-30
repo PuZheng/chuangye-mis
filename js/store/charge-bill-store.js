@@ -10,6 +10,7 @@ export default {
           rows: 2,
           grids: [
             R.repeat({
+              readOnly: true,
               style: {
                 background: 'teal',
                 color: 'yellow',

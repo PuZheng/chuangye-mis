@@ -1,9 +1,24 @@
-import { $$loading } from './data-slots.js';
+import { $$loading, $$chargeBill } from './data-slots.js';
 import x from '../xx.js';
-import smartGrid from '../../smart-grid/smart-grid.js';
+import SmartGrid from '../../smart-grid/smart-grid.js';
 var h = virtualDom.h;
 
-const valueFunc = function (loading, chargeBillDef, chargeBillData, smartGrid) {
+const mount = function () {
+  var container = document.getElementById('main');
+  return function (slot) {
+    var oldVnode = slot.val();
+    var rootNode = virtualDom.create(oldVnode);
+    container.innerHTML = "";
+    container.appendChild(rootNode);
+    slot.change(function (vnode) {
+      rootNode = virtualDom.patch(rootNode, virtualDom.diff(oldVnode, vnode));
+      oldVnode = vnode;
+      SmartGrid.didMount.apply($$smartGrid, [rootNode]);
+    });
+  };
+}();
+
+const valueFunc = function (loading, smartGrid) {
   return h('.ui.grid.container',     
              h('.row',     
                h('.column', smartGrid)
@@ -11,20 +26,14 @@ const valueFunc = function (loading, chargeBillDef, chargeBillData, smartGrid) {
           ); 
 };
 
-export const $$chargeBillDef = smartGrid.$$def;
-export const $$chargeBillData = smartGrid.$$data;
-export const $$page = x.connect([$$loading, $$chargeBillDef, $$chargeBillData, smartGrid.$$view], 
-                                valueFunc, 'page');
+var $$page = x.connect([$$loading], valueFunc, 'page');
+mount($$page);
+var $$smartGrid;
 
-$$page.change(function () {
-  var container = document.getElementById('main');
-  var oldVnode = $$page.val();
-  var rootNode = virtualDom.create(oldVnode);
-  container.appendChild(rootNode);
-  return function (vnode) {
-    rootNode = virtualDom.patch(rootNode, virtualDom.diff(oldVnode, vnode));
-    oldVnode = vnode;
-    smartGrid.didMount.apply(smartGrid, [rootNode]);
-  };
-}());
-
+$$chargeBill.change(function ({def, data}) {
+  $$smartGrid = new SmartGrid(def, data).$$view;
+  $$page = x.connect([$$loading, $$smartGrid], 
+                         valueFunc, 'page');
+  mount($$page);
+  $$page.refresh();
+});
