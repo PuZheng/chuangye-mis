@@ -1,4 +1,6 @@
-var gulp = require('gulp');
+var gulp = require('gulp-npm-run')(require('gulp'), {
+  include: ['watch:test', 'test']
+});
 var connect = require('gulp-connect');
 var fs = require('mz/fs');
 var rev = require("gulp-rev");
@@ -16,6 +18,7 @@ var cheerio = require('cheerio');
 var R = require('ramda');
 var co = require('co');
 var OSS = require('ali-oss');
+var ava = require('gulp-ava');
 
 gulp.task('connect', function() {
   connect.server({
@@ -83,12 +86,12 @@ gulp.task('rollup', function () {
     string({
       include: ['js/**/*.ejs'],
     }),
-    buble({
-      transforms: {
-        arrow: true,
-        dangerousForOf: true
-      },
-    }),
+    // buble({
+    //   transforms: {
+    //     arrow: true,
+    //     dangerousForOf: true
+    //   },
+    // }),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(rollupUglify());
