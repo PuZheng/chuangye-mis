@@ -263,35 +263,47 @@ export class SmartGrid {
   get $$view() {
     if (!this._$$view) {
       var grid = this;
-      let topHeaderRowVn = h('tr', [
-        h('th', {
-          style: {
-            padding: '0.1em 0' 
-          }
-        }, ''),
-        ...range(0, this.def.columns).map(idx => h('th', {
-          style: {
-            textAlign: 'center',
-            padding: '0.1em 0' 
-          }
-        }, toColumnIdx(idx)))
-      ]);
+      let $$topHeaderRowVn = x.connect([grid.$$focusedCell], function (focusedCell) {
+        return h('tr', [
+          h('th', {
+            style: {
+              padding: '0.1em 0' 
+            }
+          }, ''),
+          ...range(0, grid.def.columns).map(function (idx) { 
+            let style = {
+              textAlign: 'center',
+              padding: '0.1em 0' 
+            };
+            if (focusedCell && focusedCell.col === idx) {
+              style.background = 'lightpink';
+            }
+            return h('th', {
+              style, 
+            }, toColumnIdx(idx));
+          }),
+        ]);
+      }, 'top-header-row');
       let $$rows = range(0, grid.def.rows).map(function (row) {
-        let leftHeaderCol = h('th', { 
-          style: {
-            padding: '0.2em 0',
+        let $$cols = grid.cells[row].map( c => c.$$view );
+        return x.connect([grid.$$focusedCell, ...$$cols], function (focusedCell, ...cols) {
+          let style = {
+            padding: '0.4em',
             textAlign: 'center',
             background: '#F9FAFB',
+          };
+          if (focusedCell && focusedCell.row === row) {
+            style.background = 'lightpink';
           }
-        }, row + 1);
-        let $$cols = grid.cells[row].map( c => c.$$view );
-        return x.connect($$cols, function (...cols) {
+          let leftHeaderCol = h('th', { 
+            style,
+          }, row + 1);
           return h('tr', [
             leftHeaderCol
           ].concat(cols));
         }, 'row-' + row);
       });
-      this._$$view = x.connect([grid.$$focusedCell, ...$$rows], function (focusedCell, ...rows) {
+      this._$$view = x.connect([grid.$$focusedCell, $$topHeaderRowVn, ...$$rows], function (focusedCell, topHeaderRow, ...rows) {
         return [
           h('.ui.top.attached.basic.segment', {
             style: {
@@ -303,7 +315,7 @@ export class SmartGrid {
             }),
           ]),
           h('table.ui.celled.compact.striped.table.bottom.attached', [
-            h('thead', topHeaderRowVn),
+            h('thead', topHeaderRow),
             h('tbody', rows),
           ])
         ];
