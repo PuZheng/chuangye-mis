@@ -43,63 +43,67 @@ var parseTag = function () {
   };
 }();
 
+export const CellMode = {
+  EDIT: 'EDIT',
+  SELECTED: 'SELECTED',
+  DEFAULT: 'DEFAULT',
+};
+
 class Cell {
-  constructor(row, col, def, $$val, $$selectedCell, $$editingCell) {
+  constructor(row, col, def, $$val, $$focusedCell) {
     this.row = row;
     this.col = col;
     this.tag = makeTag(row, col);
     this.def = def;
-    this.$$selectedCell = $$selectedCell;
-    this.$$editingCell = $$editingCell;
+    this.$$focusedCell = $$focusedCell;
     this.$$val = $$val;
-    this.$$selected = x(false, `cel-${this.tag}-selected`);
-    this.$$editing = x(false, `cel-${this.tag}-editing`);
+    this.$$mode = x(CellMode.DEFAULT, `cel-${this.tag}-mode`);
     this.$$view = this.makeView();
   }
   get onclick() {
     let cell = this;
-    if (!cell.$$selected.val() && !cell.$$editing.val()) {
+    if (cell.$$mode.val() === CellMode.DEFAULT) {
       return function onclick(e) {
         let args = [
-          [cell.$$selected, true],
+          [cell.$$mode, CellMode.SELECTED],
         ];
-        let selectedCell = cell.$$selectedCell.val();
-        if (selectedCell) {
-          args.push([selectedCell.$$selected, false]);
+        let focusedCell = cell.$$focusedCell.val();
+        if (focusedCell && (focusedCell.tag != cell.tag)) {
+          args.push([focusedCell.$$mode, CellMode.DEFAULT]);
         }
-        args.push([cell.$$selectedCell, cell]);
+        args.push([cell.$$focusedCell, cell]);
         x.update(...args);
-
       };
     }
   }
   get ondblclick() {
     let cell = this;
-    if (!cell.def.readOnly && !cell.$$editing.val()) {
+    if (!cell.def.readOnly && cell.$$mode.val() != CellMode.EDIT) {
       return function (e) {
-        if (cell.$$editing.val()) {
-          let args = [
-            [cell.$$selected, false],
-            [cell.$$editing, true],
-          ];
-          let editingCell = cell.$$editingCell.val();
-          if (editingCell) {
-            args.push([editingCell.$$selected, false]);
-          };
-          args.push([cell.$$selectedCell, null]);
-          args.push([cell.$$editingCell, null]);
-          x.update(...args);
-        }
+        let args = [
+          [cell.$$mode, CellMode.EDIT]
+        ];
+        let focusedCell = cell.$$focusedCell.val();
+        if (focusedCell && (focusedCell.tag != cell.tag)) {
+          args.push([focusedCell.$$mode, CellMode.DEFAULT]);
+        };
+        args.push([cell.$$focusedCell, cell]);
+        x.update(...args);
       };
     }
   }
   makeView() {
     let cell = this;
-    return x.connect([this.$$val, this.$$selected, this.$$editing], function (val, selected, editing) {
+    return x.connect([this.$$val, this.$$mode], function (val, mode) {
       let className = [cell.tag];
+      if (cell.def.readOnly) {
+        className.push('readonly');
+      }
+      let selected = mode == CellMode.SELECTED;
       if (selected) {
         className.push('selected');
       }
+      let editing = mode == CellMode.EDIT;
       if (editing) {
         className.push('editing');
       }
@@ -119,11 +123,9 @@ class Cell {
         cell.makeEditor(cell.def, val, editing, function (val) {
           x.update(
             [cell.$$val, val],
-            [cell.$$editing, false],
-            [cell.$$selected, false],
-            [cell.$$selectedCell, null],
-            [cell.$$editingCell, null]
+            [cell.$$mode, CellMode.SELECTED]
           );
+          return false;
         }),
       ]);
     }, 'cell-' + this.tag);
@@ -138,8 +140,9 @@ class Cell {
       }, 
       onkeydown: function (e) {
         if (e.keyCode == 27 || e.keyCode == 13) {
+          e.stopPropagation();
           onChangeCb(this.value);
-          return false;
+          return true;
         }
       },
       onblur: function (e) {
@@ -161,8 +164,7 @@ export class SmartGrid {
   constructor(def, data=[]) {
     this.def = def;
     this.data = data;
-    this.$$selectedCell = x(null, 'selected-cell');
-    this.$$editingCell = x(null, 'editing-cell');
+    this.$$focusedCell = x(null, 'focused-cell');
   }
   isPrimitive(val) {
     return val[0] != '=';
@@ -170,18 +172,18 @@ export class SmartGrid {
   makeSlot(script, ...tags) {
     for (var tag of tags) {
       let [row, col] = parseTag(tag);
-      if (!this._env[row][col]) {
-        if (!this._dependencyMap[tag]) {
-          this._env[row][col] = x(this.getCellVal(row, col), `cell-${tag}-val`);
+      if (!this.env[row][col]) {
+        if (!this.dependencyMap[tag]) {
+          this.env[row][col] = x(this.getCellVal(row, col), `cell-${tag}-val`);
         } else {
-          this._env[row][col] = this.makeSlot.apply(this, this._dependencyMap[tag]);
+          this.env[row][col] = this.makeSlot.apply(this, this.dependencyMap[tag]);
         }
       }
     }
     let valSlots = tags.map(function (grid) {
       return function (tag) {
         let [row, col] = parseTag(tag);
-        return grid._env[row][col];
+        return grid.env[row][col];
       };
     }(this));
     return x.connect(valSlots, function (tags) {
@@ -220,6 +222,7 @@ export class SmartGrid {
   }
   get env() {
     if (!this._env) {
+      console.log(this.dependencyMap);
       this._env = range(0, this.def.rows).map(row => Array(this.def.columns));
       // first round, setup tag dependency map
       // second round, create slots
@@ -245,6 +248,18 @@ export class SmartGrid {
   getCellDef(row, col) {
     return ((((this.def.grids || [])[row] || [])[col]) || {});
   }
+  get cells() {
+    if (!this._cells) {
+      let grid = this;
+      let newCell = function (row, col) {
+        return new Cell(row, col, grid.getCellDef(row, col), grid.env[row][col], grid.$$focusedCell);
+      };
+      this._cells = range(0, grid.def.rows).map(function newRow(row) {
+        return range(0, grid.def.columns).map(col => newCell(row, col));
+      });
+    }
+    return this._cells;
+  }
   get $$view() {
     if (!this._$$view) {
       var grid = this;
@@ -269,24 +284,107 @@ export class SmartGrid {
             background: '#F9FAFB',
           }
         }, row + 1);
-        let $$cols = range(0, grid.def.columns).map(function (col) {
-
-          return new Cell(row, col, grid.getCellDef(row, col), grid.env[row][col], grid.$$selectedCell, grid.$$editingCell).$$view;
-        });
+        let $$cols = grid.cells[row].map( c => c.$$view );
         return x.connect($$cols, function (...cols) {
           return h('tr', [
             leftHeaderCol
           ].concat(cols));
         }, 'row-' + row);
       });
-      this._$$view = x.connect($$rows, function (...rows) {
-        return h('table.ui.celled.compact.striped.table', [
-          h('thead', topHeaderRowVn),
-          h('tbody', rows),
-        ]);
+      this._$$view = x.connect([grid.$$focusedCell, ...$$rows], function (focusedCell, ...rows) {
+        return [
+          h('.ui.top.attached.basic.segment', {
+            style: {
+              padding: 0
+            }
+          }, [
+            h('input', {
+              value: focusedCell && (grid.getCellVal(focusedCell.row, focusedCell.col) || focusedCell.$$val.val())
+            }),
+          ]),
+          h('table.ui.celled.compact.striped.table.bottom.attached', [
+            h('thead', topHeaderRowVn),
+            h('tbody', rows),
+          ])
+        ];
       }, 'smart-grid');
     }
     return this._$$view;
+  }
+  moveLeft() {
+    var focusedCell = this.$$focusedCell.val();
+    if (focusedCell) {
+      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+        this.select(focusedCell.row, focusedCell.col - 1);
+      }
+    } else {
+      this.select(0, 0);
+    }
+  }
+  moveUp() {
+    var focusedCell = this.$$focusedCell.val();
+    if (focusedCell) {
+      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+        this.select(focusedCell.row - 1, focusedCell.col);
+      }
+    } else {
+      this.select(0, 0);
+    }
+  }
+  moveRight() {
+    var focusedCell = this.$$focusedCell.val();
+    if (focusedCell) {
+      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+        this.select(focusedCell.row, focusedCell.col + 1);
+      }
+    } else {
+      this.select(0, 0);
+    }
+  }
+  moveDown() {
+    var focusedCell = this.$$focusedCell.val();
+    if (focusedCell) {
+      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+        this.select(focusedCell.row + 1, focusedCell.col);
+      }
+    } else {
+      this.select(0, 0);
+    }
+  }
+  select(row, col) {
+    if (row >= 0 && row < this.def.rows && col >= 0 && col < this.def.columns) {
+      var focusedCell = this.$$focusedCell.val();
+      let args = [
+        [this.$$focusedCell, this.cells[row][col]],
+        [this.cells[row][col].$$mode, CellMode.SELECTED],
+      ];
+      if (focusedCell)  {
+        args.push([focusedCell.$$mode, CellMode.DEFAULT]);
+      }
+      x.update(...args);
+    }
+  }
+  edit(row, col) {
+    if (row === undefined || col === undefined) {
+      var focusedCell = this.$$focusedCell.val();
+      if (focusedCell) {
+        return this.edit(focusedCell.row, focusedCell.col);
+      }
+      return false;
+    }
+    if (this.getCellDef(row, col).readOnly) {
+      return false;
+    }
+    let args = [
+      [this.$$focusedCell, this.cells[row][col]],
+      [this.cells[row][col].$$mode, CellMode.EDIT],
+    ];
+    var focusedCell = this.$$focusedCell.val();
+    if (focusedCell && (focusedCell.row != row || focusedCell.col != col)) {
+      args.push(focusedCell.$$mode, CellMode.DEFAULT);
+    }
+    x.update(...args);
+    return true;
   }
 };
 
