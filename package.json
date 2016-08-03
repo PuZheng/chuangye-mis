@@ -5,7 +5,6 @@
   "main": "js/main.js",
   "scripts": {
     "prebuild": "eslint src test",
-    "build": "gulp rollup",
     "watch:test": "ava --watch",
     "pretest": "npm run build",
     "test": "ava",

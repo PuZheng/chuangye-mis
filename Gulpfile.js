@@ -18,7 +18,6 @@ var cheerio = require('cheerio');
 var R = require('ramda');
 var co = require('co');
 var OSS = require('ali-oss');
-var ava = require('gulp-ava');
 
 gulp.task('connect', function() {
   connect.server({

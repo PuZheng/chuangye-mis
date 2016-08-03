@@ -1,6 +1,7 @@
 import { Lexer, Token } from './script/lexer.js';
 import { Parser, Num, BinOp, UnaryOp, Var } from './script/parser.js';
-import { Interpreter } from './interpreter.js';
+import { Interpreter, types } from './script/interpreter.js';
+import { SmartGrid } from './smart-grid.js';
 import test from 'ava';
 
 test('lexer', function(t) {
@@ -84,45 +85,112 @@ test('parser', function (t) {
 test('interpreter', function (t) {
   let lexer = new Lexer('3');
   let parser = new Parser(lexer);
-  let interpreter = new Interpreter(parser.expr, {
-    E3: 10,
-  });
-  t.is(interpreter.eval(), 3);
+  let interpreter = new Interpreter(parser.expr);
+  t.is(interpreter.eval(), '3');
 
   lexer = new Lexer('');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr);
-  t.is(interpreter.eval(), undefined);
+  t.is(interpreter.eval(), '');
 
   lexer = new Lexer('E3');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E3: 10,
+    E3: '10',
   });
-  t.is(interpreter.eval(), 10);
+  t.is(interpreter.eval(), '10');
 
   lexer = new Lexer('-E3');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E3: 10,
+    E3: '10',
   });
-  t.is(interpreter.eval(), -10);
+  t.is(interpreter.eval(), '-10');
 
   lexer = new Lexer('E2 - E3');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E2: 11,
-    E3: 10,
+    E2: '11',
+    E3: '10',
   });
-  t.is(interpreter.eval(), 1);
+  t.is(interpreter.eval(), '1');
 
   lexer = new Lexer('E2 - (E3 * (9 + D1))');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    D1: -3,
-    E2: 11,
-    E3: 10,
+    D1: '-3',
+    E2: '11',
+    E3: '10',
   });
-  t.is(interpreter.eval(), -49);
+  t.is(interpreter.eval(), '-49');
+
+  lexer = new Lexer('E2');
+  parser = new Parser(lexer);
+  interpreter = new Interpreter(parser.expr);
+  t.true(isNaN(interpreter.eval(types.NUMBER)));
+
+  lexer = new Lexer('E2 + (E3 * 2)');
+  parser = new Parser(lexer);
+  interpreter = new Interpreter(parser.expr, {
+    E2: '1',
+  });
+  t.is(interpreter.eval(), '');
+
+  lexer = new Lexer('E2 + (E3 * 2)');
+  parser = new Parser(lexer);
+  interpreter = new Interpreter(parser.expr, {
+    E2: '1asd',
+  });
+  t.throws(interpreter.eval, Error);
+});
+
+test('grid', function (t) {
+  let grid = new SmartGrid({
+    columns: 4,
+    rows: 4,
+  });
+  t.is(grid.getCellVal(0, 0), '');
+  t.deepEqual(grid.getCellDef(0, 0), {});
+
+  grid = new SmartGrid({
+    columns: 2,
+    rows: 2,
+  }, [
+    ['00', '01'],
+    ['10', '11']
+  ]);
+  t.is(grid.env[0][0].val(), '00');
+  t.is(grid.env[0][1].val(), '01');
+  t.is(grid.env[1][0].val(), '10');
+  t.is(grid.env[1][1].val(), '11');
+
+  grid = new SmartGrid({
+    columns: 2,
+    rows: 2,
+  }, [
+    ['=A2 + (-B1 * (B2 + 9))']
+  ]);
+  t.truthy(~grid.dependencyMap['A1'].indexOf('A2'));
+  t.truthy(~grid.dependencyMap['A1'].indexOf('B1'));
+  t.truthy(~grid.dependencyMap['A1'].indexOf('B2'));
+  t.is(grid.env[0][0].val(), '');
+
+  grid = new SmartGrid({
+    columns: 2,
+    rows: 2,
+  }, [
+    ['=A2 + (-B1 * (B2 + 9))', '12'],
+    ['11', '9'],
+  ]);
+  t.is(grid.env[0][0].val(), '-205');
+  t.is(grid.env[0][1].val(), '12');
+  t.is(grid.env[1][0].val(), '11');
+  t.is(grid.env[1][1].val(), '9');
+  grid.env[1][1].val('1');
+  t.is(grid.env[0][0].val(), '-109');
+  t.is(grid.env[0][1].val(), '12');
+  t.is(grid.env[1][0].val(), '11');
+  grid.env[1][1].val('');
+  t.is(grid.env[0][0].val(), '');
 });
 

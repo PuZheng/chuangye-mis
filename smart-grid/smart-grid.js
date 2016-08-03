@@ -1,10 +1,8 @@
 import x from '../js/xx.js';
-import sgScript from './sg-script.js';
-var h = virtualDom.h;
-
-
-var selectedCell;
-var editingCell;
+import { Lexer, Token } from './script/lexer.js';
+import { Parser } from './script/parser.js';
+import { Interpreter } from './script/interpreter.js';
+import { h } from 'virtual-dom';
 
 const makeTag = function (row, col) {
   return `${toColumnIdx(col)}${row + 1}`;
@@ -39,23 +37,65 @@ var fromColumnIdx = function (idx) {
 var parseTag = function () {
   let re = /([A-Z]+)(\d+)/;
   return function (tag) {
+    // note, tag is composed by col + row
     var [col, row] = re.exec(tag).slice(1);
     return [row - 1, fromColumnIdx(col)];
   };
 }();
 
 class Cell {
-  constructor(row, col, grid) {
+  constructor(row, col, def, $$val, $$selectedCell, $$editingCell) {
     this.row = row;
     this.col = col;
-    this.grid = grid;
     this.tag = makeTag(row, col);
-    this.def = grid.getCellDef(row, col);
-    this.$$val = grid.env[row][col];
+    this.def = def;
+    this.$$selectedCell = $$selectedCell;
+    this.$$editingCell = $$editingCell;
+    this.$$val = $$val;
     this.$$selected = x(false, `cel-${this.tag}-selected`);
     this.$$editing = x(false, `cel-${this.tag}-editing`);
+    this.$$view = this.makeView();
+  }
+  get onclick() {
     let cell = this;
-    this.$$view = x.connect([this.$$val, this.$$selected, this.$$editing], function (val, selected, editing) {
+    if (!cell.$$selected.val() && !cell.$$editing.val()) {
+      return function onclick(e) {
+        let args = [
+          [cell.$$selected, true],
+        ];
+        let selectedCell = cell.$$selectedCell.val();
+        if (selectedCell) {
+          args.push([selectedCell.$$selected, false]);
+        }
+        args.push([cell.$$selectedCell, cell]);
+        x.update(...args);
+
+      };
+    }
+  }
+  get ondblclick() {
+    let cell = this;
+    if (!cell.def.readOnly && !cell.$$editing.val()) {
+      return function (e) {
+        if (cell.$$editing.val()) {
+          let args = [
+            [cell.$$selected, false],
+            [cell.$$editing, true],
+          ];
+          let editingCell = cell.$$editingCell.val();
+          if (editingCell) {
+            args.push([editingCell.$$selected, false]);
+          };
+          args.push([cell.$$selectedCell, null]);
+          args.push([cell.$$editingCell, null]);
+          x.update(...args);
+        }
+      };
+    }
+  }
+  makeView() {
+    let cell = this;
+    return x.connect([this.$$val, this.$$selected, this.$$editing], function (val, selected, editing) {
       let className = [cell.tag];
       if (selected) {
         className.push('selected');
@@ -72,36 +112,18 @@ class Cell {
       });
       return h('td' + className.map( i => '.' + i ), {
         style,
-        onclick: function () {
-          if (!selected && !editing) {
-            x.update(
-              [cell.$$selected, true],
-              ...(selectedCell? [[selectedCell.$$selected, false]]: [])
-            );
-            selectedCell = cell;
-          }
-        },
-        ondblclick: cell.def.readOnly? undefined: function (e) {
-          if (!editing) {
-            x.update(  
-                     [cell.$$selected, false],
-                     [cell.$$editing, true],
-                     ...(editingCell? [[editingCell.$$selected, false]]: [])
-                    );
-          }
-          selectedCell = null;
-          editingCell = cell;
-        }
+        onclick: cell.onclick,
+        ondblclick: cell.ondblclick, 
       }, [
         cell.makeContentVnode(cell.def, val, editing),
         cell.makeEditor(cell.def, val, editing, function (val) {
           x.update(
             [cell.$$val, val],
             [cell.$$editing, false],
-            [cell.$$selected, false]
+            [cell.$$selected, false],
+            [cell.$$selectedCell, null],
+            [cell.$$editingCell, null]
           );
-          selectedCell = null;
-          editingCell = null;
         }),
       ]);
     }, 'cell-' + this.tag);
@@ -135,28 +157,24 @@ class Cell {
   }
 }
 
-class SmartGrid {
-  constructor(def, data) {
+export class SmartGrid {
+  constructor(def, data=[]) {
     this.def = def;
     this.data = data;
-  }
-  collectVariables(ast) {
-    if (ast.type === 'variable') {
-      return [ast];
-    }
-    return ast.children.map(c => this.collectVariables(c)).reduce((s, i) => s.concat(i));
+    this.$$selectedCell = x(null, 'selected-cell');
+    this.$$editingCell = x(null, 'editing-cell');
   }
   isPrimitive(val) {
     return val[0] != '=';
   }
-  makeDerivedSlot(script, ...tags) {
+  makeSlot(script, ...tags) {
     for (var tag of tags) {
       let [row, col] = parseTag(tag);
       if (!this._env[row][col]) {
         if (!this._dependencyMap[tag]) {
           this._env[row][col] = x(this.getCellVal(row, col), `cell-${tag}-val`);
         } else {
-          this._env[row][col] = this.makeDerivedSlot.apply(this, this._dependencyMap[tag]);
+          this._env[row][col] = this.makeSlot.apply(this, this._dependencyMap[tag]);
         }
       }
     }
@@ -168,38 +186,53 @@ class SmartGrid {
     }(this));
     return x.connect(valSlots, function (tags) {
       return function (...slots) {
-        let globals = {};
+        let env = {};
         for (var i = 0; i < tags.length; ++i) {
-          globals[tags[i]] = slots[i];
+          env[tags[i]] = slots[i];
         }
-        return sgScript.eval(script, globals);
+        let lexer = new Lexer(script);
+        let parser = new Parser(lexer);
+        return new Interpreter(parser.expr, env).eval();
       };
     }(tags));
   }
-  get env() {
-    if (!this._env) {
+  get dependencyMap() {
+    if (!this._dependencyMap) {
       this._dependencyMap = {};
-      this._env = range(0, this.def.rows).map(row => Array(this.def.columns));
-      // first round, setup tag dependency map
       for (var i = 0; i < this.def.rows; ++i) {
         for (var j = 0; j < this.def.columns; ++j) {
           let cellVal = this.getCellVal(i, j);
           if (!this.isPrimitive(cellVal)) {
-            this._dependencyMap[makeTag(i, j)] = this.collectVariabls(sgScript.makeAST(cellVal.slice(1))).map(v => v.name);
+            let lexer = new Lexer(cellVal.slice(1));
+            let tag = makeTag(i, j);
+            let tokens = [];
+            for (var token of lexer.tokens) {
+              if (token.type === Token.VARIABLE) {
+                tokens.push(token);
+              }
+            }
+            this._dependencyMap[tag] = tokens.map( t => t.value );
           } 
         }
       }
+    }
+    return this._dependencyMap;
+  }
+  get env() {
+    if (!this._env) {
+      this._env = range(0, this.def.rows).map(row => Array(this.def.columns));
+      // first round, setup tag dependency map
       // second round, create slots
       for (var i = 0; i < this.def.rows; ++i) {
         for (var j = 0; j < this.def.columns; ++j) {
           let tag = makeTag(i, j);
           let cellVal = this.getCellVal(i, j);
-          if (!this._dependencyMap[tag]) {
+          if (!this.dependencyMap[tag]) {
             if (!this._env[i][j]) {
               this._env[i][j] = x(cellVal, `cell-${tag}-val`);
             }
           } else {
-            this._env[i][j] = this.makeDerivedSlot.apply(this, [cellVal.slice(1), ...this._dependencyMap[tag]]);
+            this._env[i][j] = this.makeSlot.apply(this, [cellVal.slice(1), ...this.dependencyMap[tag]]);
           }
         }
       }
@@ -237,7 +270,8 @@ class SmartGrid {
           }
         }, row + 1);
         let $$cols = range(0, grid.def.columns).map(function (col) {
-          return new Cell(row, col, grid).$$view;
+
+          return new Cell(row, col, grid.getCellDef(row, col), grid.env[row][col], grid.$$selectedCell, grid.$$editingCell).$$view;
         });
         return x.connect($$cols, function (...cols) {
           return h('tr', [
@@ -261,8 +295,6 @@ SmartGrid.didMount = function (node) {
   inputEl && inputEl.focus();
 };
 
-export default SmartGrid;
-
 const range = function (start, end) {
   var a = Array(end - start);
   for (var i = start; i < end; ++i) {
@@ -270,3 +302,5 @@ const range = function (start, end) {
   }
   return a;
 };
+
+export default SmartGrid;
