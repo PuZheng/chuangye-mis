@@ -12,9 +12,8 @@ import materialsEditor from './materials-editor.js';
 
 const $$errors = x({}, 'invoice-form-errors');
 
-var cbId = $$invoice.change(function (invoice) {
+$$invoice.change(function (invoice) {
   if (invoice.id && invoice.invoiceTypeId) {
-    $$invoice.offChange(cbId);
     onInvoiceTypeChange(invoice.invoiceTypeId);
   }
 });

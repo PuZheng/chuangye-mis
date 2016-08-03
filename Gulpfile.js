@@ -1,4 +1,6 @@
-var gulp = require('gulp');
+var gulp = require('gulp-npm-run')(require('gulp'), {
+  include: ['watch:test', 'test']
+});
 var connect = require('gulp-connect');
 var fs = require('mz/fs');
 var rev = require("gulp-rev");
@@ -31,7 +33,7 @@ gulp.task('reload', function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch(['js/**/*.js', 'js/**/*.ejs', '!js/bundle.js'], ['rollup']);
+  gulp.watch(['smart-grid/**/*', 'js/**/*.js', 'js/**/*.ejs', '!js/bundle.js'], ['rollup']);
   gulp.watch(['./index.html', 'js/bundle.js', 'js/plugins.js', 'css/main.css'], ['reload']);
 });
 
@@ -77,16 +79,18 @@ gulp.task('rollup', function () {
       browser: true,
       skip: ['moment']
     }),
-    commonjs(),
+    commonjs({
+      ignoreGlobal: true,
+    }),
     string({
       include: ['js/**/*.ejs'],
     }),
-    buble({
-      transforms: {
-        arrow: true,
-        dangerousForOf: true
-      },
-    }),
+    // buble({
+    //   transforms: {
+    //     arrow: true,
+    //     dangerousForOf: true
+    //   },
+    // }),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(rollupUglify());
