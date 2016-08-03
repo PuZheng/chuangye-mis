@@ -1,5 +1,6 @@
 {
-  "region": "",
-  "accessKeyId": "",
-  "accessKeySecret": ""
+    "bucket": "",
+    "region": "",
+    "accessKeyId": "",
+    "accessKeySecret": ""
 }
