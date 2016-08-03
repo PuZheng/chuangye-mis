@@ -21,6 +21,7 @@ const mount = function () {
 const valueFunc = function (loading, smartGrid) {
   return h('.ui.grid.container', [
     h('.row', [
+      h('.sixteen.wide.column', h('h2', '2016-08电费单')),
       h('.sixteen.wide.column', smartGrid),
       h('.sixteen.wide.column', [
         h('p', {
