@@ -56,16 +56,11 @@ var Slot = function (initial, tag) {
 };
 
 Slot.prototype.change = function (proc) {
-  let id = _uniqueId();
-  this.onChangeCbs.push({
-    proc,
-    id,
-  });
-  return id;
+  this.onChangeCbs.push(proc);
 };
 
-Slot.prototype.offChange = function (cbId) {
-  this.onChangeCbs = this.onChangeCbs.filter(cb => cb.id != cbId);
+Slot.prototype.offChange = function (proc) {
+  this.onChangeCbs = this.onChangeCbs.filter(cb => cb != proc);
 };
 Slot.prototype.val = function (newValue) {
     if (newValue === undefined) {
@@ -75,7 +70,7 @@ Slot.prototype.val = function (newValue) {
       var oldValue = this.value;
       this.value = newValue; 
       this.onChangeCbs.forEach(function (cb) {
-        cb.proc.call(this, newValue);
+        cb.call(this, newValue);
       });
       for (var level of this.offspringsByLevels) {
         for (var slot of level) {
@@ -100,7 +95,7 @@ Slot.prototype.refresh = function () {
     this.parents.map(parent => parent.val())
   );
   for (var cb of this.onChangeCbs) {
-    cb.proc(this.value);
+    cb(this.value);
   }
 };
 
@@ -174,7 +169,7 @@ var update = function (...slotValuePairs) {
     opt.debug && console.debug(`slot ${slot.tag} changed`, slot.value, value);
     slot.value = value;
     for (var cb of slot.onChangeCbs) {
-      cb.proc.call(slot, value);
+      cb.call(slot, value);
     }
   });
   var relatedSlots = {};

@@ -2,7 +2,8 @@ import x from '../js/xx.js';
 import { Lexer, Token } from './script/lexer.js';
 import { Parser } from './script/parser.js';
 import { Interpreter } from './script/interpreter.js';
-import { h } from 'virtual-dom';
+import virtualDom from 'virtual-dom';
+var h = virtualDom.h;
 
 const makeTag = function (row, col) {
   return `${toColumnIdx(col)}${row + 1}`;
@@ -161,9 +162,9 @@ class Cell {
 }
 
 export class SmartGrid {
-  constructor(def, data=[]) {
-    this.def = def;
-    this.data = data;
+  constructor(data) {
+    this.def = data.def;
+    this.data = data.data;
     this.$$focusedCell = x(null, 'focused-cell');
   }
   isPrimitive(val) {
@@ -222,7 +223,6 @@ export class SmartGrid {
   }
   get env() {
     if (!this._env) {
-      console.log(this.dependencyMap);
       this._env = range(0, this.def.rows).map(row => Array(this.def.columns));
       // first round, setup tag dependency map
       // second round, create slots
@@ -400,7 +400,7 @@ export class SmartGrid {
   }
 };
 
-SmartGrid.didMount = function (node) {
+SmartGrid.onUpdated = function (node) {
   var inputEl = node.querySelector('td.editing > input');
   inputEl && inputEl.focus();
 };

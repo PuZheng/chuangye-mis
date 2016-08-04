@@ -1,4 +1,6 @@
 import * as dataSlots from './data-slots.js';
-import './page.js';
+import { makePage } from './page.js';
 
-export default Object.assign({}, dataSlots);
+export default Object.assign({
+  makePage
+}, dataSlots);

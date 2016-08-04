@@ -98,6 +98,7 @@ gulp.task('rollup', function () {
   return rollup({
     entry: 'js/main.js',
     plugins: plugins,
+    external: ['moment', 'virtual-dom'],
   }).then(function (bundle) {
     return bundle.write({
       format: 'iife',
@@ -105,6 +106,7 @@ gulp.task('rollup', function () {
       sourceMap: true,
       globals: {
         moment: 'moment',
+        virtualDom: 'virtual-dom',
       }
     });
   });
