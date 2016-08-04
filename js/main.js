@@ -1,6 +1,7 @@
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app.js';
 import voucherObjectApp from './voucher/object-app.js';
+import loginApp from './login/app.js';
 import chargeBillApp from './charge-bill/app.js';
 import x from './xx.js';
 import invoiceTypeStore from './store/invoice-type-store.js';
@@ -12,19 +13,25 @@ import voucherStore from './store/voucher-store.js';
 import chargeBillStore from './store/charge-bill-store.js';
 import R from 'ramda';
 import entityStore from './store/entity-store.js';
+import mount from 'mount.js';
 
 x.init({ debug: true });
 
+page('/login', function (ctx, next) {
+  mount(loginApp.$$page);
+  // loginApp.$$page.refresh();
+});
+
 page('/invoice/:id?', function (ctx, next) {
-  var app = invoiceObjectApp;
-  var promises = [
+  let app = invoiceObjectApp;
+  let promises = [
     invoiceTypeStore.list, 
     accountTermStore.list,
     ctx.params.id? invoiceStore.get(ctx.params.id): {},
   ];
   app.$$loading.inc();
   Promise.all(promises).then(function ([invoiceTypes, accountTerms, invoice]) {
-    var args = [
+    let args = [
       [app.$$invoiceTypes, invoiceTypes],
       [app.$$accountTerms, accountTerms],
       [app.$$loading, 0],
@@ -35,9 +42,9 @@ page('/invoice/:id?', function (ctx, next) {
 });
 
 page('/voucher/:id?', function (ctx, next) {
-  var app = voucherObjectApp;
+  let app = voucherObjectApp;
   app.$$loading.val(true);
-  var promises = [
+  let promises = [
     voucherTypeStore.list,
     voucherSubjectStore.list,
     ctx.params.id? voucherStore.get(ctx.params.id): {}
@@ -53,7 +60,10 @@ page('/voucher/:id?', function (ctx, next) {
 });
 
 page('/charge-bill/:id?', function (ctx, next) {
-  var app = chargeBillApp;
+  let app = chargeBillApp;
+  mount(chargeBillApp.$$page, function (rootNode) {
+    SmartGrid.didMount(rootNode);
+  });
   app.$$loading.val(true);
   chargeBillStore.get(ctx.params.id).then(function (chargeBill) {
     x.update(
