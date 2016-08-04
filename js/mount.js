@@ -4,24 +4,26 @@ var patch = virtualDom.patch;
 var diff = virtualDom.diff;
 
 var container = document.getElementById('main');
-var oldSlot;
+var lastMountable;
 var onChange;
 
-export var mount = function (slot, cb) {
-  var oldVnode = slot.val();
+export var mount = function (mountable) {
+  var oldVnode = mountable.$$view.val();
   var rootNode = create(oldVnode);
   container.innerHTML = "";
   container.appendChild(rootNode);
-  if (oldSlot) {
-    oldSlot.offChange(onChange);
+  if (lastMountable) {
+    lastMountable.$$view.offChange(onChange);
+    lastMountable.onUnmount && lastMountable.onUnmount.apply(this, [rootNode]);
   }
   onChange = function (vnode) {
     rootNode = patch(rootNode, diff(oldVnode, vnode));
     oldVnode = vnode;
-    cb && cb(rootNode);
+    mountable.onUpdated && mountable.onUpdated.apply(this, [rootNode]);
   };
-  slot.change(onChange);
-  oldSlot = slot;
+  mountable.$$view.change(onChange);
+  mountable.onMount && mountable.onMount.apply(this, [rootNode]);
+  lastMountable = mountable;
 };
 
 export default mount;

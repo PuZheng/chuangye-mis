@@ -1,6 +1,5 @@
 import x from '../xx.js';
 import virtualDom from 'virtual-dom';
-import mount from '../mount.js';
 var h = virtualDom.h;
 
 export const $$username = x('', 'username');
@@ -15,9 +14,8 @@ var $$page = x.connect(
   }
 );
 
-mount($$page);
-
-
 export default {
-  $$page
+  page: {
+    $$view: $$page,
+  }
 };

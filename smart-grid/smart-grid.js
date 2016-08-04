@@ -162,9 +162,9 @@ class Cell {
 }
 
 export class SmartGrid {
-  constructor(def, data=[]) {
-    this.def = def;
-    this.data = data;
+  constructor(data) {
+    this.def = data.def;
+    this.data = data.data;
     this.$$focusedCell = x(null, 'focused-cell');
   }
   isPrimitive(val) {
@@ -400,7 +400,7 @@ export class SmartGrid {
   }
 };
 
-SmartGrid.didMount = function (node) {
+SmartGrid.onUpdated = function (node) {
   var inputEl = node.querySelector('td.editing > input');
   inputEl && inputEl.focus();
 };

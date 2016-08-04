@@ -13,13 +13,12 @@ import voucherStore from './store/voucher-store.js';
 import chargeBillStore from './store/charge-bill-store.js';
 import R from 'ramda';
 import entityStore from './store/entity-store.js';
-import mount from 'mount.js';
+import mount from './mount.js';
 
 x.init({ debug: true });
 
 page('/login', function (ctx, next) {
-  mount(loginApp.$$page);
-  // loginApp.$$page.refresh();
+  mount(loginApp.page);
 });
 
 page('/invoice/:id?', function (ctx, next) {
@@ -61,15 +60,11 @@ page('/voucher/:id?', function (ctx, next) {
 
 page('/charge-bill/:id?', function (ctx, next) {
   let app = chargeBillApp;
-  mount(chargeBillApp.$$page, function (rootNode) {
-    SmartGrid.didMount(rootNode);
-  });
+  mount(chargeBillApp.makePage());
   app.$$loading.val(true);
   chargeBillStore.get(ctx.params.id).then(function (chargeBill) {
-    x.update(
-      [app.$$loading, false],
-      [app.$$chargeBill, chargeBill]
-    );
+    mount(chargeBillApp.makePage(chargeBill));
+    app.$$loading.val(false);
   });
 });
 
