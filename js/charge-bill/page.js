@@ -5,31 +5,18 @@ import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
 const valueFunc = function (loading, smartGrid) {
-  return h('.ui.grid.container', [
-    h('.row', [
-      h('.sixteen.wide.column', h('h2', '2016-08电费单')),
-      h('.sixteen.wide.column', loading? h('.ui.loading.segment', {
-        style: { 
-          height: '8em',
-        }
-      }): smartGrid),
-      h('.sixteen.wide.column', [
-        h('p', {
-          style: {
-            padding: '1em 0',
-            color: 'grey',
-          }
-        }, '* 上下左右移动，双击鼠标或输入回车键进行编辑，回车键结束编辑')
-      ]),
+  return h('div', [
+    h('h2.center', '2016-08电费单'),
+    h('.relative.border-box.border.m1.p1' + (loading? '.relative-loading': ''), {
+      style: {
+        minHeight: '8em',
+      }
+    }, smartGrid),
+    h('p.italic.gray', '* 上下左右移动，双击鼠标或输入回车键进行编辑，回车键结束编辑'),
+    h('.right-align', [
+      h('button.btn.btn-primary.rounded', '保存'),
+      h('button.btn.fuchsia.rounded.btn-outline', '生成预扣费记录'),
     ]),
-    h('.right.aligned.row', 
-      h('.column', [
-        h('.ui.tiny.buttons', [
-          h('.ui.tiny.primary.button', '保存'),
-          h('.ui.tiny.red.button', '生成预扣费记录'),
-        ]),
-      ])
-     )
   ]);    
 };
 
@@ -55,7 +42,6 @@ export var makePage = function (chargeBill) {
       };
     }(smartGrid);
   }
-  console.log(slots);
   return {
     onMount: function () {
       keydown && document.addEventListener('keydown', keydown, false);

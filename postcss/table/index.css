@@ -1,0 +1,980 @@
+/* this is a copy of semantic ui table */
+
+@import '_variables.css';
+@import '../_viewports.css';
+
+/*******************************
+             Table
+*******************************/
+
+/* Prototype */
+.table {
+  width: 100%;
+  background: var(--background);
+  margin: var(--margin);
+  border: var(--border);
+  box-shadow: var(--boxShadow);
+  border-radius: var(--borderRadius);
+  text-align: var(--textAlign);
+  color: var(--color);
+  border-collapse: var(--borderCollapse);
+  border-spacing: var(--borderSpacing);
+}
+
+.table:first-child {
+  margin-top: 0em;
+}
+.table:last-child {
+  margin-bottom: 0em;
+}
+
+/*******************************
+             Parts
+*******************************/
+
+/* Table Content */
+.table th,
+.table td {
+  transition: var(--transition);
+}
+
+/* Headers */
+.table thead {
+  box-shadow: var(--headerBoxShadow);
+}
+.table thead th {
+  cursor: auto;
+  background: var(--headerBackground);
+  text-align: var(--headerAlign);
+  color: var(--headerColor);
+  padding: var(--headerVerticalPadding) @headerHorizontalPadding;
+  vertical-align: var(--headerVerticalAlign);
+  font-style: var(--headerFontStyle);
+  font-weight: var(--headerFontWeight);
+  text-transform: var(--headerTextTransform);
+  border-bottom: var(--headerBorder);
+  border-left: var(--headerDivider);
+}
+
+.table thead tr > th:first-child {
+  border-left: none;
+}
+
+.table thead tr:first-child > th:first-child {
+  border-radius: var(--borderRadius) 0em 0em 0em;
+}
+.table thead tr:first-child > th:last-child {
+  border-radius: 0em @borderRadius 0em 0em;
+}
+.table thead tr:first-child > th:only-child {
+  border-radius: var(--borderRadius) @borderRadius 0em 0em;
+}
+
+/* Footer */
+.table tfoot {
+  box-shadow: var(--footerBoxShadow);
+}
+.table tfoot th {
+  cursor: auto;
+  border-top: var(--footerBorder);
+  background: var(--footerBackground);
+  text-align: var(--footerAlign);
+  color: var(--footerColor);
+  padding: var(--footerVerticalPadding) @footerHorizontalPadding;
+  vertical-align: var(--footerVerticalAlign);
+  font-style: var(--footerFontStyle);
+  font-weight: var(--footerFontWeight);
+  text-transform: var(--footerTextTransform);
+}
+.table tfoot tr > th:first-child {
+  border-left: none;
+}
+.table tfoot tr:first-child > th:first-child {
+  border-radius: 0em 0em 0em @borderRadius;
+}
+.table tfoot tr:first-child > th:last-child {
+  border-radius: 0em 0em @borderRadius 0em;
+}
+.table tfoot tr:first-child > th:only-child {
+  border-radius: 0em 0em @borderRadius @borderRadius;
+}
+
+/* Table Row */
+.table tr td {
+  border-top: var(--rowBorder);
+}
+.table tr:first-child td {
+  border-top: none;
+}
+
+/* Table Cells */
+.table td {
+  padding: var(--cellVerticalPadding) @cellHorizontalPadding;
+  text-align: var(--cellTextAlign);
+}
+
+/* Icons */
+.table > .icon {
+  vertical-align: var(--iconVerticalAlign);
+}
+.table > .icon:only-child {
+  margin: 0em;
+}
+
+/* Table Segment */
+.table.segment {
+  padding: 0em;
+}
+.table.segment:after {
+  display: none;
+}
+.table.segment.stacked:after {
+  display: block;
+}
+
+/* Responsive */
+@media only screen and (--largestMobileScreen) {
+  .table:not(.unstackable) {
+    width: 100%;
+  }
+  .table:not(.unstackable) tbody,
+  .table:not(.unstackable) tr,
+  .table:not(.unstackable) tr > th,
+  .table:not(.unstackable) tr > td  {
+    display: block !important;
+    width: auto !important;
+    display: block !important;
+  }
+
+  .table:not(.unstackable) {
+    padding: 0em;
+  }
+  .table:not(.unstackable) thead {
+    display: var(--responsiveHeaderDisplay);
+  }
+  .table:not(.unstackable) tfoot {
+    display: var(--responsiveFooterDisplay);
+  }
+  .table:not(.unstackable) tr {
+    padding-top: var(--responsiveRowVerticalPadding);
+    padding-bottom: var(--responsiveRowVerticalPadding);
+    box-shadow: var(--responsiveRowBoxShadow);
+  }
+
+  .table:not(.unstackable) tr > th,
+  .table:not(.unstackable) tr > td {
+    background: none;
+    border: none !important;
+    padding: var(--responsiveCellVerticalPadding) @responsiveCellHorizontalPadding !important;
+    box-shadow: var(--responsiveCellBoxShadow);
+  }
+  .table:not(.unstackable) th:first-child,
+  .table:not(.unstackable) td:first-child {
+    font-weight: bold;
+  }
+
+  /* Definition Table */
+  .table-definition:not(.unstackable) thead th:first-child {
+    box-shadow: none !important;
+  }
+}
+
+
+/*******************************
+            Coupling
+*******************************/
+
+/* UI Image */
+.table th .image,
+.table th .image img,
+.table td .image,
+.table td .image img {
+  max-width: none;
+}
+
+
+/*******************************
+             Types
+*******************************/
+
+/*--------------
+    Complex
+---------------*/
+
+.table-structured {
+  border-collapse: collapse;
+}
+.table-structured thead th {
+  border-left: var(--headerDivider);
+  border-right: var(--headerDivider);
+}
+.table-structured.sortable thead th {
+  border-left: var(--sortableBorder);
+  border-right: var(--sortableBorder);
+}
+.table-structured.basic th {
+  border-left: var(--basicTableHeaderDivider);
+  border-right: var(--basicTableHeaderDivider);
+}
+.table-structured.celled tr th,
+.table-structured.celled tr td {
+  border-left: var(--cellBorder);
+  border-right: var(--cellBorder);
+}
+
+/*--------------
+   Definition
+---------------*/
+
+.table-definition thead:not(.full-width) th:first-child {
+  pointer-events: none;
+  background: var(--definitionHeaderBackground);
+  font-weight: var(--definitionHeaderFontWeight);
+  color: var(--definitionHeaderColor);
+  box-shadow: -@borderWidth -@borderWidth 0px @borderWidth @definitionPageBackground;
+}
+
+.table-definition tfoot:not(.full-width) th:first-child {
+  pointer-events: none;
+  background: var(--definitionFooterBackground);
+  font-weight: var(--definitionFooterColor);
+  color: var(--definitionFooterFontWeight);
+  box-shadow: var(--borderWidth) @borderWidth 0px @borderWidth @definitionPageBackground;
+}
+
+/* Remove Border */
+.table-celled.definition thead:not(.full-width) th:first-child {
+  box-shadow: 0px -@borderWidth 0px @borderWidth @definitionPageBackground;
+}
+.table-celled.definition tfoot:not(.full-width) th:first-child {
+  box-shadow: 0px @borderWidth 0px @borderWidth @definitionPageBackground;
+}
+
+/* Highlight Defining Column */
+.table-definition tr td:first-child:not(.ignored),
+.table-definition tr td.definition {
+  background: var(--definitionColumnBackground);
+  font-weight: var(--definitionColumnFontWeight);
+  color: var(--definitionColumnColor);
+  text-transform: var(--definitionColumnTextTransform);
+  box-shadow: var(--definitionColumnBoxShadow);
+  text-align: var(--definitionColumnTextAlign);
+  font-size: var(--definitionColumnFontSize);
+  padding-left: var(--definitionColumnHorizontalPadding);
+  padding-right: var(--definitionColumnHorizontalPadding);
+}
+
+
+/* Fix 2nd Column */
+.table-definition thead:not(.full-width) th:nth-child(2) {
+  border-left: var(--borderWidth) solid @borderColor;
+}
+.table-definition tfoot:not(.full-width) th:nth-child(2) {
+  border-left: var(--borderWidth) solid @borderColor;
+}
+.table-definition td:nth-child(2) {
+  border-left: var(--borderWidth) solid @borderColor;
+}
+
+
+/*******************************
+             States
+*******************************/
+
+/*--------------
+    Positive
+---------------*/
+
+.table tr.positive,
+.table td.positive {
+  box-shadow: var(--positiveBoxShadow);
+}
+.table tr.positive,
+.table td.positive {
+  background: var(--positiveBackgroundColor) !important;
+  color: var(--positiveColor) !important;
+}
+
+/*--------------
+     Negative
+---------------*/
+
+.table tr.negative,
+.table td.negative {
+  box-shadow: var(--negativeBoxShadow);
+}
+.table tr.negative,
+.table td.negative {
+  background: var(--negativeBackgroundColor) !important;
+  color: var(--negativeColor) !important;
+}
+
+/*--------------
+      Error
+---------------*/
+
+.table tr.error,
+.table td.error {
+  box-shadow: var(--errorBoxShadow);
+}
+.table tr.error,
+.table td.error {
+  background: var(--errorBackgroundColor) !important;
+  color: var(--errorColor) !important;
+}
+/*--------------
+     Warning
+---------------*/
+
+.table tr.warning,
+.table td.warning {
+  box-shadow: var(--warningBoxShadow);
+}
+.table tr.warning,
+.table td.warning {
+  background: var(--warningBackgroundColor) !important;
+  color: var(--warningColor) !important;
+}
+
+/*--------------
+     Active
+---------------*/
+
+.table tr.active,
+.table td.active {
+  box-shadow: var(--activeBoxShadow);
+}
+.table tr.active,
+.table td.active {
+  background: var(--activeBackgroundColor) !important;
+  color: var(--activeColor) !important;
+}
+
+
+
+/*--------------
+     Disabled
+---------------*/
+
+.table tr.disabled td,
+.table tr td.disabled,
+.table tr.disabled:hover,
+.table tr:hover td.disabled {
+  pointer-events: none;
+  color: var(--disabledTextColor);
+}
+
+/*******************************
+          Variations
+*******************************/
+
+/*--------------
+    Stackable
+---------------*/
+@media (--largestTabletScreen) {
+
+  [class*="tablet stackable"].table,
+  [class*="tablet stackable"].table tbody,
+  [class*="tablet stackable"].table tr,
+  [class*="tablet stackable"].table tr > th,
+  [class*="tablet stackable"].table tr > td  {
+    display: block !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  [class*="tablet stackable"].table {
+    padding: 0em;
+  }
+  [class*="tablet stackable"].table thead {
+    display: var(--responsiveHeaderDisplay);
+  }
+  [class*="tablet stackable"].table tfoot {
+    display: var(--responsiveFooterDisplay);
+  }
+  [class*="tablet stackable"].table tr {
+    padding-top: var(--responsiveRowVerticalPadding);
+    padding-bottom: var(--responsiveRowVerticalPadding);
+    box-shadow: var(--responsiveRowBoxShadow);
+  }
+  [class*="tablet stackable"].table tr > th,
+  [class*="tablet stackable"].table tr > td {
+    background: none;
+    border: none !important;
+    padding: var(--responsiveCellVerticalPadding) @responsiveCellHorizontalPadding;
+    box-shadow: var(--responsiveCellBoxShadow);
+  }
+
+  /* Definition Table */
+  .table-definition[class*="tablet stackable"] thead th:first-child {
+    box-shadow: none !important;
+  }
+}
+
+/*--------------
+ Text Alignment
+---------------*/
+
+.table[class*="left aligned"],
+.table [class*="left aligned"] {
+  text-align: left;
+}
+.table[class*="center aligned"],
+.table [class*="center aligned"] {
+  text-align: center;
+}
+.table[class*="right aligned"],
+.table [class*="right aligned"] {
+  text-align: right;
+}
+
+/*------------------
+ Vertical Alignment
+------------------*/
+
+.table[class*="top aligned"],
+.table [class*="top aligned"] {
+  vertical-align: top;
+}
+.table[class*="middle aligned"],
+.table [class*="middle aligned"] {
+  vertical-align: middle;
+}
+.table[class*="bottom aligned"],
+.table [class*="bottom aligned"] {
+  vertical-align: bottom;
+}
+
+/*--------------
+    Collapsing
+---------------*/
+
+.table th.collapsing,
+.table td.collapsing {
+  width: 1px;
+  white-space: nowrap;
+}
+
+/*--------------
+     Fixed
+---------------*/
+
+.table-fixed {
+  table-layout: fixed;
+}
+
+.table-fixed th,
+.table-fixed td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/*--------------
+   Selectable
+---------------*/
+
+.table-selectable tbody tr:hover,
+.table tbody tr td.selectable:hover {
+  background: var(--selectableBackground) !important;
+  color: var(--selectableTextColor) !important;
+}
+.table-selectable.inverted tbody tr:hover,
+.table-inverted tbody tr td.selectable:hover {
+  background: var(--selectableInvertedBackground) !important;
+  color: var(--selectableInvertedTextColor) !important;
+}
+
+/* Selectable Cell Link */
+.table tbody tr td.selectable {
+  padding: 0em;
+}
+.table tbody tr td.selectable > a:not() {
+  display: block;
+  color: inherit;
+  padding: var(--cellVerticalPadding) @cellHorizontalPadding;
+}
+
+/* Other States */
+.table-selectable tr.error:hover,
+.table tr td.selectable.error:hover,
+.table-selectable tr:hover td.error {
+  background: var(--errorBackgroundHover) !important;
+  color: var(--errorColorHover) !important;
+}
+.table-selectable tr.warning:hover,
+.table tr td.selectable.warning:hover,
+.table-selectable tr:hover td.warning {
+  background: var(--warningBackgroundHover) !important;
+  color: var(--warningColorHover) !important;
+}
+.table-selectable tr.active:hover,
+.table tr td.selectable.active:hover,
+.table-selectable tr:hover td.active {
+  background: var(--activeBackgroundColor) !important;
+  color: var(--activeColor) !important;
+}
+.table-selectable tr.positive:hover,
+.table tr td.selectable.positive:hover,
+.table-selectable tr:hover td.positive {
+  background: var(--positiveBackgroundHover) !important;
+  color: var(--positiveColorHover) !important;
+}
+.table-selectable tr.negative:hover,
+.table tr td.selectable.negative:hover,
+.table-selectable tr:hover td.negative {
+  background: var(--negativeBackgroundHover) !important;
+  color: var(--negativeColorHover) !important;
+}
+
+
+
+/*-------------------
+      Attached
+--------------------*/
+
+/* Middle */
+.table-attached {
+  top: 0px;
+  bottom: 0px;
+  border-radius: 0px;
+  margin: 0em @attachedHorizontalOffset;
+  width: var(--attachedWidth);
+  max-width: var(--attachedWidth);
+  box-shadow: var(--attachedBoxShadow);
+  border: var(--attachedBorder);
+}
+.table-attached + .attached:not(.top) {
+  border-top: none;
+}
+
+/* Top */
+[class*="top attached"].table {
+  bottom: 0px;
+  margin-bottom: 0em;
+  top: var(--attachedTopOffset);
+  margin-top: var(--verticalMargin);
+  border-radius: var(--borderRadius) @borderRadius 0em 0em;
+}
+.table[class*="top attached"]:first-child {
+  margin-top: 0em;
+}
+
+/* Bottom */
+[class*="bottom attached"].table {
+  bottom: 0px;
+  margin-top: 0em;
+  top: var(--attachedBottomOffset);
+  margin-bottom: var(--verticalMargin);
+  box-shadow: var(--attachedBottomBoxShadow);
+  border-radius: 0em 0em @borderRadius @borderRadius;
+}
+[class*="bottom attached"].table:last-child {
+  margin-bottom: 0em;
+}
+
+/*--------------
+     Striped
+---------------*/
+
+/* Table Striping */
+.table-striped > tr:nth-child(2n),
+.table-striped tbody tr:nth-child(2n) {
+  background-color: var(--stripedBackground);
+}
+
+/* Stripes */
+.table-inverted.striped > tr:nth-child(2n),
+.table-inverted.striped tbody tr:nth-child(2n) {
+  background-color: var(--invertedStripedBackground);
+}
+
+/* Allow striped active hover */
+.table-striped.selectable.selectable.selectable tbody tr.active:hover {
+  background: var(--activeBackgroundHover) !important;
+  color: var(--activeColorHover) !important;
+}
+
+/*--------------
+   Single Line
+---------------*/
+
+.table[class*="single line"],
+.table [class*="single line"] {
+  white-space: nowrap;
+}
+.table[class*="single line"],
+.table [class*="single line"] {
+  white-space: nowrap;
+}
+
+/*-------------------
+       Colors
+--------------------*/
+
+/* Red */
+.table-red {
+  border-top: var(--coloredBorderSize) solid @red;
+}
+.table-inverted.red {
+  background-color: var(--red) !important;
+  color: var(--white) !important;
+}
+
+/* Orange */
+.table-orange {
+  border-top: var(--coloredBorderSize) solid @orange;
+}
+.table-inverted.orange {
+  background-color: var(--orange) !important;
+  color: var(--white) !important;
+}
+
+/* Yellow */
+.table-yellow {
+  border-top: var(--coloredBorderSize) solid @yellow;
+}
+.table-inverted.yellow {
+  background-color: var(--yellow) !important;
+  color: var(--white) !important;
+}
+
+/* Olive */
+.table-olive {
+  border-top: var(--coloredBorderSize) solid @olive;
+}
+.table-inverted.olive {
+  background-color: var(--olive) !important;
+  color: var(--white) !important;
+}
+
+/* Green */
+.table-green {
+  border-top: var(--coloredBorderSize) solid @green;
+}
+.table-inverted.green {
+  background-color: var(--green) !important;
+  color: var(--white) !important;
+}
+
+/* Teal */
+.table-teal {
+  border-top: var(--coloredBorderSize) solid @teal;
+}
+.table-inverted.teal {
+  background-color: var(--teal) !important;
+  color: var(--white) !important;
+}
+
+/* Blue */
+.table-blue {
+  border-top: var(--coloredBorderSize) solid @blue;
+}
+.table-inverted.blue {
+  background-color: var(--blue) !important;
+  color: var(--white) !important;
+}
+
+/* Violet */
+.table-violet {
+  border-top: var(--coloredBorderSize) solid @violet;
+}
+.table-inverted.violet {
+  background-color: var(--violet) !important;
+  color: var(--white) !important;
+}
+
+/* Purple */
+.table-purple {
+  border-top: var(--coloredBorderSize) solid @purple;
+}
+.table-inverted.purple {
+  background-color: var(--purple) !important;
+  color: var(--white) !important;
+}
+
+/* Pink */
+.table-pink {
+  border-top: var(--coloredBorderSize) solid @pink;
+}
+.table-inverted.pink {
+  background-color: var(--pink) !important;
+  color: var(--white) !important;
+}
+
+/* Brown */
+.table-brown {
+  border-top: var(--coloredBorderSize) solid @brown;
+}
+.table-inverted.brown {
+  background-color: var(--brown) !important;
+  color: var(--white) !important;
+}
+
+/* Grey */
+.table-grey {
+  border-top: var(--coloredBorderSize) solid @grey;
+}
+.table-inverted.grey {
+  background-color: var(--grey) !important;
+  color: var(--white) !important;
+}
+
+/* Black */
+.table-black {
+  border-top: var(--coloredBorderSize) solid @black;
+}
+.table-inverted.black {
+  background-color: var(--black) !important;
+  color: var(--white) !important;
+}
+
+
+/*--------------
+  Column Count
+---------------*/
+
+
+/*--------------
+    Sortable
+---------------*/
+
+.table-sortable thead th {
+  cursor: pointer;
+  white-space: nowrap;
+  border-left: var(--sortableBorder);
+  color: var(--sortableColor);
+}
+.table-sortable thead th:first-child {
+  border-left: none;
+}
+.table-sortable thead th.sorted,
+.table-sortable thead th.sorted:hover {
+  user-select: none;
+}
+
+.table-sortable thead th:after {
+  display: none;
+  font-style: normal;
+  font-weight: normal;
+  text-decoration: inherit;
+  content: '';
+  height: 1em;
+  width: var(--sortableIconWidth);
+  opacity: var(--sortableIconOpacity);
+  margin: 0em 0em 0em @sortableIconDistance;
+  font-family: var(--sortableIconFont);
+}
+.table-sortable thead th.ascending:after {
+  content: var(--sortableIconAscending);
+}
+.table-sortable thead th.descending:after {
+  content: var(--sortableIconDescending);
+}
+
+/* Hover */
+.table-sortable th.disabled:hover {
+  cursor: auto;
+  color: var(--sortableDisabledColor);
+}
+.table-sortable thead th:hover {
+  background: var(--sortableHoverBackground);
+  color: var(--sortableHoverColor);
+}
+
+/* Sorted */
+.table-sortable thead th.sorted {
+  background: var(--sortableActiveBackground);
+  color: var(--sortableActiveColor);
+}
+.table-sortable thead th.sorted:after {
+  display: inline-block;
+}
+
+/* Sorted Hover */
+.table-sortable thead th.sorted:hover {
+  background: var(--sortableActiveHoverBackground);
+  color: var(--sortableActiveHoverColor);
+}
+
+/* Inverted */
+.table-inverted.sortable thead th.sorted {
+  background: var(--sortableInvertedActiveBackground);
+  color: var(--sortableInvertedActiveColor);
+}
+.table-inverted.sortable thead th:hover {
+  background: var(--sortableInvertedHoverBackground);
+  color: var(--sortableInvertedHoverColor);
+}
+.table-inverted.sortable thead th {
+  border-left-color: var(--sortableInvertedBorderColor);
+  border-right-color: var(--sortableInvertedBorderColor);
+}
+
+
+/*--------------
+    Inverted
+---------------*/
+
+/* Text Color */
+.table-inverted {
+  background: var(--invertedBackground);
+  color: var(--invertedCellColor);
+  border: var(--invertedBorder);
+}
+.table-inverted th {
+  background-color: var(--invertedHeaderBackground);
+  border-color: var(--invertedHeaderBorderColor) !important;
+  color: var(--invertedHeaderColor);
+}
+.table-inverted tr td {
+  border-color: var(--invertedCellBorderColor) !important;
+}
+
+.table-inverted tr.disabled td,
+.table-inverted tr td.disabled,
+.table-inverted tr.disabled:hover td,
+.table-inverted tr:hover td.disabled {
+  pointer-events: none;
+  color: var(--invertedDisabledTextColor);
+}
+
+/* Definition */
+.table-inverted.definition tfoot:not(.full-width) th:first-child,
+.table-inverted.definition thead:not(.full-width) th:first-child {
+  background: var(--definitionPageBackground);
+}
+.table-inverted.definition tr td:first-child {
+  background: var(--invertedDefinitionColumnBackground);
+  color: var(--invertedDefinitionColumnColor);
+}
+
+/*--------------
+   Collapsing
+---------------*/
+
+.table-collapsing {
+  width: auto;
+}
+
+/*--------------
+      Basic
+---------------*/
+
+.table-basic {
+  background: var(--basicTableBackground);
+  border: var(--basicTableBorder);
+  box-shadow: var(--basicBoxShadow);
+}
+.table-basic thead,
+.table-basic tfoot {
+  box-shadow: none;
+}
+.table-basic th {
+  background: var(--basicTableHeaderBackground);
+  border-left: var(--basicTableHeaderDivider);
+}
+.table-basic tbody tr {
+  border-bottom: var(--basicTableCellBorder);
+}
+.table-basic td {
+  background: var(--basicTableCellBackground);
+}
+.table-basic.striped tbody tr:nth-child(2n) {
+  background-color: var(--basicTableStripedBackground) !important;
+}
+
+/* Very Basic */
+[class*="very basic"].table {
+  border: none;
+}
+[class*="very basic"].table:not(.sortable):not(.striped) th,
+[class*="very basic"].table:not(.sortable):not(.striped) td {
+  padding: var(--basicTableCellPadding);
+}
+[class*="very basic"].table:not(.sortable):not(.striped) th:first-child,
+[class*="very basic"].table:not(.sortable):not(.striped) td:first-child {
+  padding-left: 0em;
+}
+[class*="very basic"].table:not(.sortable):not(.striped) th:last-child,
+[class*="very basic"].table:not(.sortable):not(.striped) td:last-child {
+  padding-right: 0em;
+}
+[class*="very basic"].table:not(.sortable):not(.striped) thead tr:first-child th {
+  padding-top: 0em;
+}
+
+/*--------------
+     Celled
+---------------*/
+
+.table-celled tr th,
+.table-celled tr td {
+  border-left: var(--cellBorder);
+}
+.table-celled tr th:first-child,
+.table-celled tr td:first-child {
+  border-left: none;
+}
+
+/*--------------
+     Padded
+---------------*/
+
+.table-padded th {
+  padding-left: var(--paddedHorizontalPadding);
+  padding-right: var(--paddedHorizontalPadding);
+}
+.table-padded th,
+.table-padded td {
+  padding: var(--paddedVerticalPadding) @paddedHorizontalPadding;
+}
+
+/* Very */
+[class*="very padded"].table th {
+  padding-left: var(--veryPaddedHorizontalPadding);
+  padding-right: var(--veryPaddedHorizontalPadding);
+}
+[class*="very padded"].table td {
+  padding: var(--veryPaddedVerticalPadding) @veryPaddedHorizontalPadding;
+}
+
+/*--------------
+     Compact
+---------------*/
+
+.table-compact th {
+  padding-left: var(--compactHorizontalPadding);
+  padding-right: var(--compactHorizontalPadding);
+}
+.table-compact td {
+  padding: var(--compactVerticalPadding) @compactHorizontalPadding;
+}
+
+/* Very */
+[class*="very compact"].table th {
+  padding-left: var(--veryCompactHorizontalPadding);
+  padding-right: var(--veryCompactHorizontalPadding);
+}
+[class*="very compact"].table td {
+  padding: var(--veryCompactVerticalPadding) @veryCompactHorizontalPadding;
+}
+
+/*--------------
+      Sizes
+---------------*/
+
+/* Small */
+.table-small {
+  font-size: var(--small);
+}
+
+/* Standard */
+.table {
+  font-size: var(--medium);
+}
+
+/* Large */
+.table-large {
+  font-size: var(--large);
+}

@@ -18,6 +18,8 @@ var cheerio = require('cheerio');
 var R = require('ramda');
 var co = require('co');
 var OSS = require('ali-oss');
+var postcss    = require('gulp-postcss');
+var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('connect', function() {
   connect.server({
@@ -34,7 +36,8 @@ gulp.task('reload', function () {
 
 gulp.task('watch', function () {
   gulp.watch(['smart-grid/**/*', 'js/**/*.js', 'js/**/*.ejs', '!js/bundle.js'], ['rollup']);
-  gulp.watch(['./index.html', 'js/bundle.js', 'js/plugins.js', 'css/main.css'], ['reload']);
+  gulp.watch(['./index.html', 'js/bundle.js', 'js/plugins.js'], ['reload']);
+  gulp.watch(['./postcss/**/*.css'], ['css']) ;
 });
 
 gulp.task('collect-dist', ['rollup'], function (cb) {
@@ -70,7 +73,7 @@ gulp.task('dist', ['rollup', 'collect-dist', 'rev', 'rev-replace'],
           function () {
 });
 
-gulp.task('default', ['connect', 'watch']);
+gulp.task('default', ['css', 'rollup', 'connect', 'watch']);
 
 gulp.task('rollup', function () {
   var plugins = [
@@ -155,4 +158,20 @@ gulp.task('deploy', ['dist'], function (cb) {
     client.useBucket(config.bucket);
     yield * uploadDir(client, 'dist', { base: 'dist' });
   }).catch(console.error);
+});
+
+gulp.task('css', function () {
+    return gulp.src('postcss/main.css')
+    .pipe( sourcemaps.init() )
+    .pipe( postcss([ 
+      require('autoprefixer'), 
+      require('postcss-import'),
+      require('postcss-custom-media'),
+      require('postcss-custom-properties'),
+      require('postcss-calc'),
+      require('postcss-color-function'),
+      require('postcss-discard-comments'),
+    ]) )
+    .pipe( sourcemaps.write('.') )
+    .pipe( gulp.dest('css/') ).pipe(connect.reload());
 });

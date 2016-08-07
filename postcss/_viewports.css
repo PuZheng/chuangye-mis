@@ -1,0 +1,4 @@
+@custom-media --largestMobileScreen (max-width: 767px);
+@custom-media --largestTabletScreen (max-width: 991px);
+@custom-media --largestSmallMonitor (max-width: 1199px);
+@custom-media --widescreenMonitor (max-width: 1919px);

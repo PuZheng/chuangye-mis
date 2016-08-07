@@ -1,0 +1,251 @@
+@import 'colors.css/src/_variables.css';
+@import '../_globals.css';
+
+:root {
+    /*******************************
+                 Table
+    *******************************/
+
+    /*-------------------
+           Element
+    --------------------*/
+
+    --verticalMargin: 1em;
+    --horizontalMargin: 0em;
+    --margin: var(--verticalMargin) var(--horizontalMargin);
+    --borderCollapse: separate;
+    --borderSpacing: 0px;
+    --borderRadius: var(--defaultBorderRadius);
+    --transition:
+      background --defaultDuration var(--defaultEasing),
+      color --defaultDuration var(--defaultEasing)
+    ;
+    --background: var(--white);
+    --color: var(--textColor);
+    --borderWidth: 1px;
+    --border: var(--borderWidth) solid var(--borderColor);
+    --boxShadow: none;
+    --textAlign: left;
+
+    /*--------------
+         Parts
+    ---------------*/
+
+    /* Table Row */
+    --rowBorder: 1px solid var(--internalBorderColor);
+
+    /* Table Cell */
+    --cellVerticalPadding: var(--relativeMini);
+    --cellHorizontalPadding: var(--relativeMini);
+    --cellVerticalAlign: inherit;
+    --cellTextAlign: inherit;
+    --cellBorder: 1px solid var(--internalBorderColor);
+
+    /* Table Header */
+    --headerBorder: 1px solid var(--internalBorderColor);
+    --headerDivider: none;
+    --headerBackground: var(--offWhite);
+    --headerAlign: inherit;
+    --headerVerticalAlign: inherit;
+    --headerColor: var(--textColor);
+    --headerVerticalPadding: var(--relativeSmall);
+    --headerHorizontalPadding: var(--cellHorizontalPadding);
+    --headerFontStyle: none;
+    --headerFontWeight: bold;
+    --headerTextTransform: none;
+    --headerBoxShadow: none;
+
+    /* Table Footer */
+    --footerBoxShadow: none;
+    --footerBorder: 1px solid var(--borderColor);
+    --footerDivider: none;
+    --footerBackground: var(--offWhite);
+    --footerAlign: inherit;
+    --footerVerticalAlign: middle;
+    --footerColor: var(--textColor);
+    --footerVerticalPadding: var(--cellVerticalPadding);
+    --footerHorizontalPadding: var(--cellHorizontalPadding);
+    --footerFontStyle: normal;
+    --footerFontWeight: normal;
+    --footerTextTransform: none;
+
+    /* Responsive Size */
+    --responsiveHeaderDisplay: block;
+    --responsiveFooterDisplay: block;
+    --responsiveRowVerticalPadding: 1em;
+    --responsiveRowBoxShadow: 0px -1px 0px 0px rgba(0, 0, 0, 0.1) inset !important;
+    --responsiveCellVerticalPadding: 0.25em;
+    --responsiveCellHorizontalPadding: 0.75em;
+    --responsiveCellBoxShadow: none !important;
+
+    /*-------------------
+           Types
+    --------------------*/
+
+    /* Definition */
+    --definitionPageBackground: var(--white);
+
+    --definitionHeaderBackground: transparent;
+    --definitionHeaderColor: var(--unselectedTextColor);
+    --definitionHeaderFontWeight: normal;
+
+    --definitionFooterBackground: var(--definitionHeaderBackground);
+    --definitionFooterColor: var(--definitionHeaderColor);
+    --definitionFooterFontWeight: var(--definitionHeaderFontWeight);
+
+    --definitionColumnBackground: var(--subtleTransparentBlack);
+    --definitionColumnFontWeight: bold;
+    --definitionColumnColor: var(--selectedTextColor);
+    --definitionColumnFontSize: var(--relativeMedium);
+    --definitionColumnTextTransform: '';
+    --definitionColumnBoxShadow: '';
+    --definitionColumnTextAlign: '';
+    --definitionColumnHorizontalPadding: '';
+
+
+    /*--------------
+        Couplings
+    ---------------*/
+
+    --iconVerticalAlign: baseline;
+
+    /*--------------
+         States
+    ---------------*/
+
+    --stateMarkerWidth: 0px;
+
+    /* Positive */
+    --positiveColor: var(--positiveTextColor);
+    --positiveBoxShadow: var(--stateMarkerWidth) 0px 0px var(--positiveBorderColor) inset;
+    --positiveBackgroundHover: darken(var(--positiveBackgroundColor), 3);
+    --positiveColorHover: darken(var(--positiveColor), 3);
+
+    /* Negative */
+    --negativeColor: var(--negativeTextColor);
+    --negativeBoxShadow: var(--stateMarkerWidth) 0px 0px var(--negativeBorderColor) inset;
+    --negativeBackgroundHover: darken(var(--negativeBackgroundColor), 3);
+    --negativeColorHover: darken(var(--negativeColor), 3);
+
+    /* Error */
+    --errorColor: var(--errorTextColor);
+    --errorBoxShadow: var(--stateMarkerWidth) 0px 0px var(--errorBorderColor) inset;
+    --errorBackgroundHover: darken(var(--errorBackgroundColor), 3);
+    --errorColorHover: darken(var(--errorColor), 3);
+
+    /* Warning */
+    --warningColor: var(--warningTextColor);
+    --warningBoxShadow: var(--stateMarkerWidth) 0px 0px var(--warningBorderColor) inset;
+    --warningBackgroundHover: darken(var(--warningBackgroundColor), 3);
+    --warningColorHover: darken(var(--warningColor), 3);
+
+    /* Active */
+    --activeColor: var(--textColor);
+    --activeBackgroundColor: #E0E0E0;
+    --activeBoxShadow: var(--stateMarkerWidth) 0px 0px var(--activeColor) inset;
+
+    --activeBackgroundHover: #EFEFEF;
+    --activeColorHover: var(--selectedTextColor);
+
+    /*--------------
+         Types
+    ---------------*/
+
+    /* Attached */
+    --attachedTopOffset: 0px;
+    --attachedBottomOffset: 0px;
+    --attachedHorizontalOffset: -var(--borderWidth);
+    --attachedWidth: ~"calc(100% + "-var(--attachedHorizontalOffset) * 2~")";
+    --attachedBoxShadow: none;
+    --attachedBorder: var(--borderWidth) solid var(--solidBorderColor);
+    --attachedBottomBoxShadow:
+      --boxShadow,
+      --attachedBoxShadow
+    ;
+
+    /* Striped */
+    --stripedBackground: rgba(0, 0, 50, 0.02);
+    --invertedStripedBackground: rgba(255, 255, 255, 0.05);
+
+    /* Selectable */
+    --selectableBackground: var(--transparentBlack);
+    --selectableTextColor: var(--selectedTextColor);
+    --selectableInvertedBackground: var(--transparentWhite);
+    --selectableInvertedTextColor: var(--invertedSelectedTextColor);
+
+    /* Sortable */
+    --sortableBackground: '';
+    --sortableColor: var(--textColor);
+
+    --sortableBorder: 1px solid var(--borderColor);
+    --sortableIconWidth: auto;
+    --sortableIconDistance: 0.5em;
+    --sortableIconOpacity: 0.8;
+    --sortableIconFont: 'Icons';
+    --sortableIconAscending: '\f0d8';
+    --sortableIconDescending: '\f0d7';
+    --sortableDisabledColor: var(--disabledTextColor);
+
+    --sortableHoverBackground: var(--transparentBlack);
+    --sortableHoverColor: var(--hoveredTextColor);
+
+    --sortableActiveBackground: var(--transparentBlack);
+    --sortableActiveColor: var(--selectedTextColor);
+
+    --sortableActiveHoverBackground: var(--transparentBlack);
+    --sortableActiveHoverColor: var(--selectedTextColor);
+
+    --sortableInvertedBorderColor: transparent;
+    --sortableInvertedHoverBackground: var(--transparentWhite) var(--subtleGradient);
+    --sortableInvertedHoverColor: var(--invertedHoveredTextColor);
+    --sortableInvertedActiveBackground: var(--strongTransparentWhite) var(--subtleGradient);
+    --sortableInvertedActiveColor: var(--invertedSelectedTextColor);
+
+    /* Colors */
+    --coloredBorderSize: 0.2em;
+    --coloredBorderRadius: 0em 0em var(--borderRadius) var(--borderRadius);
+
+    /* Inverted */
+    --invertedBackground: #333333;
+    --invertedBorder: none;
+    --invertedCellBorderColor: var(--whiteBorderColor);
+    --invertedCellColor: var(--invertedTextColor);
+
+    --invertedHeaderBackground: var(--veryStrongTransparentBlack);
+    --invertedHeaderColor: var(--invertedTextColor);
+    --invertedHeaderBorderColor: var(--invertedCellBorderColor);
+
+    --invertedDefinitionColumnBackground: var(--subtleTransparentWhite);
+    --invertedDefinitionColumnColor: var(--invertedSelectedTextColor);
+    --invertedDefinitionColumnFontWeight: bold;
+
+    /* Basic */
+    --basicTableBackground: transparent;
+    --basicTableBorder: var(--borderWidth) solid var(--borderColor);
+    --basicBoxShadow: none;
+
+    --basicTableHeaderBackground: transparent;
+    --basicTableCellBackground: transparent;
+    --basicTableHeaderDivider: none;
+    --basicTableCellBorder: 1px solid rgba(0, 0, 0, 0.1);
+    --basicTableCellPadding: '';
+    --basicTableStripedBackground: var(--transparentBlack);
+
+    /* Padded */
+    --paddedVerticalPadding: 1em;
+    --paddedHorizontalPadding: 1em;
+    --veryPaddedVerticalPadding: 1.5em;
+    --veryPaddedHorizontalPadding: 1.5em;
+
+    /* Compact */
+    --compactVerticalPadding: 0.5em;
+    --compactHorizontalPadding: 0.7em;
+    --veryCompactVerticalPadding: 0.4em;
+    --veryCompactHorizontalPadding: 0.6em;
+
+
+    /* Sizes */
+    --small: 0.9em;
+    --medium: 1em;
+    --large: 1.1em;
+};

@@ -133,12 +133,20 @@ class Cell {
   }
   makeEditor(def, val, editing, onChangeCb) {
     // it could be more sophisticated
-    return h('input', {
+    return h('input.fit', {
       type: 'text',
       value: val,
-      style: editing? {}: {
+      style: editing? {
+        width: '90%',
+        height: '100%',
+      }: {
         display: 'none',
       }, 
+      onfocus: function moveCaretAtEnd (e) {
+        var temp_value = e.target.value;
+        e.target.value = '';
+        e.target.value = temp_value;
+      },
       onkeydown: function (e) {
         if (e.keyCode == 27 || e.keyCode == 13) {
           e.stopPropagation();
@@ -267,7 +275,6 @@ export class SmartGrid {
         return h('tr', [
           h('th', {
             style: {
-              padding: '0.1em 0' 
             }
           }, ''),
           ...range(0, grid.def.columns).map(function (idx) { 
@@ -305,16 +312,10 @@ export class SmartGrid {
       });
       this._$$view = x.connect([grid.$$focusedCell, $$topHeaderRowVn, ...$$rows], function (focusedCell, topHeaderRow, ...rows) {
         return [
-          h('.ui.top.attached.basic.segment', {
-            style: {
-              padding: 0
-            }
-          }, [
-            h('input', {
-              value: focusedCell && (grid.getCellVal(focusedCell.row, focusedCell.col) || focusedCell.$$val.val())
-            }),
-          ]),
-          h('table.ui.celled.compact.striped.table.bottom.attached', [
+          h('input', {
+            value: focusedCell && (grid.getCellVal(focusedCell.row, focusedCell.col) || focusedCell.$$val.val())
+          }),
+          h('table.table.table-celled.table-compact.table-striped', [
             h('thead', topHeaderRow),
             h('tbody', rows),
           ])
