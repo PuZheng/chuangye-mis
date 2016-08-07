@@ -5,7 +5,7 @@ select,
 textarea,
 fieldset {
     font-family: var(--font-family);
-    font-size: var(--ui-font-size);
+    font-size: var(--ui-font-size-big);
 }
 
 input[type="email"],
@@ -67,7 +67,7 @@ input.disabled {
 	color: var(--input-disabled-color);
 }
 
-// Fieldset
+/*  Fieldset */
 fieldset {
 	padding: 39px 32px;
 	margin-bottom: var(--base-line);
@@ -85,7 +85,7 @@ legend {
 	line-height: 0;
 }
 
-// Collection
+/*  Collection */
 .form {
 
     margin-bottom: 0;
@@ -164,7 +164,7 @@ legend {
 	}
 }
 
-// Inline
+/*  Inline */
 .form-inline {
 
 	& textarea,
@@ -182,7 +182,7 @@ legend {
 	}
 }
 
-// Sizes
+/*  Sizes */
 input.big,
 select.big {
 	font-size: var(--ui-font-size-big);
@@ -195,7 +195,7 @@ select.big {
 	padding: 6px 10px;
 }
 
-// Descriptions
+/*  Descriptions */
 .desc {
 	text-transform: none;
 	margin-top: 4px;
@@ -212,7 +212,7 @@ span.desc {
 	line-height: var(--base-line-small);
 }
 
-// States
+/*  States */
 input.error,
 textarea.error,
 select.error {
@@ -230,7 +230,7 @@ select.success  {
 	border: var(--input-border-size) solid var(--color-success);
 }
 
-// Append & Prepend
+/*  Append & Prepend */
 .controls {
 	@include flex;
 
@@ -260,7 +260,7 @@ select.success  {
 	}
 }
 
-// Responsive
+/*  Responsive */
 @media (max-width: var(--breakpoint-small)) {
 
 	.form {
@@ -268,7 +268,7 @@ select.success  {
 		& textarea,
 		& select {
 
-			// disable autozoom
+			/*  disable autozoom */
 			font-size: 16px;
 
 			&.width-50 { width: 100%; }

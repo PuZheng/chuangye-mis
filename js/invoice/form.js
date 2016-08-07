@@ -24,15 +24,17 @@ function invoiceFormValueFunc(
   invoice, vendors, purchasers, 
   accountTerms, selectedInvoiceType, materialsEditor
 ) {
-  return h('form.form', [
+  return h('form.form.m1', [
     h('.col-6', [
-      h('label.label.inline-block', '请选择发票'),
-      h('select.select.inline-block[name=invoiceType]', [
-        h('option', '请选择发票类型'),
-        ...invoiceTypes.map( t => h('option', {
-          value: t.id,
-          selected: invoice.invoiceTypeId == t.id,
-        }, t.name) )
+      h('.form-item', [
+        h('label', '请选择发票'),
+        h('select[name=invoiceType]', [
+          ...(invoice.invoiceTypeId? []: [h('option', '请选择发票类型')]),
+          ...invoiceTypes.map( t => h('option', {
+            value: t.id,
+            selected: invoice.invoiceTypeId == t.id,
+          }, t.name) )
+        ]),
       ]),
     ])
   ]);
