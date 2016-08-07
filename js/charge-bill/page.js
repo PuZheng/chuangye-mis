@@ -7,7 +7,7 @@ var h = virtualDom.h;
 const valueFunc = function (loading, smartGrid) {
   return h('div', [
     h('h2.center', '2016-08电费单'),
-    h('.relative.border-box.border.m1.p1' + (loading? '.relative-loading': ''), {
+    h('.relative.border-box.border.m1.p1' + (loading? '.-loading': ''), {
       style: {
         minHeight: '8em',
       }

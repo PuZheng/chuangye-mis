@@ -2,13 +2,14 @@ import moment from 'moment';
 import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$accountTerms, $$selectedInvoiceType} from './data-slots.js';
 import x from '../xx.js';
 import R from 'ramda';
-import tmpl from './form.ejs';
 import once from 'once';
 import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
 import entityStore from '../store/entity-store.js';
 import materialSubjectStore from '../store/material-subject-store.js';
 import materialsEditor from './materials-editor.js';
+import virtualDom from 'virtual-dom';
+var h = virtualDom.h;
 
 const $$errors = x({}, 'invoice-form-errors');
 
@@ -23,19 +24,18 @@ function invoiceFormValueFunc(
   invoice, vendors, purchasers, 
   accountTerms, selectedInvoiceType, materialsEditor
 ) {
-  return ejs.render(tmpl, {
-    self: this,
-    errors,
-    loading,
-    invoiceTypes,
-    invoice,
-    vendors,
-    purchasers,
-    accountTerms,
-    moment,
-    selectedInvoiceType,
-    materialsEditor,
-  });
+  return h('form.form', [
+    h('.col-6', [
+      h('label.label.inline-block', '请选择发票'),
+      h('select.select.inline-block[name=invoiceType]', [
+        h('option', '请选择发票类型'),
+        ...invoiceTypes.map( t => h('option', {
+          value: t.id,
+          selected: invoice.invoiceTypeId == t.id,
+        }, t.name) )
+      ]),
+    ])
+  ]);
 }
 
 const validate = function (invoice) {

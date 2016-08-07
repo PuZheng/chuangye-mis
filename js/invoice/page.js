@@ -1,33 +1,19 @@
-/** @jsx html */
 import x from '../xx.js';
-import domDriver from '../dom-driver.js';
-import toastr from 'toastr';
-import page from 'page';
 import form from './form.js';
 import { $$invoiceTypes, $$loading, $$invoice, $$vendors, $$purchasers, $$accountTerms } from './data-slots.js';
-import morphdom from 'morphdom';
-import tmpl from './page.ejs';
+import virtualDom from 'virtual-dom';
+var h = virtualDom.h;
 
 
-const view = x.connect(
+const $$view = x.connect(
   [$$loading, $$invoice, form.view], 
   function (loading, invoice, form) {
-    return ejs.render(tmpl, {
-      self: this,
-      loading, 
-      invoice,
-      form, 
-    });
+    return h('div', [
+      h('.p2.bg-aqua.black.h3.italic', invoice.id? `编辑发票-${invoice.number}`: '创建新发票'),
+      h('.border-box.border.border-orange', form)
+    ]);
   }, 'invoice-page');
 
-var container = document.getElementById('main');
-var $invoiceTypeDropdown;
-var initialized = {};
-
-domDriver.mount(view, container, function (node) {
-  form.config(node.querySelector('#' + form.view.token));
-});
-
 export default {
-  view,
+  $$view,
 };
