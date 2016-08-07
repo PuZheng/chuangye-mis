@@ -167,10 +167,12 @@ gulp.task('css', function () {
       require('autoprefixer'), 
       require('postcss-import'),
       require('postcss-custom-media'),
-      require('postcss-custom-properties'),
       require('postcss-calc'),
+      require('postcss-custom-properties'),
       require('postcss-color-function'),
       require('postcss-discard-comments'),
+      require('postcss-extend'),
+      require('postcss-nesting'),
     ]) )
     .pipe( sourcemaps.write('.') )
     .pipe( gulp.dest('css/') ).pipe(connect.reload());
