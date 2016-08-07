@@ -102,21 +102,14 @@ class Cell {
       }
       let selected = mode == CellMode.SELECTED;
       if (selected) {
-        className.push('selected');
+        className.push('-selected');
       }
       let editing = mode == CellMode.EDIT;
       if (editing) {
-        className.push('editing');
+        className.push('-editing');
       }
-      let style = Object.assign({}, {
-        padding: '0.2em 0',
-        textAlign: 'center',
-      }, cell.def.style);
-      selected && Object.assign(style, {
-        background: 'lightpink',
-      });
       return h('td' + className.map( i => '.' + i ), {
-        style,
+        style: cell.def.style,
         onclick: cell.onclick,
         ondblclick: cell.ondblclick, 
       }, [
@@ -272,39 +265,25 @@ export class SmartGrid {
     if (!this._$$view) {
       var grid = this;
       let $$topHeaderRowVn = x.connect([grid.$$focusedCell], function (focusedCell) {
-        return h('tr', [
-          h('th', {
-            style: {
-            }
-          }, ''),
+        return h('tr.header', [
+          h('th', ''),
           ...range(0, grid.def.columns).map(function (idx) { 
-            let style = {
-              textAlign: 'center',
-              padding: '0.1em 0' 
-            };
-            if (focusedCell && focusedCell.col === idx) {
-              style.background = 'lightpink';
-            }
-            return h('th', {
-              style, 
-            }, toColumnIdx(idx));
+            let classNames = [];
+            let focused = focusedCell && focusedCell.col === idx;
+            focused && classNames.push('-focused');
+            classNames = classNames.map( c => '.' + c ).join('');
+            return h('th' + classNames, toColumnIdx(idx));
           }),
         ]);
       }, 'top-header-row');
       let $$rows = range(0, grid.def.rows).map(function (row) {
         let $$cols = grid.cells[row].map( c => c.$$view );
         return x.connect([grid.$$focusedCell, ...$$cols], function (focusedCell, ...cols) {
-          let style = {
-            padding: '0.4em',
-            textAlign: 'center',
-            background: '#F9FAFB',
-          };
-          if (focusedCell && focusedCell.row === row) {
-            style.background = 'lightpink';
-          }
-          let leftHeaderCol = h('th', { 
-            style,
-          }, row + 1);
+          let classNames = [];
+          let focused = focusedCell && focusedCell.row === row;
+          focused && classNames.push('-focused');
+          classNames = classNames.map( c => '.' + c ).join('');
+          let leftHeaderCol = h('th' + classNames, String(row + 1));
           return h('tr', [
             leftHeaderCol
           ].concat(cols));
@@ -315,7 +294,7 @@ export class SmartGrid {
           h('input', {
             value: focusedCell && (grid.getCellVal(focusedCell.row, focusedCell.col) || focusedCell.$$val.val())
           }),
-          h('table.table.table-celled.table-compact.table-striped', [
+          h('table.sg.smart-grid', [
             h('thead', topHeaderRow),
             h('tbody', rows),
           ])
@@ -402,7 +381,7 @@ export class SmartGrid {
 };
 
 SmartGrid.onUpdated = function (node) {
-  var inputEl = node.querySelector('td.editing > input');
+  var inputEl = node.querySelector('td.-editing > input');
   inputEl && inputEl.focus();
 };
 

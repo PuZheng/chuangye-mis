@@ -1,6 +1,7 @@
 @import "basscss";
 @import "relative-loading";
 @import 'table';
+@import 'smart-grid';
 
 @import 'basscss-addons/modules/btn';
 @import 'basscss-addons/modules/btn-primary';
