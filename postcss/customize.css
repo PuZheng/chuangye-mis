@@ -1,0 +1,15 @@
+#invoice-form {
+    & label {
+        width: 30%;
+    }
+    & .field-inline {
+        & > input, & > textarea, & > .dropdown {
+            width: calc(70% - 1rem);
+        }
+    }
+    & .field-inline > input[type=checkbox] {
+        width: 1rem;
+        height: 1rem;
+        margin-left: .5rem;
+    }
+}

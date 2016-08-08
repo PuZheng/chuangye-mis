@@ -1,15 +1,24 @@
 @import '../_settings';
 
-.form-item {
+.form {
+    label {
+        display: block;
+    }
+    input {
+        display: block;
+    }
+    textarea {
+        display: block;
+    }
+}
+
+.field {
     margin: 1rem; 
     & > label {
         font-weight: bold;
-        display: inline-block;
         margin: 0 .5rem;
-        width: 30%;
     }
     & > input {
-        display: inline-block;
         border: 1px solid var(--color-gray);
         line-height: 1rem;
         white-space: normal;
@@ -21,7 +30,6 @@
         color: rgba(0,0,0,.87);
         box-shadow: none;
         border-radius: .28571429rem;
-        width: calc(70% - 1rem);
     }
     & > input[type=checkbox] {
         min-width: auto;
@@ -29,11 +37,17 @@
         width: auto;
     }
     & > textarea {
-        width: calc(70% - 1rem);
+        min-width: 14rem;
     }
 }
 
-.form-item-required {
+.field-inline {
+   & > label {
+       display: inline-block;
+   }
+}
+
+.field-required {
     & > label:after {
         margin: -.2em 0 0 .2em;
         content: '*';

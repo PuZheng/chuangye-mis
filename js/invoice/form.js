@@ -7,16 +7,23 @@ import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
 import entityStore from '../store/entity-store.js';
 import materialSubjectStore from '../store/material-subject-store.js';
-import materialsEditor from './materials-editor.js';
+// import materialsEditor from './materials-editor.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
-import dropdown from '../dropdown.js';
+import {dropdown, searchDropdown} from '../dropdown.js';
 
 const $$errors = x({}, 'invoice-form-errors');
 
+
+$$invoice.change(function (invoice) {
+  if (invoice.id && invoice.invoiceTypeId) {
+    onInvoiceTypeChange(invoice.invoiceTypeId);
+  }
+});
+
 var $$invoiceTypeDropdown = function () {
   let $$activated = x(false, 'activated');
-  return x.connect([$$activated, $$invoiceTypes, $$invoice], function (activated, invoiceTypes, invoice) {
+  let valueFunc = function (activated, invoiceTypes, invoice) {
     return dropdown({
       defaultText: '请选择发票类型',
       options: invoiceTypes.map(function (t) {
@@ -31,61 +38,113 @@ var $$invoiceTypeDropdown = function () {
         $$activated.val(b);
       },
       onchange: function (value, option) {
-        $$invoice.patch({
-          invoiceTypeId: parseInt(value),
-        });
+        onInvoiceTypeChange(value);
       }
     });
-  });
+  };
+  return x.connect([$$activated, $$invoiceTypes, $$invoice], valueFunc);
 }();
 
-$$invoice.change(function (invoice) {
-  if (invoice.id && invoice.invoiceTypeId) {
-    onInvoiceTypeChange(invoice.invoiceTypeId);
-  }
-});
+var $$accountTermDropdown = function () {
+  let $$activated = x(false, 'activated');
+  let valueFunc = function (activated, accountTerms, invoice) {
+    return dropdown({
+      defaultText: '请选择会计账期',
+      options: accountTerms.map(function (t) {
+        return {
+          value: t.id,
+          text: t.name,
+        };
+      }),
+      value: invoice.accountTermId,
+      activated: activated,
+      onactivate(b) {
+        $$activated.val(b);
+      },
+      onchange(value, option) {
+        $$invoice.patch({
+          accountTermId: parseInt(value),
+        });
+      },
+    });
+  };
+  return x.connect([$$activated, $$accountTerms, $$invoice], valueFunc);
+}();
+
+var $$vendorsDropdown = function () {
+  let $$activated = x(false, 'activated');
+  let $$searchText = x('', 'search-text');
+  let valueFunc = function (activated, searchText, vendors, invoice) {
+    return searchDropdown({
+      defaultText: '请选择销售方',
+      options: vendors.map( v => ({ value: v.id, text: v.name }) ),
+      activated: activated,
+      value: invoice.vendorId,
+      onactivate(b) {
+        $$activated.val(b);
+        $$searchText.val('');
+      },
+      onchange(value, option) {
+        $$invoice.patch({
+          vendorId: parseInt(value)
+        });
+      },
+      onsearch(value) {
+        $$searchText.val(value);
+      },
+      searchText,
+    });
+  };
+  return x.connect([$$activated, $$searchText, $$vendors, $$invoice], valueFunc);
+}();
 
 function invoiceFormValueFunc(
-  errors, loading, invoiceTypes, 
-  invoice, vendors, purchasers, 
-  accountTerms, selectedInvoiceType, materialsEditor, invoiceTypeDropdown
+  errors, loading,  
+  invoice, purchasers, 
+  selectedInvoiceType, invoiceTypeDropdown,
+  accountTermDropdown, vendorsDropdown
 ) {
-  return h('form.form.m1.clearfix', [
+  let classNames = ['form', 'm1', 'clearfix'];
+  loading && classNames.push('loading');
+  classNames = classNames.map( c => '.' + c ).join();
+  return h('form#invoice-form' + classNames, [
     h('.col.col-6', [
-      h('.form-item.form-item-required', [
+      h('.field.field-inline.field-required', [
         h('label', '发票类型'),
         invoiceTypeDropdown,
       ]),
-      h('.form-item', [
+      h('.field.field-inline', [
         h('label', '发票日期'),
         h('input', {
           type: 'date',
           value: invoice.date? moment(invoice.date): moment().format('YYYY-MM-DD')
         }),
       ]),
-      h('.form-item.form-item-required', [
+      h('.field.field-inline.field-required', [
         h('label', '发票号码'),
         h('input', {
           type: 'text',
           value: invoice.number || '',
         }),
       ]),
-      h('.form-item', [
+      h('.field.field-inline', [
         h('label', '会计帐期'),
+        accountTermDropdown,
       ]),
-      h('.form-item', [
+      h('.field.field-inline', [
         h('label', '(实际)销售方'),
+        vendorsDropdown, 
       ]),
-      h('.form-item', [
+      h('.field.field-inline', [
         h('label', '(实际)购买方')
       ]),
-      h('.form-item', [
+      h('.field.field-inline', [
         h('input', {
           type: 'checkbox',
         }),
         h('label', '是否是增值税'),
       ]),
-      h('.form-item', [
+      h('.field.field-inline', [
         h('label', '备注'),
         h('textarea', {
           rows: 4,
@@ -93,7 +152,7 @@ function invoiceFormValueFunc(
       ]),
     ]),
     h('.col.col-6', [
-      h('.form-item', [
+      h('.field', [
         h('label', {
           style: {
             display: 'block'
@@ -138,7 +197,7 @@ var bindEvents = once(function (node) {
   });
 });
 
-const onInvoiceTypeChange = function (value, text, $choice) {
+const onInvoiceTypeChange = function (value) {
   value = parseInt(value);
   $$loading.inc();
   // find the corresponding invoice type
@@ -160,8 +219,8 @@ const onInvoiceTypeChange = function (value, text, $choice) {
       })],
       [$$selectedInvoiceType, invoiceType],
       [$$vendors, vendorsData],
-      [$$purchasers, purchasersData],
-      [materialsEditor.$$materialSubjects, materialSubjects]
+      [$$purchasers, purchasersData]
+      // [materialsEditor.$$materialSubjects, materialSubjects]
     );
   });
 };
@@ -198,17 +257,19 @@ var initDropdowns = function (node) {
 
 export default {
   view: x.connect(
-    [$$errors, $$loading, $$invoiceTypes, $$invoice, $$vendors, $$purchasers, $$accountTerms, 
+    [$$errors, $$loading, $$invoice, $$purchasers, 
       $$selectedInvoiceType, 
-      materialsEditor.$$view, 
+      // materialsEditor.$$view, 
       $$invoiceTypeDropdown,
+      $$accountTermDropdown,
+      $$vendorsDropdown
     ],
     invoiceFormValueFunc, 
     'invoice-form'),
   config: function (node) {
-    bindEvents(node);
-    initDropdowns(node);
-    let materialsEditorEl = node.querySelector('#' + materialsEditor.$$view.token);
-    materialsEditorEl && materialsEditor.config(materialsEditorEl);
+    // bindEvents(node);
+    // initDropdowns(node);
+    // let materialsEditorEl = node.querySelector('#' + materialsEditor.$$view.token);
+    // materialsEditorEl && materialsEditor.config(materialsEditorEl);
   },
 };
