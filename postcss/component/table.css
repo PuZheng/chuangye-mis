@@ -37,8 +37,7 @@ tfoot td {
 	color: rgba(0, 0, 0, .5);
 }
 
-// Bordered
-table.celled {
+.celled {
 
 	margin-top: -1px;
 
@@ -49,13 +48,11 @@ table.celled {
 
 }
 
-// Striped
-table.striped tr:nth-child(odd) td {
+.striped tr:nth-child(odd) td {
 	background: var(--table-striped-background-color);
 }
 
-table.bordered,
-table.striped {
+.celled, .striped {
 	& td,
 	& th {
 		&:first-child {
@@ -68,7 +65,7 @@ table.striped {
 }
 
 // Flat
-table.flat {
+.flat {
 	& td,
 	& th {
 		border: none;

@@ -2,7 +2,8 @@
 @import 'component/table';
 @import 'component/form';
 @import 'component/smart-grid';
+@import 'component/dropdown';
 
-@import "generic/atomic";
-@import "generic/loading";
-@import "generic/color";
+@import "generic.css";
+@import "atomic.css";
+
