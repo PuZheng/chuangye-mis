@@ -77,7 +77,7 @@ var $$vendorsDropdown = function () {
   let valueFunc = function (activated, searchText, vendors, invoice) {
     return searchDropdown({
       defaultText: '请选择销售方',
-      options: vendors.map( v => ({ value: v.id, text: v.name }) ),
+      options: vendors.map( v => ({ value: v.id, text: v.name, abbr: v.abbr }) ),
       activated: activated,
       value: invoice.vendorId,
       onactivate(b) {
@@ -93,6 +93,9 @@ var $$vendorsDropdown = function () {
         $$searchText.val(value);
       },
       searchText,
+      match(option, searchText) {
+        return ~option.text.indexOf(searchText) || ~option.abbr.indexOf(searchText);
+      }
     });
   };
   return x.connect([$$activated, $$searchText, $$vendors, $$invoice], valueFunc);

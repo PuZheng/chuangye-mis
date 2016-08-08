@@ -101,7 +101,7 @@
         position: absolute;
         z-index: 2;
     }
-    & .text-filtered {
+    & .text-filtered, & .item-filtered {
         display: none;
     }
 }

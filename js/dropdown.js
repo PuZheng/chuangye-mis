@@ -37,7 +37,7 @@ export var dropdown = function ({defaultText='', options=[], value, activated, o
   ]);
 };
 
-export var searchDropdown = function ({defaultText='', searchText='', options=[], value, activated, onactivate, onchange, onsearch}) {
+export var searchDropdown = function ({defaultText='', searchText='', options=[], value, activated, onactivate, onchange, onsearch, match}) {
   let classNames = ['dropdown', 'dropdown-search'];
   if (activated) {
     classNames.push('dropdown-activated');
@@ -53,12 +53,17 @@ export var searchDropdown = function ({defaultText='', searchText='', options=[]
     }
   }
   if (options && options.length) {
-    options = options.map( o => h('.item' + (o.value == value? '.item-selected': ''), {
-      // note!!!, don't use onclick, since onclick event fired after input.search's onblur
-      onmousedown: function (e) {
-        onchange(o.value, o);
-      },
-    }, o.text) );
+    options = options.map(function (o) {
+      let classNames = ['item'];
+      (o.value == value) && classNames.push('item-selected');
+      match(o, searchText) && classNames.push('item-filtered');
+      return h('.item' + (o.value == value? '.item-selected': ''), {
+        // note!!!, don't use onclick, since onclick event fired after input.search's onblur
+        onmousedown: function (e) {
+          onchange(o.value, o);
+        },
+      }, o.text);
+    });
   } else {
     options = [h('.message', '没有可选项')];
   }
