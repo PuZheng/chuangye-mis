@@ -31,6 +31,9 @@
         display: inline-block;
         color: var(--color-primary-text);
     }
+    & > .text.filtered {
+        display: none;
+    }
     & > .text-default {
         color: var(--color-secondary-text);
     }
@@ -101,9 +104,6 @@
         position: absolute;
         z-index: 2;
     }
-    & .text-filtered, & .item-filtered {
-        display: none;
-    }
 }
 
 .dropdown.dropdown-activated {
@@ -115,6 +115,9 @@
         display: block;
         & > .item, & > .message {
             display: block;
+        }
+        & > .item.filtered {
+            display: none;
         }
     }    
     & .search {

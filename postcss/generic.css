@@ -67,6 +67,9 @@ body {
 .border-gray-light {
     border-color: var(--color-gray-light);
 }
+.color-accent {
+    color: var(--color-accent);
+}
 .color-primary-text {
     color: var(--color-primary-text);
 }

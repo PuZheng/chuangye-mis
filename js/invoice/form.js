@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$accountTerms, $$selectedInvoiceType} from './data-slots.js';
+import {$$invoice, $$invoiceTypes, $$loading, $$accountTerms, $$selectedInvoiceType} from './data-slots.js';
 import x from '../xx.js';
 import R from 'ramda';
 import once from 'once';
@@ -11,6 +11,10 @@ import materialSubjectStore from '../store/material-subject-store.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 import {dropdown, searchDropdown} from '../dropdown.js';
+import {$$invoiceTypeDropdown, onInvoiceTypeChange} from './invoice-type-dropdown.js';
+import {$$accountTermDropdown} from './account-term-dropdown.js';
+import {$$vendorDropdown} from './vendor-dropdown.js';
+import {$$purchaserDropdown} from './purchaser-dropdown.js';
 
 const $$errors = x({}, 'invoice-form-errors');
 
@@ -21,91 +25,13 @@ $$invoice.change(function (invoice) {
   }
 });
 
-var $$invoiceTypeDropdown = function () {
-  let $$activated = x(false, 'activated');
-  let valueFunc = function (activated, invoiceTypes, invoice) {
-    return dropdown({
-      defaultText: '请选择发票类型',
-      options: invoiceTypes.map(function (t) {
-        return {
-          value: t.id,
-          text: t.name,
-        };
-      }),
-      value: invoice.invoiceTypeId,
-      activated: activated,
-      onactivate: function (b) {
-        $$activated.val(b);
-      },
-      onchange: function (value, option) {
-        onInvoiceTypeChange(value);
-      }
-    });
-  };
-  return x.connect([$$activated, $$invoiceTypes, $$invoice], valueFunc);
-}();
 
-var $$accountTermDropdown = function () {
-  let $$activated = x(false, 'activated');
-  let valueFunc = function (activated, accountTerms, invoice) {
-    return dropdown({
-      defaultText: '请选择会计账期',
-      options: accountTerms.map(function (t) {
-        return {
-          value: t.id,
-          text: t.name,
-        };
-      }),
-      value: invoice.accountTermId,
-      activated: activated,
-      onactivate(b) {
-        $$activated.val(b);
-      },
-      onchange(value, option) {
-        $$invoice.patch({
-          accountTermId: parseInt(value),
-        });
-      },
-    });
-  };
-  return x.connect([$$activated, $$accountTerms, $$invoice], valueFunc);
-}();
-
-var $$vendorsDropdown = function () {
-  let $$activated = x(false, 'activated');
-  let $$searchText = x('', 'search-text');
-  let valueFunc = function (activated, searchText, vendors, invoice) {
-    return searchDropdown({
-      defaultText: '请选择销售方',
-      options: vendors.map( v => ({ value: v.id, text: v.name, abbr: v.abbr }) ),
-      activated: activated,
-      value: invoice.vendorId,
-      onactivate(b) {
-        $$activated.val(b);
-        $$searchText.val('');
-      },
-      onchange(value, option) {
-        $$invoice.patch({
-          vendorId: parseInt(value)
-        });
-      },
-      onsearch(value) {
-        $$searchText.val(value);
-      },
-      searchText,
-      match(option, searchText) {
-        return ~option.text.indexOf(searchText) || ~option.abbr.indexOf(searchText);
-      }
-    });
-  };
-  return x.connect([$$activated, $$searchText, $$vendors, $$invoice], valueFunc);
-}();
 
 function invoiceFormValueFunc(
   errors, loading,  
-  invoice, purchasers, 
+  invoice, 
   selectedInvoiceType, invoiceTypeDropdown,
-  accountTermDropdown, vendorsDropdown
+  accountTermDropdown, vendorDropdown, purchaserDropdown
 ) {
   let classNames = ['form', 'm1', 'clearfix'];
   loading && classNames.push('loading');
@@ -120,7 +46,12 @@ function invoiceFormValueFunc(
         h('label', '发票日期'),
         h('input', {
           type: 'date',
-          value: invoice.date? moment(invoice.date): moment().format('YYYY-MM-DD')
+          value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
+          onchange(e) {
+            $$invoice.patch({
+              date: this.value
+            });
+          }
         }),
       ]),
       h('.field.field-inline.field-required', [
@@ -128,22 +59,32 @@ function invoiceFormValueFunc(
         h('input', {
           type: 'text',
           value: invoice.number || '',
+          onchange(e) {
+            $$invoice.patch({
+              number: this.value,
+            });
+          }
         }),
       ]),
       h('.field.field-inline', [
         h('label', '会计帐期'),
         accountTermDropdown,
       ]),
-      h('.field.field-inline', [
+      selectedInvoiceType.vendorType? h('.field.field-inline', [
         h('label', '(实际)销售方'),
-        vendorsDropdown, 
-      ]),
-      h('.field.field-inline', [
-        h('label', '(实际)购买方')
-      ]),
+        vendorDropdown, 
+      ]): '',
+      selectedInvoiceType.purchaserType? h('.field.field-inline', [
+        h('label', '(实际)购买方'),
+        purchaserDropdown,
+      ]): '',
       h('.field.field-inline', [
         h('input', {
           type: 'checkbox',
+          checked: invoice.isVAT,
+          onchange(e) {
+            $$invoice.patch({ isVAT: this.checked });
+          }
         }),
         h('label', '是否是增值税'),
       ]),
@@ -151,6 +92,9 @@ function invoiceFormValueFunc(
         h('label', '备注'),
         h('textarea', {
           rows: 4,
+          onchange(e) {
+            $$invoice.patch({ notes: this.value });
+          }
         })
       ]),
     ]),
@@ -200,33 +144,6 @@ var bindEvents = once(function (node) {
   });
 });
 
-const onInvoiceTypeChange = function (value) {
-  value = parseInt(value);
-  $$loading.inc();
-  // find the corresponding invoice type
-  var invoiceType = R.find(R.propEq('id', value))($$invoiceTypes.val());
-  Promise.all([
-    invoiceType.vendorType?  entityStore.fetchList({
-      type: invoiceType.vendorType
-    }): [],
-    invoiceType.purchaserType?  entityStore.fetchList({
-      type: invoiceType.purchaserType,
-    }): [],
-    invoiceType.materialType? materialSubjectStore.fetchList({ type: invoiceType.materialType }): [],
-  ]).then(function ([vendorsData, purchasersData, materialSubjects]) {
-    x.update(
-      [$$loading, $$loading.val() - 1],
-      [$$invoice, Object.assign($$invoice.val(), {
-        invoiceTypeId: value,
-        isVAT: invoiceType.isVAT,
-      })],
-      [$$selectedInvoiceType, invoiceType],
-      [$$vendors, vendorsData],
-      [$$purchasers, purchasersData]
-      // [materialsEditor.$$materialSubjects, materialSubjects]
-    );
-  });
-};
 
 // dropdown must be initialized each time, since
 // semantic altered dom
@@ -260,12 +177,13 @@ var initDropdowns = function (node) {
 
 export default {
   view: x.connect(
-    [$$errors, $$loading, $$invoice, $$purchasers, 
+    [$$errors, $$loading, $$invoice,
       $$selectedInvoiceType, 
       // materialsEditor.$$view, 
       $$invoiceTypeDropdown,
       $$accountTermDropdown,
-      $$vendorsDropdown
+      $$vendorDropdown,
+      $$purchaserDropdown
     ],
     invoiceFormValueFunc, 
     'invoice-form'),

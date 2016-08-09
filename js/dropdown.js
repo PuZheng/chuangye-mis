@@ -37,7 +37,9 @@ export var dropdown = function ({defaultText='', options=[], value, activated, o
   ]);
 };
 
-export var searchDropdown = function ({defaultText='', searchText='', options=[], value, activated, onactivate, onchange, onsearch, match}) {
+export var searchDropdown = function ({
+  defaultText='', searchText='', options=[], value, 
+    activated, onactivate, onchange, onsearch, match, optionContent}) {
   let classNames = ['dropdown', 'dropdown-search'];
   if (activated) {
     classNames.push('dropdown-activated');
@@ -52,19 +54,26 @@ export var searchDropdown = function ({defaultText='', searchText='', options=[]
       }
     }
   }
+  optionContent = optionContent || function (o) {
+    return o.text;
+  };
   if (options && options.length) {
     options = options.map(function (o) {
       let classNames = ['item'];
       (o.value == value) && classNames.push('item-selected');
-      match(o, searchText) && classNames.push('item-filtered');
-      return h('.item' + (o.value == value? '.item-selected': ''), {
+      let filtered = searchText && !match(o, searchText);
+      filtered && classNames.push('filtered');
+      classNames = classNames.map( c => '.' + c ).join('');
+      return h(classNames, {
+        dataFiltered: filtered,
         // note!!!, don't use onclick, since onclick event fired after input.search's onblur
         onmousedown: function (e) {
           onchange(o.value, o);
         },
-      }, o.text);
+      }, optionContent(o));
     });
-  } else {
+  }
+  if (options.length == 0 || options.every( o => o.properties.dataFiltered )) {
     options = [h('.message', '没有可选项')];
   }
   return h(classNames, {
@@ -89,7 +98,7 @@ export var searchDropdown = function ({defaultText='', searchText='', options=[]
     h('.text' + function () {
       let classNames = selectedOption? '': '.text-default';
       if (searchText) {
-        classNames += '.text-filtered';
+        classNames += '.filtered';
       }
       return classNames;
     }(), selectedOption? selectedOption.text: defaultText),
