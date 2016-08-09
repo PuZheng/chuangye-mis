@@ -1,0 +1,74 @@
+:root {
+    --th-font-weight: 700;
+    --table-border: 1px solid #eee;
+    --table-striped-background-color: #f4f4f4;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	max-width: 100%;
+	width: 100%;
+	empty-cells: show;
+}
+
+th {
+	text-align: left;
+	font-weight: var(--th-font-weight);
+	vertical-align: bottom;
+}
+td {
+	vertical-align: top;
+}
+th,
+td {
+	padding: 1rem;
+	padding-bottom: calc(1rem - 1px);
+	border-bottom: val(--table-border);
+	&:first-child {
+		padding-left: 0;
+	}
+	&:last-child {
+		padding-right: 0;
+	}
+}
+tfoot th,
+tfoot td {
+	color: rgba(0, 0, 0, .5);
+}
+
+.celled {
+
+	margin-top: -1px;
+
+	& td,
+	& th {
+		border: var(--table-border);
+	}
+
+}
+
+.striped tr:nth-child(odd) td {
+	background: var(--table-striped-background-color);
+}
+
+.celled, .striped {
+	& td,
+	& th {
+		&:first-child {
+			padding-left: 1rem;
+		}
+		&:last-child {
+			padding-right: 1rem;
+		}
+	}
+}
+
+// Flat
+.flat {
+	& td,
+	& th {
+		border: none;
+		padding: 0;
+	}
+}

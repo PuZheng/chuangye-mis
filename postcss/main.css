@@ -1,12 +1,12 @@
-@import "basscss";
-@import "relative-loading";
-@import 'table';
-@import 'smart-grid';
+@import "component/button";
+@import 'component/table';
+@import 'component/form';
+@import 'component/smart-grid';
+@import 'component/dropdown';
+@import 'component/button';
 
-@import 'basscss-addons/modules/btn';
-@import 'basscss-addons/modules/btn-primary';
-@import 'basscss-addons/modules/btn-outline';
-@import 'basscss-addons/modules/btn-sizes';
-@import 'basscss-addons/modules/colors';
-@import 'basscss-addons/modules/background-colors';
-@import 'basscss-addons/modules/forms';
+@import "generic.css";
+@import "atomic.css";
+
+@import "customize.css";
+

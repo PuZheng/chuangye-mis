@@ -1,0 +1,65 @@
+@import '../table';
+@import 'colors.css/src/_variables.css';
+@import '../../_settings.css';
+
+:root {
+    --th-font-weight: 700;
+    --table-border: 1px solid #eee;
+    --table-striped-background-color: #f4f4f4;
+    --focused-color: color(var(--red) l(+20%));
+}
+
+.sg, .smart-grid {
+	border-collapse: collapse;
+	border-spacing: 0px;
+	max-width: 100%;
+	width: 100%;
+	empty-cells: show;
+    margin-top: -1px;
+
+	& td, & th {
+		border: var(--table-border);
+        vertical-align: bottom;
+        position: relative;
+		&:first-child {
+			padding-left: var(--space-1);
+		}
+		&:last-child {
+			padding-right: var(--space-1);
+		}
+	}
+
+    & .editor {
+        position: absolute;
+        left: 0px;
+        bottom: 0px;
+        width: calc(100% - 4px);
+        height: calc(100% - 4px);
+    }
+
+    & tr:nth-child(odd) td {
+        background: var(--table-striped-background-color);
+    }
+
+    & tr:first-child {
+        & > th {
+            background: color(var(--gray) l(80%));
+        }
+        & > th.-focused {
+            background: var(--focused-color);
+        }
+    }
+
+    & > tbody {
+        & th:first-child {
+            background: color(var(--gray) l(80%));
+        }
+        & th:first-child.-focused {
+            background: var(--focused-color);
+        }
+
+        & td.-selected {
+            background: var(--focused-color);
+        }
+    }
+}

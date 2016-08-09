@@ -23,6 +23,7 @@ page('/login', function (ctx, next) {
 
 page('/invoice/:id?', function (ctx, next) {
   let app = invoiceObjectApp;
+  mount(invoiceObjectApp.page);
   let promises = [
     invoiceTypeStore.list, 
     accountTermStore.list,

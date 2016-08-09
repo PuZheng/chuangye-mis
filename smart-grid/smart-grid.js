@@ -126,12 +126,10 @@ class Cell {
   }
   makeEditor(def, val, editing, onChangeCb) {
     // it could be more sophisticated
-    return h('input.fit', {
+    return h('input.editor', {
       type: 'text',
       value: val,
       style: editing? {
-        width: '90%',
-        height: '100%',
       }: {
         display: 'none',
       }, 

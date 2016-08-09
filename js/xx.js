@@ -112,6 +112,10 @@ Slot.prototype.dec = function (cnt=1) {
   this.val(this.val() - cnt);
 };
 
+Slot.prototype.toggle = function () {
+  this.val(!this.val());
+};
+
 
 /**
  * note! a child has only one chance to setup its parents
