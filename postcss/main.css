@@ -3,6 +3,7 @@
 @import 'component/form';
 @import 'component/smart-grid';
 @import 'component/dropdown';
+@import 'component/button';
 
 @import "generic.css";
 @import "atomic.css";

@@ -17,6 +17,14 @@ export var dropdown = function ({defaultText='', options=[], value, activated, o
       }
     }
   }
+  options = options.map( o => h('.item' + (o.value == value? '.item-selected': ''), {
+    onclick: function () {
+      onchange(o.value, o);
+    }
+  }, o.text) );
+  if (options.length == 0) {
+    options = [h('.message', '没有可选项')];
+  }
   return h(classNames, {
     // a div with tabIndex could be focused/blured
     tabIndex: 0,
@@ -29,11 +37,7 @@ export var dropdown = function ({defaultText='', options=[], value, activated, o
   }, [
     h('i.icon.fa.fa-caret-down'),
     h('.text' + (selectedOption? '': '.text-default'), selectedOption? selectedOption.text: defaultText),
-    h('.menu', options.map( o => h('.item' + (o.value == value? '.item-selected': ''), {
-      onclick: function () {
-        onchange(o.value, o);
-      }
-    }, o.text) ))
+    h('.menu', options)
   ]);
 };
 

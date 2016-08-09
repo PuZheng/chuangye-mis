@@ -4,6 +4,7 @@ import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selecte
 import R from 'ramda';
 import entityStore from '../store/entity-store.js';
 import materialSubjectStore from '../store/material-subject-store.js';
+import { $$materialSubjects } from './materials-editor.js';
 
 export var $$invoiceTypeDropdown = function () {
   let $$activated = $$(false, 'activated');
@@ -51,8 +52,8 @@ export var onInvoiceTypeChange = function (value) {
       })],
       [$$selectedInvoiceType, invoiceType],
       [$$vendors, vendorsData],
-      [$$purchasers, purchasersData]
-      // [materialsEditor.$$materialSubjects, materialSubjects]
+      [$$purchasers, purchasersData],
+      [$$materialSubjects, materialSubjects]
     );
   });
 };

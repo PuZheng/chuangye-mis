@@ -41,13 +41,14 @@
     }
 }
 
-.field-inline {
-   & > label {
-       display: inline-block;
-   }
+.field.inline {
+    display: block;
+    & > label {
+        display: inline-block;
+    }
 }
 
-.field-required {
+.field.required {
     & > label:after {
         margin: -.2em 0 0 .2em;
         content: '*';
