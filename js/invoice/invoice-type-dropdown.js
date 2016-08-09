@@ -43,7 +43,7 @@ export var onInvoiceTypeChange = function (value) {
       type: invoiceType.purchaserType,
     }): [],
     invoiceType.materialType? materialSubjectStore.fetchList({ type: invoiceType.materialType }): [],
-  ]).then(function ([vendorsData, purchasersData, materialSubjects]) {
+  ]).then(function ([vendors, purchasers, materialSubjects]) {
     $$.update(
       [$$loading, $$loading.val() - 1],
       [$$invoice, Object.assign($$invoice.val(), {
@@ -51,8 +51,8 @@ export var onInvoiceTypeChange = function (value) {
         isVAT: invoiceType.isVAT,
       })],
       [$$selectedInvoiceType, invoiceType],
-      [$$vendors, vendorsData],
-      [$$purchasers, purchasersData],
+      [$$vendors, vendors],
+      [$$purchasers, purchasers],
       [$$materialSubjects, materialSubjects]
     );
   });

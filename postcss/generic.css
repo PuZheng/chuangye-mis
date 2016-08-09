@@ -67,18 +67,24 @@ body {
 .bc2 {
     border-color: var(--color-secondary);
 }
+.bca {
+    border-color: var(--color-accent);
+}
 .border-gray {
     border-color: var(--color-gray);
 }
 .border-gray-light {
     border-color: var(--color-gray-light);
 }
-.ca .color-accent {
+.c1 {
+    color: var(--color-primary);
+}
+.ca, .color-accent {
     color: var(--color-accent);
 }
-.color-primary-text {
+.ct1, .color-primary-text {
     color: var(--color-primary-text);
 }
-.color-secondary-text {
+.ct2, .color-secondary-text {
     color: var(--color-secondary-text);
 }

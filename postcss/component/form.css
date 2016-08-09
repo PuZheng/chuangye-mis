@@ -49,7 +49,7 @@
 }
 
 .field.required {
-    & > label:after {
+    & > label:first-child::after {
         margin: -.2em 0 0 .2em;
         content: '*';
         color: var(--color-accent);

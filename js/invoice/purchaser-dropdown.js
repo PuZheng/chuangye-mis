@@ -12,7 +12,7 @@ export var $$purchaserDropdown = function () {
       defaultText: '请选择购买方',
       options: purchasers.map( v => ({ value: v.id, text: v.name, abbr: v.abbr }) ),
       activated: activated,
-      value: invoice.vendorId,
+      value: invoice.purchaserId,
       onactivate(b) {
         $$activated.val(b);
         $$searchText.val('');

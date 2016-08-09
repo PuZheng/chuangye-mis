@@ -19,13 +19,15 @@ import {$$purchaserDropdown} from './purchaser-dropdown.js';
 
 const $$errors = x({}, 'invoice-form-errors');
 
-
-$$invoice.change(function (invoice) {
-  if (invoice.id && invoice.invoiceTypeId) {
-    onInvoiceTypeChange(invoice.invoiceTypeId);
-  }
-});
-
+$$invoice.change(function () {
+  let id;
+  return function (invoice) {
+    if ((invoice.id != id) && invoice.invoiceTypeId) {
+      onInvoiceTypeChange(invoice.invoiceTypeId);
+    }
+    id = invoice.id;
+  };
+}());
 
 
 function invoiceFormValueFunc(
@@ -100,12 +102,26 @@ function invoiceFormValueFunc(
         })
       ]),
     ]),
-    h('.col.col-6', [
+    selectedInvoiceType.materialType? h('.col.col-6', [
       h('.field', [
         h('label', '物料明细'),
-        selectedInvoiceType.materialType? materialsEditor: '' 
+        materialsEditor,
       ])
-    ])
+    ]): '',
+    h('.clearfix'),
+    h('hr'),
+    h('button.btn.c1.btn-outline', {
+      onclick(e) {
+        validate($$invoice.val()).then(function () {
+          $$loading.inc();
+          invoiceStore.save($$invoice.val()).then(function (id) {
+            $$loading.dec();
+            page('/invoice/' + id);
+          });
+        }).catch($$errors.val);
+        return false;
+      }
+    }, '提交')
   ]);
 }
 
@@ -125,8 +141,4 @@ export default {
     ],
     invoiceFormValueFunc, 
     'invoice-form'),
-  config: function (node) {
-    // let materialsEditorEl = node.querySelector('#' + materialsEditor.$$view.token);
-    // materialsEditorEl && materialsEditor.config(materialsEditorEl);
-  },
 };
