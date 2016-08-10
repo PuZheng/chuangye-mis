@@ -1,5 +1,5 @@
 import x from '../xx.js';
-import { $$voucher, $$voucherTypes, $$loading } from './data-slots.js';
+import { $$voucher, $$voucherTypes } from './data-slots.js';
 import * as $$datas from './data-slots.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
