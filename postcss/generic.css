@@ -64,6 +64,9 @@ body {
 .b2 {
     border-width: 2px;
 }
+.bc1 {
+    border-color: var(--color-primary);
+}
 .bc2 {
     border-color: var(--color-secondary);
 }

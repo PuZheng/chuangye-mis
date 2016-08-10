@@ -2,7 +2,7 @@ import $$ from './xx.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
-export var dropdown = function ({defaultText='', options=[], value, activated, onactivate, onchange}) {
+export var dropdown = function dropdown({defaultText='', options=[], value, activated, onactivate, onchange}) {
   let classNames = ['dropdown'];
   if (activated) {
     classNames.push('dropdown-activated');
@@ -43,7 +43,8 @@ export var dropdown = function ({defaultText='', options=[], value, activated, o
 
 export var searchDropdown = function ({
   defaultText='', searchText='', options=[], value, 
-    activated, onactivate, onchange, onsearch, match, optionContent}) {
+    activated, onactivate, onchange, onsearch, match, 
+  optionContent}) {
   let classNames = ['dropdown', 'dropdown-search'];
   if (activated) {
     classNames.push('dropdown-activated');
@@ -95,6 +96,7 @@ export var searchDropdown = function ({
         onsearch(this.value);
       },
       onblur: function (e) {
+        onsearch('');
         onactivate(false);
         return false;
       }

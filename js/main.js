@@ -43,6 +43,7 @@ page('/invoice/:id?', function (ctx, next) {
 
 page('/voucher/:id?', function (ctx, next) {
   let app = voucherObjectApp;
+  mount(voucherObjectApp.page);
   app.$$loading.val(true);
   let promises = [
     voucherTypeStore.list,

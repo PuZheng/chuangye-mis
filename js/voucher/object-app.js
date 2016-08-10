@@ -1,28 +1,24 @@
 import x from '../xx.js';
-import domDriver from '../dom-driver.js';
-import tmpl from './object.ejs';
-import { $$voucher, $$voucherTypes, $$loading } from './data-slots.js';
+import { $$voucher, $$voucherTypes } from './data-slots.js';
 import * as $$datas from './data-slots.js';
-import form from './form.js';
+import virtualDom from 'virtual-dom';
+var h = virtualDom.h;
+import { $$form } from './form.js';
 
-const voucherAppValueFunc = function (voucher, form) {
-  return ejs.render(tmpl, {
-    self: this,
-    voucher,
-    form,
-  });
+const valueFunc = function (voucher, form) {
+  return h('.m2', [
+      h('.p2.c1.h2.italic', voucher.id? `编辑凭证-${voucher.number}`: '创建新凭证'),
+      h('.border-box.border.ct1.border-gray-light', form)
+  ]);
 };
 
 const $$view = x.connect(
-  [$$voucher, form.$$view], voucherAppValueFunc, 'voucher-object-app');
-
-domDriver.mount(
-  $$view, document.getElementById('main'), 
-  function (node) {
-    form.config(node);
-  }
-);
+  [$$voucher, $$form], 
+  valueFunc, 
+  'voucher-object-app');
 
 export default Object.assign({}, {
-  $$view
+  page: {
+    $$view,
+  },
 }, $$datas);;

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {$$invoice, $$invoiceTypes, $$loading, $$accountTerms, $$selectedInvoiceType} from './data-slots.js';
+import {$$invoice, $$invoiceTypes, $$loading, $$accountTerms, $$selectedInvoiceType, $$selectedVoucherSubject} from './data-slots.js';
 import x from '../xx.js';
 import R from 'ramda';
 import once from 'once';
@@ -17,7 +17,7 @@ import {$$vendorDropdown} from './vendor-dropdown.js';
 import {$$purchaserDropdown} from './purchaser-dropdown.js';
 
 
-const $$errors = x({}, 'invoice-form-errors');
+var $$errors = x({}, 'invoice-form-errors');
 
 $$invoice.change(function () {
   let id;
@@ -30,7 +30,7 @@ $$invoice.change(function () {
 }());
 
 
-function invoiceFormValueFunc(
+var valueFunc = function valueFunc(
   errors, loading,  
   invoice, 
   selectedInvoiceType, invoiceTypeDropdown,
@@ -110,7 +110,7 @@ function invoiceFormValueFunc(
     ]): '',
     h('.clearfix'),
     h('hr'),
-    h('button.btn.c1.btn-outline', {
+    h('button.btn.c1.btn-outline.m1', {
       onclick(e) {
         validate($$invoice.val()).then(function () {
           $$loading.inc();
@@ -130,7 +130,7 @@ const validate = function (invoice) {
 };
 
 export default {
-  view: x.connect(
+  $$view: x.connect(
     [$$errors, $$loading, $$invoice,
       $$selectedInvoiceType, 
       $$invoiceTypeDropdown,
@@ -139,6 +139,6 @@ export default {
       $$purchaserDropdown,
       $$materialsEditor
     ],
-    invoiceFormValueFunc, 
+    valueFunc, 
     'invoice-form'),
 };
