@@ -16,8 +16,6 @@
         "no-undef": 2
     },
     "globals": {
-        "ejs": true,
-        "$": true,
         "virtualDom": true
     }
 }

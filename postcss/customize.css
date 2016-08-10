@@ -1,4 +1,4 @@
-#invoice-form {
+#voucher-form, #invoice-form {
     & label {
         width: 30%;
     }

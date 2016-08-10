@@ -6,4 +6,5 @@ export const $$loading = x(false, 'loading');
 export const $$voucherSubjects = x([], 'loading');
 export const $$recipients = x([], 'recipients');
 export const $$payers = x([], 'payers');
+export var $$selectedVoucherSubject = x({}, 'selected-voucher-subject');
 

@@ -2,7 +2,7 @@ var voucher = {
   id: 1,
   number: 1,
   voucherTypeId: 1,
-  date: new Date(),
+  date: '2016-07-09',
   voucherSubjectId: 1,
   isPublic: true,
   payerId: 4,
@@ -11,6 +11,7 @@ var voucher = {
 };
 export default {
   save: function (data) {
+    console.log(data);
     voucher = data;
     voucher.id = 1;
     return new Promise(function (resolve, reject) {

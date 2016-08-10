@@ -7,6 +7,17 @@ var container = document.getElementById('main');
 var lastMountable;
 var onChange;
 
+/**
+ * mount a MOUTABLE to dom tree, and unmount the previously mounted mountable
+ *  
+ *  * data
+ *  @param {object} mountable - a mountable has the following properties:
+ *
+ *   * $$view - a slot that holds a virtual dom (that is what to be patched into dom)
+ *   * onMount(rootNode) - a function will be called when mountable mount
+ *   * onUpdated(rootNode) - a function will be called when $$view change
+ *   * onUnmount(rootNode) - a function will be called when mountable unmount(this happends when other mountable mount)
+ * */
 export var mount = function (mountable) {
   var oldVnode = mountable.$$view.val();
   var rootNode = create(oldVnode);
