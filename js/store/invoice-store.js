@@ -1,3 +1,25 @@
+import R from 'ramda';
+import { notEmpty } from '../checkers.js';
+import { validateObj } from '../validate-obj.js';
+
+var rules = {
+  invoiceType: notEmpty('发票类型'),
+  number: notEmpty('发票号码'),
+  accountTermId: notEmpty('会计帐期'),
+  vendorId: function (v) {
+    if (this.invoiceType.vendorType)  {
+      notEmpty('销售方')(v);
+    }
+  },
+  purchaserId: function (v) {
+    if (this.invoiceType.purchaserType)  {
+      notEmpty('购买方')(v);
+    }
+  },
+};
+
+var validate = R.partialRight(validateObj, [rules]);
+
 var invoice = {
   id: 1,
   invoiceTypeId: 1,
@@ -39,4 +61,5 @@ export default {
       }, 500);
     });
   },
+  validate,
 };

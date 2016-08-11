@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {$$invoice, $$invoiceTypes, $$loading, $$accountTerms, $$selectedInvoiceType, $$selectedVoucherSubject} from './data-slots.js';
+import { $$invoice, $$invoiceTypes, $$loading, $$accountTerms } from './data-slots.js';
 import x from '../xx.js';
 import R from 'ramda';
 import once from 'once';
@@ -15,6 +15,7 @@ import {$$invoiceTypeDropdown, onInvoiceTypeChange} from './invoice-type-dropdow
 import {$$accountTermDropdown} from './account-term-dropdown.js';
 import {$$vendorDropdown} from './vendor-dropdown.js';
 import {$$purchaserDropdown} from './purchaser-dropdown.js';
+import { field } from '../field.js';
 
 
 var $$errors = x({}, 'invoice-form-errors');
@@ -33,7 +34,7 @@ $$invoice.change(function () {
 var valueFunc = function valueFunc(
   errors, loading,  
   invoice, 
-  selectedInvoiceType, invoiceTypeDropdown,
+  invoiceTypeDropdown,
   accountTermDropdown, vendorDropdown, purchaserDropdown,
   materialsEditor
 ) {
@@ -42,47 +43,29 @@ var valueFunc = function valueFunc(
   classNames = classNames.map( c => '.' + c ).join();
   return h('form#invoice-form' + classNames, [
     h('.col.col-6', [
-      h('.field.inline.required', [
-        h('label', '发票类型'),
-        invoiceTypeDropdown,
-      ]),
-      h('.field.inline', [
-        h('label', '发票日期'),
-        h('input', {
-          type: 'date',
-          value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
-          onchange(e) {
-            $$invoice.patch({
-              date: this.value
-            });
-          }
-        }),
-      ]),
-      h('.field.inline.required', [
-        h('label', '发票号码'),
-        h('input', {
-          type: 'text',
-          placeholder: '请输入发票号码',
-          value: invoice.number || '',
-          onchange(e) {
-            $$invoice.patch({
-              number: this.value,
-            });
-          }
-        }),
-      ]),
-      h('.field.inline', [
-        h('label', '会计帐期'),
-        accountTermDropdown,
-      ]),
-      selectedInvoiceType.vendorType? h('.field.inline', [
-        h('label', '(实际)销售方'),
-        vendorDropdown, 
-      ]): '',
-      selectedInvoiceType.purchaserType? h('.field.inline', [
-        h('label', '(实际)购买方'),
-        purchaserDropdown,
-      ]): '',
+      field('invoiceType', '发票类型', invoiceTypeDropdown, errors, true),
+      field('date', '发票日期', h('input', {
+        type: 'date',
+        value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
+        onchange(e) {
+          $$invoice.patch({
+            date: this.value
+          });
+        }
+      }), errors),
+      field('number', '发票号码', h('input', {
+        type: 'text',
+        placeholder: '请输入发票号码',
+        value: invoice.number || '',
+        onchange(e) {
+          $$invoice.patch({
+            number: this.value,
+          });
+        }
+      }), errors, true),
+      field('accountTermId', '会计帐期', accountTermDropdown, errors, true),
+      (invoice.invoiceType || {}).vendorType? field('vendorId', '销售方', vendorDropdown, errors, true): '',
+      (invoice.invoiceType || {}).purchaserType? field('purchaserId', '购买方', purchaserDropdown, errors, true): '',
       h('.field.inline', [
         h('input', {
           type: 'checkbox',
@@ -103,7 +86,7 @@ var valueFunc = function valueFunc(
         })
       ]),
     ]),
-    selectedInvoiceType.materialType? h('.col.col-6', [
+    (invoice.invoiceType || {}).materialType? h('.col.col-6', [
       h('.field', [
         h('label', '物料明细'),
         materialsEditor,
@@ -113,27 +96,24 @@ var valueFunc = function valueFunc(
     h('hr'),
     h('button.btn.c1.btn-outline.m1', {
       onclick(e) {
-        validate($$invoice.val()).then(function () {
+        invoiceStore.validate($$invoice.val()).then(function () {
           $$loading.inc();
           invoiceStore.save($$invoice.val()).then(function (id) {
             $$loading.dec();
             page('/invoice/' + id);
           });
-        }).catch($$errors.val);
+        }).catch(function (errors) {
+          $$errors.val(errors);
+        });
         return false;
       }
     }, '提交')
   ]);
 };
 
-const validate = function (invoice) {
-  return Promise.resolve(invoice);
-};
-
 export default {
   $$view: x.connect(
     [$$errors, $$loading, $$invoice,
-      $$selectedInvoiceType, 
       $$invoiceTypeDropdown,
       $$accountTermDropdown,
       $$vendorDropdown,
