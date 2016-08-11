@@ -1,6 +1,6 @@
 import R from 'ramda';
-import { notEmpty } from '../checkers.js';
 import { validateObj } from '../validate-obj.js';
+import { notEmpty } from '../checkers.js';
 
 var rules = {
   invoiceType: notEmpty('发票类型'),

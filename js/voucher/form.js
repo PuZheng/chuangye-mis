@@ -12,8 +12,9 @@ import { $$voucherTypeDropdown } from './voucher-type-dropdown.js';
 import { $$voucherSubjectDropdown, onVoucherSubjectChange } from './voucher-subject-dropdown.js';
 import { $$payerDropdown } from './payer-dropdown.js';
 import { $$recipientDropdown } from './recipient-dropdown.js';
+import { field } from '../field.js';
 
-const errors = x({}, 'errors');
+const $$errors = x({}, 'errors');
 
 $$voucher.change(function () {
   let id;
@@ -22,50 +23,39 @@ $$voucher.change(function () {
       id = voucher.id;
       onVoucherSubjectChange(voucher.voucherSubjectId);
     };
+    $$errors.val({});
   };
 }());
 
 
-const formValueFunc = function valueFunc(
-  loading, voucher, 
+const valueFunc = function valueFunc(
+  loading, voucher, errors,
   voucherTypeDropdown, voucherSubjectDropdown,
   payerDropdown, recipientDropdown
 ) {
   let classNames = ['form', 'relative'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join('');
-  return h('#voucher-form' + classNames, [
-    h('.field.required.inline', [
-      h('label', '凭证类型'),
-      voucherTypeDropdown,
-    ]),
-    h('.field.required.inline', [
-      h('label', '项目'),
-      voucherSubjectDropdown,
-    ]),
-    h('.field.require.inline', [
-      h('label', '日期'),
-      h('input', {
-        type: 'date',
-        value: voucher.date? voucher.date: moment().format('YYYY-MM-DD'),
-        onchange(e) {
-          $$voucher.patch({ 
-            date: this.value,
-          });
-        }
-      })
-    ]),
-    h('.field.required.inline', [
-      h('label', '凭证号'),
-      h('input', {
-        placeholder: '请输入凭证号',
-        value: voucher.number,
-        onchange(e) {
-          $$voucher.patch({ number: this.value });
-        }
-      })
-    ]),
-    h('.field.required.inline', [
+  return h(classNames, [
+    field('voucherTypeId', '凭证类型', voucherTypeDropdown, errors, true),
+    field('voucherSubjectId', '项目', voucherSubjectDropdown, errors, true),
+    field('date', '日期', h('input', {
+      type: 'date',
+      value: voucher.date? voucher.date: moment().format('YYYY-MM-DD'),
+      onchange(e) {
+        $$voucher.patch({ 
+          date: this.value,
+        });
+      }
+    }), errors, true),
+    field('number', '凭证号', h('input', {
+      placeholder: '请输入凭证号',
+      value: voucher.number,
+      onchange(e) {
+        $$voucher.patch({ number: this.value });
+      }
+    }), errors, true),
+    h('.field.inline', [
       h('input', {
         type: 'checkbox',
         checked: voucher.isPublic,
@@ -75,36 +65,28 @@ const formValueFunc = function valueFunc(
       }),
       h('label', '是否进入总账'),
     ]),
-    h('.field.required.inline', [
-      h('label', '(实际)支付方'),
-      payerDropdown,
-    ]),
-    h('.field.required.inline', [
-      h('label', '(实际)收入方'),
-      recipientDropdown,
-    ]),
+    field('payerId', '(实际)支付方', payerDropdown, errors, true),
+    field('recipientId', '(实际)收入方', recipientDropdown, errors, true),
     h('.clearfix'),
     h('hr'),
     h('button.btn.btn-outline.c1.m1', {
       onclick(e) {
-        $$loading.val(true);
-        validate($$voucher.val()).then(function () {
+        voucherStore.validate($$voucher.val()).then(function () {
+          $$loading.val(true);
           voucherStore.save($$voucher.val()).then(function (id) {
             $$loading.val(false);
             page('/voucher/' + id);
           });
-        }).catch(errors.val);
+        }).catch(function (errors) {
+          $$errors.val(errors);
+        });
       }
     }, '提交'),
   ]);
 };
 
 export var $$form = x.connect([
-  $$loading, $$voucher, 
+  $$loading, $$voucher, $$errors,
   $$voucherTypeDropdown, $$voucherSubjectDropdown,
   $$payerDropdown, $$recipientDropdown
-], formValueFunc, 'voucher-form');
-
-const validate = function (voucher) {
-  return Promise.resolve(voucher);
-};
+], valueFunc, 'voucher-form');

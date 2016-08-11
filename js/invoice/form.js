@@ -27,6 +27,7 @@ $$invoice.change(function () {
       onInvoiceTypeChange(invoice.invoiceTypeId);
     }
     id = invoice.id;
+    $$errors.val({});
   };
 }());
 

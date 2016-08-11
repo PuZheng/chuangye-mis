@@ -4,8 +4,9 @@ import {$$invoice} from './data-slots.js';
 import once from 'once';
 import { dropdown } from '../dropdown.js';
 import { field } from '../field.js';
-import { notEmpty } from '../checkers.js';
 import { validateObj } from '../validate-obj.js';
+import { notEmpty } from '../checkers.js';
+
 
 export var $$materialSubjects = x([], 'material-subjects');
 // 正在编辑的物料单
