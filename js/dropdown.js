@@ -2,6 +2,8 @@ import $$ from './xx.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
+const ESC = 27;
+
 export var dropdown = function dropdown({defaultText='', options=[], value, activated, onactivate, onchange}) {
   let classNames = ['dropdown'];
   if (activated) {
@@ -35,7 +37,7 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
       onactivate(false);
     },
     onkeydown: function (e) {
-      if (e.which === 27 || e.keyCode === 27) {
+      if (e.which === ESC || e.keyCode === ESC) {
         onactivate(false);
         return false;
       }
@@ -110,7 +112,7 @@ export var searchDropdown = function ({
         return false;
       },
       onkeydown: function (e) {
-        if (e.which === 27 || e.keyCode === 27) {
+        if (e.which === ESC || e.keyCode === ESC) {
           onactivate(false);
           this.blur();
           return false;

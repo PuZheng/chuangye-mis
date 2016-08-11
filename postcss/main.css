@@ -4,6 +4,7 @@
 @import 'component/smart-grid';
 @import 'component/dropdown';
 @import 'component/button';
+@import 'component/label';
 
 @import "generic.css";
 @import "atomic.css";

@@ -48,6 +48,7 @@ export var onInvoiceTypeChange = function (value) {
       [$$loading, $$loading.val() - 1],
       [$$invoice, Object.assign($$invoice.val(), {
         invoiceTypeId: value,
+        invoiceType: invoiceType,
         isVAT: invoiceType.isVAT,
       })],
       [$$selectedInvoiceType, invoiceType],
