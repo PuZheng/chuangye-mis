@@ -12,5 +12,3 @@ export var validateObj = function validateObj(obj, rules) {
     R.isEmpty(errors)? resolve(obj): reject(errors);
   });
 };
-
-export default validateObj;

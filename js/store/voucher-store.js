@@ -1,3 +1,17 @@
+import R from 'ramda';
+import { validateObj } from '../validate-obj.js';
+import { notEmpty } from '../checkers.js';
+
+var rules = {
+  voucherTypeId: notEmpty('凭证类型'),
+  voucherSubjectId: notEmpty('项目'),
+  number: notEmpty(),
+  payerId: notEmpty(),
+  recipientId: notEmpty(),
+};
+
+export var validate = R.partialRight(validateObj, [rules]);
+
 var voucher = {
   id: 1,
   number: 1,
@@ -10,6 +24,7 @@ var voucher = {
   comment: 'blahblahblahblah',
 };
 export default {
+  validate,
   save: function (data) {
     console.log(data);
     voucher = data;

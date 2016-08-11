@@ -55,11 +55,16 @@
         width: var(--label-width);
         word-wrap: break-word;
     }
-    & > .input, & > input, & > textarea {
+    & > .input, & > input, & > textarea, & > .dropdown {
         display: inline-block;
         margin-left: calc(var(--label-width) + 1rem);
         width: calc(100% - var(--label-width) - 1rem);
-
+    }
+    & > input[type=checkbox] {
+        width: auto;
+        margin-left: .5rem;
+    }
+    & > .input {
         & > input, & > textarea, & > .dropdown {
             width: 100%;
         }
