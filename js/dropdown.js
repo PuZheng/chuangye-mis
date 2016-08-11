@@ -33,7 +33,13 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
     },
     onblur: function () {
       onactivate(false);
-    }
+    },
+    onkeydown: function (e) {
+      if (e.which === 27 || e.keyCode === 27) {
+        onactivate(false);
+        return false;
+      }
+    },
   }, [
     h('i.icon.fa.fa-caret-down'),
     h('.text' + (selectedOption? '': '.text-default'), selectedOption? selectedOption.text: defaultText),
@@ -83,15 +89,18 @@ export var searchDropdown = function ({
   }
   return h(classNames, {
     // a div with tabIndex could be focused/blured
-    onclick: function (e) {
-      onactivate(!activated);
-      return false;
-    },
   }, [
     h('i.icon.fa.fa-caret-down'),
     h('input.search', {
       tabIndex: 0,
       value: searchText,
+      onclick: function (e) {
+        if (activated) {
+          this.blur();
+        }
+        onactivate(!activated);
+        return false;
+      },
       oninput: function (e) {
         onsearch(this.value);
       },
@@ -99,7 +108,14 @@ export var searchDropdown = function ({
         onsearch('');
         onactivate(false);
         return false;
-      }
+      },
+      onkeydown: function (e) {
+        if (e.which === 27 || e.keyCode === 27) {
+          onactivate(false);
+          this.blur();
+          return false;
+        }
+      },
     }),
     h('.text' + function () {
       let classNames = selectedOption? '': '.text-default';

@@ -62,6 +62,7 @@ var valueFunc = function valueFunc(
         h('label', '发票号码'),
         h('input', {
           type: 'text',
+          placeholder: '请输入发票号码',
           value: invoice.number || '',
           onchange(e) {
             $$invoice.patch({
@@ -123,7 +124,7 @@ var valueFunc = function valueFunc(
       }
     }, '提交')
   ]);
-}
+};
 
 const validate = function (invoice) {
   return Promise.resolve(invoice);
