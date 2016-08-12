@@ -7,7 +7,7 @@ export var field = function field(field, label, input, errors, required) {
   err && classNames.push('error');
   classNames = classNames.map(c => '.' + c).join('');
   return h(classNames, [
-    h('label.align-middle', label),
+    label? h('label.align-middle', label): '',
     h('.input', [
       input,
       err? h('.label.pointing.error', err): ''

@@ -97,7 +97,7 @@ function materialsEditorValueFunc(
         h('label', '税额'),
         h('span.ca.input', ((materialNote.quantity || 0) * (materialNote.unitPrice || 0) * (materialNote.taxRate || 0) / 100) + '(元)'),
       ]),
-      h('button.btn.btn-outline.ml2.bca.b2', {
+      h('button.btn.btn-outline.ml2.bca.bw2', {
         onclick(e) {
           e.preventDefault();
           validate(materialNote).then(function () {
