@@ -55,7 +55,7 @@
         width: var(--label-width);
         word-wrap: break-word;
     }
-    & > .input, & > input, & > textarea, & > .dropdown {
+    & > label+.input, & > label+input, & > label+textarea, & > label+.dropdown {
         display: inline-block;
         margin-left: calc(var(--label-width) + 1rem);
         width: calc(100% - var(--label-width) - 1rem);
