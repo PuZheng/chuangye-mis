@@ -30,6 +30,7 @@
   "author": "Arvind Ravulavaru",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.13.1",
     "basscss": "^8.0.2",
     "basscss-addons": "^1.0.0",
     "basscss-background-colors": "^2.1.0",
@@ -52,6 +53,7 @@
     "page": "^1.7.1",
     "promise-finally": "^2.2.1",
     "ramda": "^0.21.0",
+    "reqwest": "^2.0.5",
     "toastr": "^2.1.2",
     "virtual-dom": "^2.1.1"
   },
@@ -89,6 +91,7 @@
     "rollup-plugin-babel": "^2.6.1",
     "rollup-plugin-buble": "^0.12.1",
     "rollup-plugin-commonjs": "^3.1.0",
+    "rollup-plugin-json": "^2.0.1",
     "rollup-plugin-node-resolve": "^1.7.1",
     "rollup-plugin-string": "^2.0.2",
     "rollup-plugin-uglify": "^1.0.1",

@@ -16,6 +16,7 @@
         "no-undef": 2
     },
     "globals": {
-        "virtualDom": true
+        "virtualDom": true,
+        "axios": true
     }
 }

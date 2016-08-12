@@ -24,7 +24,7 @@ var $$page = x.connect(
   function (username, password, errors, loading) {
     return h('#login-app', [
       h(classNames('block', 'p2', 'border', 'box', 'rounded', 'border-gray', 'mx-auto', loading), [
-        h('h3.header', '欢迎登陆创业电镀管理系统'),
+        h('h3.header.c1', '欢迎登陆创业电镀管理系统'),
         h('form.form', {
           onsubmit(e) {
             let p = accountStore.validate({

@@ -20,6 +20,7 @@ var co = require('co');
 var OSS = require('ali-oss');
 var postcss    = require('gulp-postcss');
 var sourcemaps = require('gulp-sourcemaps');
+var json = require('rollup-plugin-json');
 
 gulp.task('connect', function() {
   connect.server({
@@ -87,6 +88,10 @@ gulp.task('rollup', function () {
     }),
     string({
       include: ['js/**/*.ejs'],
+    }),
+    json({
+      include: ['js/config.json'],
+      exclude: ['node_modules/**/*', 'config.json', 'config.sample.json']
     }),
     // buble({
     //   transforms: {
