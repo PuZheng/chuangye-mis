@@ -1,0 +1,40 @@
+.menu {
+    margin: 1rem 0;
+    background: #FFF;
+    font-weight: 400;
+    border: 1px solid rgba(34,36,38,.15);
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
+    border-radius: .28571429rem;
+    /* min-height: 2.85714286em; */
+    
+    &.top {
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        position: fixed;
+        top: 0;
+        margin: 0;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    & .item {
+        display: inline-block;
+        line-height: 1;
+        text-decoration: none;
+        user-select: none;
+        background: 0 0;
+        text-transform: none;
+        font-weight: 600;
+        transition: background .1s ease,box-shadow .1s ease,color .1s ease;
+        padding: .6rem 1.14285714em;
+    }
+
+    & .item.active {
+        border-bottom-style: solid;
+        border-radius: 0;
+        margin: 0 0 -2px;
+        border-bottom-width: 2px;
+        transition: color .1s ease;
+    }
+}
