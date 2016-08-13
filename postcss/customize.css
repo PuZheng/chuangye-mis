@@ -22,3 +22,9 @@
         padding-right: .4rem;
     }
 }
+
+.warn.box {
+    & > .header {
+        border-bottom: 1px solid var(--color-gray);
+    }
+}

@@ -11,3 +11,5 @@ export var backendURL = function (path) {
   }
   return backend + '/' + path;
 };
+
+export default backendURL;

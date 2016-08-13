@@ -16,6 +16,7 @@ import R from 'ramda';
 import entityStore from './store/entity-store.js';
 import mount from './mount.js';
 import { navBar, setupNavBar } from './nav-bar.js';
+import { could } from './principal';
 
 x.init({ debug: true });
 
@@ -34,6 +35,18 @@ var loginRequired = function (ctx, next) {
   next();
 };
 
+var _could = function (request) {
+  return function (ctx, next) {
+    could(request).then(function (ok) {
+      if (!ok) {
+        page('/unauthorized.html');
+        return;
+      }
+      next();
+    });
+  };
+};
+
 page('/login', function (ctx, next) {
   if (!accountStore.user) {
     mount(loginApp.page);
@@ -42,7 +55,7 @@ page('/login', function (ctx, next) {
   }
 });
 
-page('/invoice/:id?', loginRequired, _setupNavBar('invoice'), function (ctx, next) {
+page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar('invoice'), function (ctx, next) {
   let app = invoiceObjectApp;
   mount(invoiceObjectApp.page);
   let promises = [
@@ -62,7 +75,7 @@ page('/invoice/:id?', loginRequired, _setupNavBar('invoice'), function (ctx, nex
   });
 });
 
-page('/voucher/:id?', loginRequired, _setupNavBar('voucher'), function (ctx, next) {
+page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx, next) {
   let app = voucherObjectApp;
   mount(voucherObjectApp.page);
   app.$$loading.val(true);

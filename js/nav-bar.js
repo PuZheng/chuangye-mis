@@ -29,20 +29,20 @@ var valueFunc = function valueFunc(currentMod, mods) {
     }, [
       h('i.fa.fa-home'),
     ]),
-    mods.viewInvoiceList && h('a' + _classNames(currentMod === 'invoice'), {
+    mods.viewInvoiceList? h('a' + _classNames(currentMod === 'invoice'), {
       href: '/invoice',
       onclick(e) {
         page('/invoice');
         return false;
       }
-    }, '发票模块'),
-    mods.viewVoucherList && h('a' + _classNames(currentMod === 'voucher'), {
+    }, '发票模块'): '',
+    mods.viewVoucherList? h('a' + _classNames(currentMod === 'voucher'), {
       href: '/voucher',
       onclick(e) {
         page('/voucher');
         return false;
       }
-    }, '凭证模块'),
+    }, '凭证模块'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
