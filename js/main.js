@@ -11,17 +11,38 @@ import voucherTypeStore from './store/voucher-type-store.js';
 import voucherSubjectStore from './store/voucher-subject-store.js';
 import voucherStore from './store/voucher-store.js';
 import chargeBillStore from './store/charge-bill-store.js';
+import accountStore from './store/account-store.js';
 import R from 'ramda';
 import entityStore from './store/entity-store.js';
 import mount from './mount.js';
+import { navBar, setupNavBar } from './nav-bar.js';
 
 x.init({ debug: true });
 
+mount(navBar, '#nav-bar');
+
+var _setupNavBar = function (mod) {
+  return function (ctx, next) {
+    setupNavBar(mod).then(next);
+  };
+};
+
+var loginRequired = function (ctx, next) {
+  if (!accountStore.user) {
+    return page('/login');
+  }
+  next();
+};
+
 page('/login', function (ctx, next) {
-  mount(loginApp.page);
+  if (!accountStore.user) {
+    mount(loginApp.page);
+  } else {
+    page('/');
+  }
 });
 
-page('/invoice/:id?', function (ctx, next) {
+page('/invoice/:id?', loginRequired, _setupNavBar('invoice'), function (ctx, next) {
   let app = invoiceObjectApp;
   mount(invoiceObjectApp.page);
   let promises = [
@@ -41,7 +62,7 @@ page('/invoice/:id?', function (ctx, next) {
   });
 });
 
-page('/voucher/:id?', function (ctx, next) {
+page('/voucher/:id?', loginRequired, _setupNavBar('voucher'), function (ctx, next) {
   let app = voucherObjectApp;
   mount(voucherObjectApp.page);
   app.$$loading.val(true);
@@ -68,6 +89,10 @@ page('/charge-bill/:id?', function (ctx, next) {
     mount(chargeBillApp.makePage(chargeBill));
     app.$$loading.val(false);
   });
+});
+
+page('/', loginRequired, _setupNavBar('home'), function (ctx, next) {
+
 });
 
 page();

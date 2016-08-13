@@ -114,7 +114,7 @@ gulp.task('rollup', function () {
       sourceMap: true,
       globals: {
         moment: 'moment',
-        virtualDom: 'virtual-dom',
+        'virtual-dom': 'virtualDom',
       }
     });
   });

@@ -29,11 +29,11 @@ var logout = function () {
   return Promise.resolve(sessionStorage.removeItem('user'));
 };
 
-
 export default {
   validate,
   login,
   get user() {
     return JSON.parse(sessionStorage.getItem('user'));
-  }
+  },
+  logout,
 };

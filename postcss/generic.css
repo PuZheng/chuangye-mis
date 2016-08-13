@@ -82,6 +82,15 @@ body {
 .c1 {
     color: var(--color-primary);
 }
+.c2 {
+    color: var(--color-secondary);
+}
+.color-gray {
+    color: var(--color-gray);
+}
+.color-gray-light {
+    color: var(--color-gray-light);
+}
 .ca, .color-accent {
     color: var(--color-accent);
 }

@@ -5,6 +5,7 @@
 @import 'component/dropdown';
 @import 'component/button';
 @import 'component/label';
+@import 'component/menu';
 
 @import "generic.css";
 @import "atomic.css";
