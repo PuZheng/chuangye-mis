@@ -70,9 +70,9 @@ var valueFunc = function valueFunc(
       h('.field.inline', [
         h('input', {
           type: 'checkbox',
-          checked: invoice.isVAT,
+          checked: invoice.isVat,
           onchange(e) {
-            $$invoice.patch({ isVAT: this.checked });
+            $$invoice.patch({ isVat: this.checked });
           }
         }),
         h('label', '是否是增值税'),

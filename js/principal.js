@@ -1,7 +1,5 @@
 import backendURL from './backend-url';
 import accountStore from './store/account-store';
-import request from 'superagent';
-// import superagentPromisePlugin from 'superagent-promise-plugin';
 
 export var could = function could(policy, ...args) {
   let tests = [[policy, ...args]];

@@ -1,32 +1,14 @@
+import backendURL from '../backend-url';
+import accountStore from './account-store';
+
 export default {
   get list() {
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        resolve([
-          { 
-            id: 1, 
-            name: '进项增值税',  
-            vendorType: 'supplier',
-            purchaserType: 'tenant',
-            isVAT: true,
-            materialType: 'inbound',
-          },
-          { 
-            id: 2, 
-            name: '销项增值税',
-            vendorType: 'tenant',
-            purchaserType: 'customer',
-            isVAT: true,
-            materialType: 'outbound',
-          },
-          { 
-            id: 3, 
-            name: '普通发票',
-            purchaserType: 'owner',
-            isVAT: false,
-          }
-        ]);
-      }, 500);
+    return axios.get(backendURL('/invoice-type/list'), {
+      headers: {
+        Authorization: 'Bearer ' + accountStore.user.token,
+      },
+    }).then(function (response) {
+      return response.data.data;
     });
   }
 };
