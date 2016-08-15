@@ -16,12 +16,6 @@ var login = function ({ username, password }) {
     username, password
   }).then(function (response) {
     sessionStorage.setItem('user', JSON.stringify(response.data));
-  }).catch(function (error) {
-    if (error.response.status === 403) {
-      throw {
-        username: error.response.data.message,
-      };
-    }
   });
 };
 

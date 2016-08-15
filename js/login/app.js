@@ -32,6 +32,8 @@ var $$page = x.connect(
               password
             }).then(function () {
               $$loading.val('loading');
+            }).catch(function (errors) {
+              $$errors.val(errors);
             }).then(function () {
               return accountStore.login({
                 username,
@@ -39,8 +41,15 @@ var $$page = x.connect(
               });
             }).then(function () {
               page('/');
-            }).catch(function (errors) {
-              $$errors.val(errors);
+            }).catch(function (error) {
+              if (error.response.status === 403) {
+                $$errors.val({
+                  username: error.response.data.message,
+                });
+                return;
+              } 
+              console.error(error.response);
+              // TODO show error message;
             });
             promiseFinally(p, function () {
               $$loading.val('');

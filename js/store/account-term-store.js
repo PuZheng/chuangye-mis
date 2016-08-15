@@ -1,12 +1,14 @@
+import backendURL from '../backend-url';
+import accountStore from './account-store';
+
 export default {
   get list() {
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        resolve([
-          {id: 1, name: "2016-06"},
-          {id: 2, name: "2016-07"}
-        ]);
-      }, 500);
+    return axios.get(backendURL('/account-term/list'), {
+      headers: {
+        Authorization: 'Bearer ' + accountStore.user.token,
+      },
+    }).then(function (response) {
+      return response.data.data;
     });
   }
 };
