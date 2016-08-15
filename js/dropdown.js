@@ -22,7 +22,9 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
   options = options.map( o => h('.item' + (o.value == value? '.item-selected': ''), {
     onclick: function () {
       onchange(o.value, o);
-    }
+      onactivate(false);
+      return false;
+    },
   }, o.text) );
   if (options.length == 0) {
     options = [h('.message', '没有可选项')];
@@ -30,11 +32,13 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
   return h(classNames, {
     // a div with tabIndex could be focused/blured
     tabIndex: 0,
-    onclick: function () {
-      onactivate(!activated);
+    onfocus: function () {
+      onactivate(true);
+      return false;
     },
     onblur: function () {
       onactivate(false);
+      return false;
     },
     onkeydown: function (e) {
       if (e.which === ESC || e.keyCode === ESC) {
@@ -96,15 +100,12 @@ export var searchDropdown = function ({
     h('input.search', {
       tabIndex: 0,
       value: searchText,
-      onclick: function (e) {
-        if (activated) {
-          this.blur();
-        }
-        onactivate(!activated);
-        return false;
-      },
       oninput: function (e) {
         onsearch(this.value);
+      },
+      onfocus: function () {
+        onactivate(true);
+        return false;
       },
       onblur: function (e) {
         onsearch('');
