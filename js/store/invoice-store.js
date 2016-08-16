@@ -1,6 +1,8 @@
 import R from 'ramda';
 import { validateObj } from '../validate-obj.js';
 import { notEmpty } from '../checkers.js';
+import { backendURL } from '../backend-url.js';
+import accountStore from './account-store';
 
 var rules = {
   invoiceType: notEmpty('发票类型'),
@@ -20,45 +22,20 @@ var rules = {
 
 var validate = R.partialRight(validateObj, [rules]);
 
-var invoice = {
-  id: 1,
-  invoiceTypeId: 1,
-  date: '2016-06-17',
-  number: '123456',
-  accountTermId: 1,
-  isVAT: true,
-  vendorId: 11,
-  purchaserId: 1,
-  notes: 'lorem',
-  materialNotes: [
-    { 
-      id: 1, 
-      materialSubjectId: 2,  
-      materialSubject: {
-        id: 2,
-        name: '原材料1',
-        unit: 'kg',
-      },
-      quantity: 50,
-      unitPrice: 40,
-      taxRate: 17,
-    }
-  ],
-};
 export default {
   get: id => new Promise(function (resolve, reject) {
     setTimeout(function () {
-      resolve(invoice);
+      // resolve(invoice);
     }, 500);
   }),
   save: function (data) {
-    invoice = Object.assign(data, {
-      id: 1,
-    });
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        resolve(1);
-      }, 500);
+    console.log(JSON.stringify(data, null, 4));
+    return axios.post(backendURL('/invoice/object'), data, {
+      headers: {
+        Authorization: 'Bearer ' + accountStore.user.token,
+      },
+    }).then(function (response) {
+      return response.data.id;
     });
   },
   validate,

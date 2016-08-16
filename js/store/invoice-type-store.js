@@ -9,6 +9,8 @@ export default {
       },
     }).then(function (response) {
       return response.data.data;
+    }).catch(function (e) {
+      console.error(e);
     });
   }
 };

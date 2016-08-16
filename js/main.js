@@ -1,3 +1,4 @@
+import moment from 'moment';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app.js';
 import voucherObjectApp from './voucher/object-app.js';
@@ -61,7 +62,9 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar
   let promises = [
     invoiceTypeStore.list, 
     accountTermStore.list,
-    ctx.params.id? invoiceStore.get(ctx.params.id): {},
+    ctx.params.id? invoiceStore.get(ctx.params.id): {
+      date: moment().format('YYYY-MM-DD')
+    },
   ];
   app.$$loading.inc();
   Promise.all(promises).then(function ([invoiceTypes, accountTerms, invoice]) {

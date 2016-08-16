@@ -48,7 +48,7 @@ var valueFunc = function valueFunc(
       field('date', '发票日期', h('input', {
         type: 'date',
         value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
-        onchange(e) {
+        oninput(e) {
           $$invoice.patch({
             date: this.value
           });
@@ -101,9 +101,11 @@ var valueFunc = function valueFunc(
           $$loading.inc();
           invoiceStore.save($$invoice.val()).then(function (id) {
             $$loading.dec();
+            console.log('create invoice done');
             page('/invoice/' + id);
           });
         }).catch(function (errors) {
+          console.error(errors);
           $$errors.val(errors);
         });
         return false;
