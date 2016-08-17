@@ -7,8 +7,11 @@
     --color-secondary: hsla(198, 25%, 30%, 0.75);
     --color-tertiary: #65cb9e;
     --white: #fff;
-    --color-gray: #b2b2b2;
-    --color-gray-light: #dfdfdf;
+    --color-gray: hsla(0, 0%, 70%, 1);
+    --color-gray-light: hsla(0, 0%, 80%, 1);
+    --color-gray-dark: hsla(0, 0%, 40%, 1);
     --color-primary-text: color(#000 a(70%));
     --color-secondary-text: color(#000 a(50%)); 
+    --color-success: hsla(115, 31%, 62%, 0.77);
+    --color-info: hsla(190, 42%, 62%, 0.77);
 }

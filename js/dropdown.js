@@ -4,6 +4,17 @@ var h = virtualDom.h;
 
 const ESC = 27;
 
+var parents = function parents(el, filter) {
+  const matchesSelector = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;
+
+  // match start from parent
+  el = el.parentElement;
+  while (el && !matchesSelector.call(el, filter)) {
+    el = el.parentElement;
+  }
+  return el;
+};
+
 export var dropdown = function dropdown({defaultText='', options=[], value, activated, onactivate, onchange}) {
   let classNames = ['dropdown'];
   if (activated) {
@@ -22,7 +33,7 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
   options = options.map( o => h('.item' + (o.value == value? '.item-selected': ''), {
     onclick: function () {
       onchange(o.value, o);
-      onactivate(false);
+      parents(this, '.dropdown').blur();
       return false;
     },
   }, o.text) );

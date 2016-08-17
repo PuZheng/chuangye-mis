@@ -18,11 +18,13 @@ import R from 'ramda';
 import entityStore from './store/entity-store.js';
 import mount from './mount.js';
 import { navBar, setupNavBar } from './nav-bar.js';
+import toast from './toast';
 import { could } from './principal';
 
 x.init({ debug: true });
 
 mount(navBar, '#nav-bar');
+mount(toast.page, '#toast');
 
 var _setupNavBar = function (mod) {
   return function (ctx, next) {

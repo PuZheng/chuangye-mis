@@ -16,6 +16,7 @@ import {$$accountTermDropdown} from './account-term-dropdown.js';
 import {$$vendorDropdown} from './vendor-dropdown.js';
 import {$$purchaserDropdown} from './purchaser-dropdown.js';
 import { field } from '../field.js';
+import { $$toast } from '../toast';
 
 
 var $$errors = x({}, 'invoice-form-errors');
@@ -102,6 +103,10 @@ var valueFunc = function valueFunc(
           invoiceStore.save($$invoice.val()).then(function (id) {
             $$loading.dec();
             console.log('create invoice done');
+            $$toast.val({
+              type: 'success',
+              message: '发票创建成功',
+            });
             page('/invoice/' + id);
           });
         }).catch(function (errors) {

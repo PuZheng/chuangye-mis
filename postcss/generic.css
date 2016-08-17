@@ -55,12 +55,26 @@ body {
   }
 }
 
+.bg-1 {
+    background-color: var(--color-primary);
+}
 .bg-2 {
     background-color: var(--color-secondary);
 }
 .bg-3 {
     background-color: var(--color-tertiary);
 }
+
+.bg-info {
+    background-color: var(--color-info);
+}
+.bg-success {
+    background-color: var(--color-success);
+}
+.bg-danger {
+    background-color: var(--color-danger);
+}
+
 .bw2 {
     border-width: 2px;
 }
@@ -76,6 +90,9 @@ body {
 .border-gray {
     border-color: var(--color-gray);
 }
+.border-gray-dark {
+    border-color: var(--color-gray-dark);
+}
 .border-gray-light {
     border-color: var(--color-gray-light);
 }
@@ -90,6 +107,9 @@ body {
 }
 .color-gray-light {
     color: var(--color-gray-light);
+}
+.color-gray-dark {
+    color: var(--color-gray-dark);
 }
 .ca, .color-accent {
     color: var(--color-accent);
