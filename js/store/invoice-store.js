@@ -23,13 +23,16 @@ var rules = {
 var validate = R.partialRight(validateObj, [rules]);
 
 export default {
-  get: id => new Promise(function (resolve, reject) {
-    setTimeout(function () {
-      // resolve(invoice);
-    }, 500);
-  }),
+  get: function (id) {
+    return axios.get(backendURL('/invoice/object/' + id), {
+      headers: {
+        Authorization: 'Bearer ' + accountStore.user.token,
+      },
+    }).then(function (response) {
+      return response.data;
+    });
+  },
   save: function (data) {
-    console.log(JSON.stringify(data, null, 4));
     return axios.post(backendURL('/invoice/object'), data, {
       headers: {
         Authorization: 'Bearer ' + accountStore.user.token,
