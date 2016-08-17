@@ -3,6 +3,7 @@ import page from 'page';
 import invoiceObjectApp from './invoice/object-app.js';
 import voucherObjectApp from './voucher/object-app.js';
 import loginApp from './login/app.js';
+import dashboardApp from './dashboard/app.js';
 import chargeBillApp from './charge-bill/app.js';
 import x from './xx.js';
 import invoiceTypeStore from './store/invoice-type-store.js';
@@ -108,7 +109,8 @@ page('/charge-bill/:id?', function (ctx, next) {
 });
 
 page('/', loginRequired, _setupNavBar('home'), function (ctx, next) {
-
+  let app = dashboardApp;
+  mount(dashboardApp.page);
 });
 
 page();
