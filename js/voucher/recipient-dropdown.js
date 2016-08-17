@@ -14,7 +14,7 @@ var valueFunc = function (activated, searchText, recipients, voucher) {
       { 
         value: p.id,
         text: p.name,
-        abbr: p.abbr,
+        acronym: p.acronym,
       }
     ) ),
     value: voucher.recipientId,

@@ -12,6 +12,7 @@
     --color-gray-dark: hsla(0, 0%, 40%, 1);
     --color-primary-text: color(#000 a(70%));
     --color-secondary-text: color(#000 a(50%)); 
-    --color-success: hsla(115, 31%, 62%, 0.77);
-    --color-info: hsla(190, 42%, 62%, 0.77);
+    --color-success: hsla(115, 31%, 62%, 0.87);
+    --color-info: hsla(190, 42%, 62%, 0.87);
+    --color-danger: hsla(0, 62%, 62%, 0.87);
 }

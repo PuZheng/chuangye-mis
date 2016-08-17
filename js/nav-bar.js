@@ -54,7 +54,7 @@ var valueFunc = function valueFunc(currentMod, mods) {
         onclick(e) {
           accountStore.logout().then(function () {
             // refresh means hide, since there's no user
-            $$navBar.refresh();
+            $$mods.val({});
             page('/login');
           });
           return false;

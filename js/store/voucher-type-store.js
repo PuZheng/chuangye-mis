@@ -1,12 +1,14 @@
+import backendURL from '../backend-url';
+import accountStore from './account-store';
+
 export default {
   get list() {
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        resolve([
-          { id: 1, name: '银行凭证' },
-          { id: 2, name: '现金凭证' },
-        ]);
-      }, 500);
+    return axios(backendURL('/voucher-type/list'), {
+      headers: {
+        Authorization: 'Bearer ' + accountStore.user.token,
+      },
+    }).then(function (response) {
+      return response.data.data; 
     });
   }
 };

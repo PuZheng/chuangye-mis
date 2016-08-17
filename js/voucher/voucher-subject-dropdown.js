@@ -16,7 +16,7 @@ var valueFunc = function (activated, searchText, voucherSubjects, voucher) {
       {
         value: vs.id,
         text: vs.name,
-        abbr: vs.abbr,
+        acronym: vs.acronym,
       }
     ) ),
     value: voucher.voucherSubjectId,
@@ -53,6 +53,7 @@ export var onVoucherSubjectChange = function (value) {
       voucherSubject,
     })]
   );
+  $$loading.val(true);
   Promise.all([
     entityStore.fetchList({
       type: voucherSubject.payerType,

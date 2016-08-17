@@ -85,7 +85,7 @@ var valueFunc = function valueFunc(
           onchange(e) {
             $$invoice.patch({ notes: this.value });
           }
-        })
+        }, invoice.notes || ''),
       ]),
     ]),
     (invoice.invoiceType || {}).materialType? h('.col.col-6', [
