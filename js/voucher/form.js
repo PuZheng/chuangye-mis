@@ -41,7 +41,7 @@ const valueFunc = function valueFunc(
     field('voucherSubjectId', '项目', voucherSubjectDropdown, errors, true),
     field('date', '日期', h('input', {
       type: 'date',
-      value: voucher.date? voucher.date: moment().format('YYYY-MM-DD'),
+      value: voucher.date,
       onchange(e) {
         $$voucher.patch({ 
           date: this.value,

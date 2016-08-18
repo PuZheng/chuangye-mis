@@ -88,7 +88,9 @@ page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar
   let promises = [
     voucherTypeStore.list,
     voucherSubjectStore.list,
-    ctx.params.id? voucherStore.get(ctx.params.id): {}
+    ctx.params.id? voucherStore.get(ctx.params.id): {
+      date: moment().format('YYYY-MM-DD')
+    }
   ];
   Promise.all(promises).then(function ([voucherTypes, voucherSubjects, voucher]) {
     x.update(
