@@ -1,6 +1,7 @@
 import moment from 'moment';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app.js';
+import invoiceListApp from './invoice/list-app.js';
 import voucherObjectApp from './voucher/object-app.js';
 import loginApp from './login/app.js';
 import dashboardApp from './dashboard/app.js';
@@ -78,6 +79,18 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar
       [app.$$invoice, invoice]
     ];
     x.update(...args);
+  });
+});
+
+page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function (ctx, next) {
+  let app = invoiceListApp;
+  mount(app.page);
+  app.$$loading.val(true);
+  invoiceStore.fetchList().then(function (list) {
+    x.update(
+      [app.$$loading, false],
+      [app.$$list, list]
+    );
   });
 });
 

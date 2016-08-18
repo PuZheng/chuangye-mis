@@ -19,8 +19,24 @@ var rules = {
     }
   },
 };
-
 var validate = R.partialRight(validateObj, [rules]);
+var fetchList = function () {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      resolve([
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+        { id: 4 },
+        { id: 5 },
+        { id: 6 },
+        { id: 7 },
+        { id: 8 },
+        { id: 9 },
+      ]);
+    }, 1000);
+  });
+};
 
 export default {
   get: function (id) {
@@ -41,5 +57,6 @@ export default {
       return response.data.id;
     });
   },
+  fetchList,
   validate,
 };

@@ -32,7 +32,7 @@ var valueFunc = function valueFunc(currentMod, mods) {
     mods.viewInvoiceList? h('a' + _classNames(currentMod === 'invoice'), {
       href: '/invoice',
       onclick(e) {
-        page('/invoice');
+        page('/invoice-list');
         return false;
       }
     }, '发票模块'): '',
