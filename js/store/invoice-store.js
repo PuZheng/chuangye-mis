@@ -2,6 +2,7 @@ import R from 'ramda';
 import { validateObj } from '../validate-obj.js';
 import { notEmpty } from '../checkers.js';
 import { backendURL } from '../backend-url.js';
+import config from '../config.json';
 import accountStore from './account-store';
 
 var rules = {
@@ -20,21 +21,15 @@ var rules = {
   },
 };
 var validate = R.partialRight(validateObj, [rules]);
-var fetchList = function () {
-  return new Promise(function (resolve, reject) {
-    setTimeout(function () {
-      resolve([
-        { id: 1 },
-        { id: 2 },
-        { id: 3 },
-        { id: 4 },
-        { id: 5 },
-        { id: 6 },
-        { id: 7 },
-        { id: 8 },
-        { id: 9 },
-      ]);
-    }, 1000);
+var fetchList = function (queryObj) {
+  queryObj.page = queryObj.page || 1;
+  queryObj.page_size = queryObj.query_size || config.pageSize;
+  return axios.get(backendURL('/invoice/list?' + R.toPairs(queryObj).map(p => p.join('=')).join('&')), {
+    headers: {
+      Authorization: 'Bearer ' + accountStore.user.token,
+    },
+  }).then(function (res) {
+    return res.data;
   });
 };
 

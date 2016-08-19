@@ -62,20 +62,22 @@ Slot.prototype.change = function (proc) {
 Slot.prototype.offChange = function (proc) {
   this.onChangeCbs = this.onChangeCbs.filter(cb => cb != proc);
 };
-Slot.prototype.val = function (newValue) {
+Slot.prototype.val = function (newValue, propagate=true) {
     if (newValue === undefined) {
       return this.value;
     } else {
       opt.debug && console.debug(`xx: slot ${this.tag} updated`, this.value, newValue);
       var oldValue = this.value;
       this.value = newValue; 
-      this.onChangeCbs.forEach(function (cb) {
-        cb.call(this, newValue);
-      });
-      for (var level of this.offspringsByLevels) {
-        for (var slot of level) {
-          opt.debug && console.debug(`xx: slot ${slot.tag} will be refreshed`);
-          slot.refresh();
+      if (propagate) {
+        this.onChangeCbs.forEach(function (cb) {
+          cb.call(this, newValue);
+        });
+        for (var level of this.offspringsByLevels) {
+          for (var slot of level) {
+            opt.debug && console.debug(`xx: slot ${slot.tag} will be refreshed`);
+            slot.refresh();
+          }
         }
       }
       return oldValue;
@@ -99,21 +101,21 @@ Slot.prototype.refresh = function () {
   }
 };
 
-Slot.prototype.patch = function (obj) {
+Slot.prototype.patch = function (obj, propagate=true) {
   console.debug(`xx: slot ${this.tag} is about to be patched`, obj);
-  this.val(Object.assign(this.val(), obj));
+  this.val(Object.assign(this.val(), obj), propagate);
 };
 
-Slot.prototype.inc = function (cnt=1) {
-  this.val(this.val() + cnt);
+Slot.prototype.inc = function (cnt=1, propagate=true) {
+  this.val(this.val() + cnt, propagate);
 };
 
-Slot.prototype.dec = function (cnt=1) {
-  this.val(this.val() - cnt);
+Slot.prototype.dec = function (cnt=1, propagate=true) {
+  this.val(this.val() - cnt, propagate);
 };
 
-Slot.prototype.toggle = function () {
-  this.val(!this.val());
+Slot.prototype.toggle = function (propagate=true) {
+  this.val(!this.val(), propagate);
 };
 
 

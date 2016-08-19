@@ -21,6 +21,8 @@ import mount from './mount.js';
 import { navBar, setupNavBar } from './nav-bar.js';
 import toast from './toast';
 import { could } from './principal';
+import qs from 'query-string';
+import $$queryObj from './query-obj';
 
 x.init({ debug: true });
 
@@ -51,6 +53,12 @@ var _could = function (request) {
     });
   };
 };
+
+page(function parseQuery(ctx, next) {
+  ctx.query = qs.parse(ctx.querystring);
+  $$queryObj.val(ctx.query, false);
+  next();
+});
 
 page('/login', function (ctx, next) {
   if (!accountStore.user) {
@@ -85,11 +93,11 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar
 page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function (ctx, next) {
   let app = invoiceListApp;
   mount(app.page);
-  app.$$loading.val(true);
-  invoiceStore.fetchList().then(function (list) {
+  app.$$loading.toggle();
+  invoiceStore.fetchList(ctx.query).then(function (data) {
     x.update(
       [app.$$loading, false],
-      [app.$$list, list]
+      [app.$$list, data.data]
     );
   });
 });

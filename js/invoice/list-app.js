@@ -2,33 +2,47 @@ import $$ from '../xx';
 import virtualDom from 'virtual-dom';
 import oth from '../oth';
 import classNames from '../class-names';
+import R from 'ramda';
+import page from 'page';
+import $$queryObj from '../query-obj';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$list = $$([], 'list');
-var $$idOth = function () {
-  let $$order = $$('', 'id-order');
-  var onchange = function onchange(order) {
-    $$order.val(order);
-  };
-  return $$.connect([$$order], function (order) {
-    return oth('id', order, onchange);
-  });
-}();
 
-var $$dateOth = function () {
-  let $$order = $$('', 'date-order');
-  var onchange = function onchange(order) {
-    $$order.val(order);
-  };
-  return $$.connect([$$order], function (order) {
-    return oth('日期', order, onchange);
+var getColOrder = function getColOrder(colName, query) {
+  if (!query.sort_by) {
+    return '';
+  }
+  let [sortByCol, order] = query.sort_by.split('.');
+  if (sortByCol == colName) {
+    return order || 'asc';
+  } else {
+    return '';
+  }
+};
+
+var $$idOth = $$.connect([$$queryObj], function (queryObj) {
+  let order = getColOrder('id', queryObj);
+  return oth('id', order, function (order) {
+    $$queryObj.patch({
+      sort_by: 'id.' + order,
+    });
   });
-}();
+});
+
+var $$dateOth = $$.connect([$$queryObj], function (queryObj) {
+  let order = getColOrder('date', queryObj);
+  return oth('日期', order, function (order) {
+    $$queryObj.patch({
+      sort_by: 'date.' + order,
+    });
+  });
+});
 
 
 var valueFunc = function valueFunc(loading, list, idOth, dateOth) {
-  return h('table#invoice-list' + classNames('striped', 'compact', 'relative', loading && 'loading'), [
+  return h('table#invoice-list' + classNames('striped', 'compact', 'relative', 'color-gray-dark', loading && 'loading'), [
     h('thead', [
       h('tr', [
         idOth,
@@ -53,7 +67,17 @@ var valueFunc = function valueFunc(loading, list, idOth, dateOth) {
                 return false;
               },
             }, it.id),
-          ])
+          ]),
+          h('td', it.invoiceType.name),
+          h('td', it.date),
+          h('td', it.number),
+          h('td', it.accountTerm.name),
+          h('td', [
+            h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove', it.isVat? 'color-success': 'color-gray')),
+          ]),
+          h('td', (it.vendor || {}).name || '--'),
+          h('td', (it.purchaser || {}).name || '--'),
+          h('td', it.creator.username),
         ]);
       })
     ]),
@@ -63,12 +87,8 @@ var valueFunc = function valueFunc(loading, list, idOth, dateOth) {
 var $$view = $$.connect([$$loading, $$list, $$idOth, $$dateOth],
                         valueFunc);
 
-export var page = {
-  $$view,
-};
-
 export default {
-  page,
+  page: { $$view },
   $$list,
   $$loading,
 };
