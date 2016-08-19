@@ -1,3 +1,15 @@
+body {
+    color: var(--color-gray-dark);
+}
+
+a {
+    color: var(--color-primary);
+    &[disabled=disabled], &.disabled {
+        color: var(--color-gray-dark);
+    }
+}
+
+
 #login-app {
     position: absolute;
     width: 100%;

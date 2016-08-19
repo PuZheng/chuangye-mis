@@ -2,9 +2,9 @@
     --space-1: 0.5rem;
     --space-2: calc(var(--space-1) * 2);
     --font-family: Georgia, "Times New Roman", "Microsoft YaHei", "微软雅黑", STXihei, "华文细黑", "宋体", serif;
-    --color-accent: #DB2828;
+    --color-accent: hsla(0, 55%, 50%, .9);
     --color-primary: hsla(198, 75%, 40%, 1);
-    --color-secondary: hsla(198, 25%, 30%, 0.75);
+    --color-secondary: hsla(198, 45%, 30%, 0.75);
     --color-tertiary: #65cb9e;
     --white: #fff;
     --color-gray: hsla(0, 0%, 70%, 1);

@@ -2,7 +2,7 @@ import R from 'ramda';
 import { validateObj } from '../validate-obj.js';
 import { notEmpty } from '../checkers.js';
 import { backendURL } from '../backend-url.js';
-import config from '../config.json';
+import config from '../config.js';
 import accountStore from './account-store';
 
 var rules = {
@@ -23,7 +23,7 @@ var rules = {
 var validate = R.partialRight(validateObj, [rules]);
 var fetchList = function (queryObj) {
   queryObj.page = queryObj.page || 1;
-  queryObj.page_size = queryObj.query_size || config.pageSize;
+  queryObj.page_size = queryObj.page_size || config.getPageSize('invoice');
   return axios.get(backendURL('/invoice/list?' + R.toPairs(queryObj).map(p => p.join('=')).join('&')), {
     headers: {
       Authorization: 'Bearer ' + accountStore.user.token,

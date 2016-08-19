@@ -97,7 +97,8 @@ page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('
   invoiceStore.fetchList(ctx.query).then(function (data) {
     x.update(
       [app.$$loading, false],
-      [app.$$list, data.data]
+      [app.$$list, data.data],
+      [app.$$totalCnt, data.totalCnt]
     );
   });
 });
