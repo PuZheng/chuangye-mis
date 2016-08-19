@@ -2,7 +2,7 @@ import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
 export var match = function match(option, searchText) {
-  return ~option.text.indexOf(searchText) || ~option.acronym.indexOf(searchText);
+  return ~option.text.indexOf(searchText) || ~(option.acronym || '').indexOf(searchText);
 };
 
 export var optionContent = function optionContent(option, searchText) {
@@ -10,7 +10,7 @@ export var optionContent = function optionContent(option, searchText) {
     return option.text;
   }
   let pos = option.text.indexOf(searchText);
-  if (pos === -1) {
+  if (pos === -1 && option.acronym) {
     pos = option.acronym.indexOf(searchText);
   }
   // not matched

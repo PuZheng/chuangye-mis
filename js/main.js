@@ -53,10 +53,18 @@ var _could = function (request) {
     });
   };
 };
+var goto = function (queryObj) {
+  page(location.pathname + '?' + 
+       R.toPairs(queryObj).map(p => p.join('=')).join('&'));
+};
 
 page(function parseQuery(ctx, next) {
   ctx.query = qs.parse(ctx.querystring);
-  $$queryObj.val(ctx.query, false);
+  $$queryObj.offChange(goto);
+  console.log($$queryObj.onChangeCbs);
+  $$queryObj.val(ctx.query);
+  // note!!! change only after $$queryObj set its value
+  $$queryObj.change(goto);
   next();
 });
 
@@ -94,11 +102,15 @@ page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('
   let app = invoiceListApp;
   mount(app.page);
   app.$$loading.toggle();
-  invoiceStore.fetchList(ctx.query).then(function (data) {
+  Promise.all([
+    invoiceStore.fetchList(ctx.query),
+    invoiceTypeStore.list,
+  ]).then(function ([data, invoiceTypes]) {
     x.update(
       [app.$$loading, false],
       [app.$$list, data.data],
-      [app.$$totalCnt, data.totalCnt]
+      [app.$$totalCnt, data.totalCnt],
+      [app.$$invoiceTypes, invoiceTypes]
     );
   });
 });

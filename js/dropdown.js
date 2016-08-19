@@ -24,7 +24,7 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
   let selectedOption;
   if (value != 'undefined') {
     for (var option of options) {
-      if (option.value === value) {
+      if (option.value == value) {
         selectedOption = option;
         break;
       }

@@ -8,6 +8,8 @@ import $$queryObj from '../query-obj';
 import paginator from '../paginator';
 import config from '../config.js';
 import pagination from '../pagination';
+import {$$invoiceTypes} from './data-slots';
+import { $$filters } from './list-filters';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -44,7 +46,17 @@ var $$dateOth = $$.connect([$$queryObj], function (queryObj) {
   });
 });
 
-var $$paginator = $$.connect([$$totalCnt, $$queryObj], function (totalCnt, queryObj) {
+var $$accountTermOth = $$.connect([$$queryObj], function (queryObj) {
+  let order = getColOrder('account_term', queryObj);
+  return oth('帐期', order, function (order) {
+    $$queryObj.patch({
+      sort_by: 'account_term.' + order,
+    });
+  });
+});
+
+var $$paginator = $$.connect([
+  $$totalCnt, $$queryObj], function (totalCnt, queryObj) {
   return paginator(pagination({
     totalCnt,
     page: queryObj.page || 1,
@@ -75,8 +87,12 @@ var $$tableHints = $$.connect([$$totalCnt, $$queryObj], function (totalCnt, quer
 });
 
 
-var valueFunc = function valueFunc(loading, list, idOth, dateOth, totalCnt, paginator, tableHints) {
+var valueFunc = function valueFunc(
+  loading, list, idOth, dateOth, totalCnt, paginator, tableHints, filters,
+  accountTermOth
+) {
   return h('.p1', [
+    filters,
     h('table#invoice-list' + classNames('striped', 'compact', 'relative', 'color-gray-dark', loading && 'loading'), [
       h('thead', [
         h('tr', [
@@ -84,7 +100,7 @@ var valueFunc = function valueFunc(loading, list, idOth, dateOth, totalCnt, pagi
           h('th', '发票类型'),
           dateOth,
           h('th', '编号'),
-          h('th', '帐期'),
+          accountTermOth,
           h('th', '是否增值税'),
           h('th', '销售方'),
           h('th', '购买方'),
@@ -118,13 +134,14 @@ var valueFunc = function valueFunc(loading, list, idOth, dateOth, totalCnt, pagi
       ]),
     ]),
     h('.right-align.mt1', tableHints),
-    h('.center.my4', paginator),
+    h('.center.my2', paginator),
   ]);
 };
 
 var $$view = $$.connect([
   $$loading, $$list, $$idOth, 
-  $$dateOth, $$totalCnt, $$paginator, $$tableHints], 
+  $$dateOth, $$totalCnt, $$paginator, $$tableHints, $$filters, 
+  $$accountTermOth], 
   valueFunc);
 
 export default {
@@ -132,4 +149,5 @@ export default {
   $$list,
   $$loading,
   $$totalCnt,
+  $$invoiceTypes,
 };
