@@ -94,9 +94,6 @@ var $$accountTermFilter = function () {
   };
 }();
 
-var $$isVatFilter = function () {
-  
-}();
 
 var $$vendorFilter = function () {
   
