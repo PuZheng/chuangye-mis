@@ -1,9 +1,5 @@
 import x from '../xx.js';
-import { $$voucher, $$voucherTypes, $$loading, $$voucherSubjects, $$recipients, $$payers } from './data-slots.js';
-import entityStore from '../store/entity-store.js';
-import moment from 'moment';
-import R from 'ramda';
-import once from 'once';
+import { $$voucher, $$loading } from './data-slots.js';
 import page from 'page';
 import voucherStore from '../store/voucher-store.js';
 import virtualDom from 'virtual-dom';
@@ -13,6 +9,7 @@ import { $$voucherSubjectDropdown, onVoucherSubjectChange } from './voucher-subj
 import { $$payerDropdown } from './payer-dropdown.js';
 import { $$recipientDropdown } from './recipient-dropdown.js';
 import { field } from '../field.js';
+import { $$toast } from '../toast';
 
 const $$errors = x({}, 'errors');
 
@@ -42,7 +39,7 @@ const valueFunc = function valueFunc(
     field('date', '日期', h('input', {
       type: 'date',
       value: voucher.date,
-      onchange(e) {
+      onchange() {
         $$voucher.patch({ 
           date: this.value,
         });
@@ -51,7 +48,7 @@ const valueFunc = function valueFunc(
     field('number', '凭证号', h('input', {
       placeholder: '请输入凭证号',
       value: voucher.number,
-      onchange(e) {
+      onchange() {
         $$voucher.patch({ number: this.value });
       }
     }), errors, true),
@@ -59,7 +56,7 @@ const valueFunc = function valueFunc(
       h('input', {
         type: 'checkbox',
         checked: voucher.isPublic,
-        onchange: function (e) {
+        onchange: function () {
           $$voucher.patch({isPublic: this.checked});
         }
       }),
@@ -70,11 +67,16 @@ const valueFunc = function valueFunc(
     h('.clearfix'),
     h('hr'),
     h('button.btn.btn-outline.c1.m1', {
-      onclick(e) {
+      onclick() {
         voucherStore.validate($$voucher.val()).then(function () {
           $$loading.val(true);
           voucherStore.save($$voucher.val()).then(function (id) {
             $$loading.val(false);
+            console.log('create invoice done');
+            $$toast.val({
+              type: 'success',
+              message: '凭证创建成功',
+            });
             page('/voucher/' + id);
           });
         }).catch(function (errors) {

@@ -1,45 +1,28 @@
-import { searchDropdown } from '../dropdown.js';
+import { $$searchDropdown } from '../search-dropdown-slot';
 import $$ from '../xx.js';
 import { $$voucher, $$voucherSubjects, $$loading, $$selectedVoucherSubject, $$payers, $$recipients } from './data-slots.js';
-import { match, optionContent } from '../dropdown-utils.js';
 import R from 'ramda';
 import entityStore from '../store/entity-store.js';
 
-var $$activated = $$(false, 'activated');
-var $$searchText = $$('', 'search-text');
 
-var valueFunc = function (activated, searchText, voucherSubjects, voucher) {
-  return searchDropdown({
+export var $$voucherSubjectDropdown = $$searchDropdown({
     defaultText: '请选择凭证项目',
-    searchText,
-    options: voucherSubjects.map( vs => (
-      {
-        value: vs.id,
-        text: vs.name,
-        acronym: vs.acronym,
-      }
-    ) ),
-    value: voucher.voucherSubjectId,
-    activated,
-    onactivate(b) {
-      $$activated.val(b);
-    },
-    onchange(value, option) {
+    $$value: $$.connect([$$voucher], function (o) {
+      return o.voucherSubjectId;
+    }),
+    $$options: $$.connect([$$voucherSubjects], function (l) {
+      return l.map(vs => (
+        {
+          value: vs.id,
+          text: vs.name,
+          acronym: vs.acronym,
+        }
+      ));
+    }),
+    onchange(value) {
       onVoucherSubjectChange(value);
     },
-    onsearch(searchText) {
-      $$searchText.val(searchText);
-    },
-    match,
-    optionContent(option) {
-      return optionContent(option, searchText);
-    }
-  });
-};
-
-export var $$voucherSubjectDropdown = $$.connect(
-  [$$activated, $$searchText, $$voucherSubjects, $$voucher], valueFunc
-);
+});
 
 export var onVoucherSubjectChange = function (value) {
   value = parseInt(value);

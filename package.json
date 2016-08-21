@@ -68,6 +68,7 @@
     "co": "^4.6.0",
     "fs-extra": "^0.30.0",
     "glob": "^7.0.5",
+    "gulp-eslint": "^3.0.1",
     "gulp-extend": "^0.2.0",
     "gulp-npm-run": "^0.0.3",
     "gulp-postcss": "^6.1.1",

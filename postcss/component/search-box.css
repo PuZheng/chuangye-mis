@@ -134,6 +134,7 @@
         }
         & > .message {
             padding: 1em;
+            color: var(--color-secondary);
         }
         &.visible {
             display: block;

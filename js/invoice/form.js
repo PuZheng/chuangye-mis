@@ -1,16 +1,11 @@
 import moment from 'moment';
-import { $$invoice, $$invoiceTypes, $$loading, $$accountTerms } from './data-slots.js';
+import { $$invoice, $$loading } from './data-slots.js';
 import x from '../xx.js';
-import R from 'ramda';
-import once from 'once';
 import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
-import entityStore from '../store/entity-store.js';
-import materialSubjectStore from '../store/material-subject-store.js';
 import { $$materialsEditor } from './materials-editor.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
-import {dropdown, searchDropdown} from '../dropdown.js';
 import {$$invoiceTypeDropdown, onInvoiceTypeChange} from './invoice-type-dropdown.js';
 import {$$accountTermDropdown} from './account-term-dropdown.js';
 import {$$vendorDropdown} from './vendor-dropdown.js';
@@ -49,7 +44,7 @@ var valueFunc = function valueFunc(
       field('date', '发票日期', h('input', {
         type: 'date',
         value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
-        oninput(e) {
+        oninput() {
           $$invoice.patch({
             date: this.value
           });
@@ -59,7 +54,7 @@ var valueFunc = function valueFunc(
         type: 'text',
         placeholder: '请输入发票号码',
         value: invoice.number || '',
-        onchange(e) {
+        onchange() {
           $$invoice.patch({
             number: this.value,
           });
@@ -72,7 +67,7 @@ var valueFunc = function valueFunc(
         h('input', {
           type: 'checkbox',
           checked: invoice.isVat,
-          onchange(e) {
+          onchange() {
             $$invoice.patch({ isVat: this.checked });
           }
         }),
@@ -82,7 +77,7 @@ var valueFunc = function valueFunc(
         h('label', '备注'),
         h('textarea', {
           rows: 4,
-          onchange(e) {
+          onchange() {
             $$invoice.patch({ notes: this.value });
           }
         }, invoice.notes || ''),
@@ -97,7 +92,7 @@ var valueFunc = function valueFunc(
     h('.clearfix'),
     h('hr'),
     h('button.btn.c1.btn-outline.m1', {
-      onclick(e) {
+      onclick() {
         invoiceStore.validate($$invoice.val()).then(function () {
           $$loading.inc();
           invoiceStore.save($$invoice.val()).then(function (id) {
