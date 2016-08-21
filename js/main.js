@@ -1,6 +1,7 @@
 import moment from 'moment';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app.js';
+import invoiceListApp from './invoice/list-app.js';
 import voucherObjectApp from './voucher/object-app.js';
 import loginApp from './login/app.js';
 import dashboardApp from './dashboard/app.js';
@@ -20,6 +21,8 @@ import mount from './mount.js';
 import { navBar, setupNavBar } from './nav-bar.js';
 import toast from './toast';
 import { could } from './principal';
+import qs from 'query-string';
+import $$queryObj from './query-obj';
 
 x.init({ debug: true });
 
@@ -50,6 +53,19 @@ var _could = function (request) {
     });
   };
 };
+var goto = function (queryObj) {
+  page(location.pathname + '?' + 
+       R.toPairs(queryObj).filter(p => p[1]).map(p => p.join('=')).join('&'));
+};
+
+page(function parseQuery(ctx, next) {
+  ctx.query = qs.parse(ctx.querystring);
+  $$queryObj.offChange(goto);
+  $$queryObj.val(ctx.query);
+  // note!!! change only after $$queryObj set its value
+  $$queryObj.change(goto);
+  next();
+});
 
 page('/login', function (ctx, next) {
   if (!accountStore.user) {
@@ -78,6 +94,27 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar
       [app.$$invoice, invoice]
     ];
     x.update(...args);
+  });
+});
+
+page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function (ctx, next) {
+  let app = invoiceListApp;
+  mount(app.page);
+  app.$$loading.toggle();
+  Promise.all([
+    invoiceStore.fetchList(ctx.query),
+    invoiceTypeStore.list,
+    accountTermStore.list,
+    entityStore.fetchList(),
+  ]).then(function ([data, invoiceTypes, accountTerms, entities]) {
+    x.update(
+      [app.$$loading, false],
+      [app.$$list, data.data],
+      [app.$$totalCnt, data.totalCnt],
+      [app.$$invoiceTypes, invoiceTypes],
+      [app.$$accountTerms, accountTerms],
+      [app.$$entities, entities]
+    );
   });
 });
 

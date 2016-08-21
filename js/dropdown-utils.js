@@ -2,7 +2,7 @@ import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
 export var match = function match(option, searchText) {
-  return ~option.text.indexOf(searchText) || ~option.acronym.indexOf(searchText);
+  return ~option.text.indexOf(searchText) || ~(option.acronym || '').indexOf(searchText);
 };
 
 export var optionContent = function optionContent(option, searchText) {
@@ -10,7 +10,7 @@ export var optionContent = function optionContent(option, searchText) {
     return option.text;
   }
   let pos = option.text.indexOf(searchText);
-  if (pos === -1) {
+  if (pos === -1 && option.acronym) {
     pos = option.acronym.indexOf(searchText);
   }
   // not matched
@@ -21,9 +21,9 @@ export var optionContent = function optionContent(option, searchText) {
   if (pos > 0) {
     ret.push(option.text.slice(0, pos));
   }
-  ret.push(h('span.color-accent', option.text.slice(pos, searchText.length)));
+  ret.push(h('span.color-accent', option.text.slice(pos, pos + searchText.length)));
   if (pos + searchText.length < option.text.length) {
-    ret.push(option.text.slice(pos + searchText.length, option.text.length));
+    ret.push(option.text.slice(pos + searchText.length));
   }
   return ret;
 };

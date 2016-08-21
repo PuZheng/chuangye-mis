@@ -6,6 +6,8 @@
 @import 'component/button';
 @import 'component/label';
 @import 'component/menu';
+@import 'component/oth';
+@import 'component/search-box';
 
 @import "generic.css";
 @import "atomic.css";

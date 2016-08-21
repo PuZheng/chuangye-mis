@@ -2,7 +2,7 @@ import backendURL from '../backend-url';
 import accountStore from './account-store';
 
 export default {
-  fetchList: function (opts) {
+  fetchList: function (opts={}) {
     var url = '/entity/list';
     if (opts.type) {
       url += '?type=' + opts.type;

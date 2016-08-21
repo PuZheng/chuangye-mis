@@ -10,6 +10,21 @@ table {
 	max-width: 100%;
 	width: 100%;
 	empty-cells: show;
+    & > thead {
+        border: 1px solid var(--color-gray-light);
+        background-color: color(var(--color-tertiary) a(20%));
+    }
+    & > tbody {
+        border: 1px solid var(--color-gray-light);
+    }
+    border-bottom: 1px solid var(--color-gray);
+}
+
+table.compact {
+    & td {
+        padding: .5rem 1rem;
+        padding-bottom: calc(.5rem - 1px);
+    }
 }
 
 th {
@@ -48,7 +63,7 @@ tfoot td {
 
 }
 
-.striped tr:nth-child(odd) td {
+.striped tr:nth-child(even) td {
 	background: var(--table-striped-background-color);
 }
 
@@ -64,7 +79,7 @@ tfoot td {
 	}
 }
 
-// Flat
+/* Flat */
 .flat {
 	& td,
 	& th {

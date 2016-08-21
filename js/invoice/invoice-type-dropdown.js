@@ -1,4 +1,4 @@
-import $$ from '../xx.js';
+import $$ from '../xx';
 import {dropdown} from '../dropdown.js';
 import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selectedInvoiceType} from './data-slots.js';
 import R from 'ramda';

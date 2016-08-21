@@ -7,3 +7,4 @@ export const $$vendors = x([], 'vendors');
 export const $$purchasers = x([], 'purchasers');
 export const $$accountTerms = x([], 'account-terms');
 export const $$selectedInvoiceType = x({}, 'invoice-form-selected-invoice-type');
+export const $$entities = x([], 'entities');

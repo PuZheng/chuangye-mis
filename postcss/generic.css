@@ -102,6 +102,9 @@ body {
 .c2 {
     color: var(--color-secondary);
 }
+.color-success {
+    color: var(--color-success);
+}
 .color-gray {
     color: var(--color-gray);
 }
