@@ -1,29 +1,23 @@
-import $$ from '../xx.js';
-import {dropdown} from '../dropdown.js';
-import {$$invoice, $$accountTerms} from './data-slots.js';
+import $$ from '../xx';
+import { $$dropdown } from '../dropdown-slot';
+import { $$invoice, $$accountTerms } from './data-slots';
 
-export var $$accountTermDropdown = function () {
-  let $$activated = $$(false, 'activated');
-  let valueFunc = function (activated, accountTerms, invoice) {
-    return dropdown({
-      defaultText: '请选择会计账期',
-      options: accountTerms.map(function (t) {
-        return {
-          value: t.id,
-          text: t.name,
-        };
-      }),
-      value: invoice.accountTermId,
-      activated: activated,
-      onactivate(b) {
-        $$activated.val(b);
-      },
-      onchange(value, option) {
-        $$invoice.patch({
-          accountTermId: parseInt(value),
-        });
-      },
+export var $$accountTermDropdown = $$dropdown({
+  defaultText: '请选择会计账期',
+  $$options: $$.connect([$$accountTerms], function (l) {
+    return l.map(function (t) {
+      return {
+        value: t.id,
+        text: t.name,
+      };
     });
-  };
-  return $$.connect([$$activated, $$accountTerms, $$invoice], valueFunc);
-}();
+  }),
+  $$value: $$.connect([$$invoice], function (o) {
+    return o.accountTermId;
+  }),
+  onchange(value) {
+    $$invoice.patch({
+      accountTermId: parseInt(value),
+    });
+  },
+});

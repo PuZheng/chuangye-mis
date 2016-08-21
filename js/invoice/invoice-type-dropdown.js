@@ -1,34 +1,28 @@
 import $$ from '../xx';
-import {dropdown} from '../dropdown.js';
-import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selectedInvoiceType} from './data-slots.js';
+import $$dropdown from '../dropdown-slot';
+import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selectedInvoiceType} from './data-slots';
 import R from 'ramda';
-import entityStore from '../store/entity-store.js';
-import materialSubjectStore from '../store/material-subject-store.js';
-import { $$materialSubjects } from './materials-editor.js';
+import entityStore from '../store/entity-store';
+import materialSubjectStore from '../store/material-subject-store';
+import { $$materialSubjects } from './materials-editor';
 
-export var $$invoiceTypeDropdown = function () {
-  let $$activated = $$(false, 'activated');
-  let valueFunc = function (activated, invoiceTypes, invoice) {
-    return dropdown({
-      defaultText: '请选择发票类型',
-      options: invoiceTypes.map(function (t) {
-        return {
-          value: t.id,
-          text: t.name,
-        };
-      }),
-      value: invoice.invoiceTypeId,
-      activated: activated,
-      onactivate: function (b) {
-        $$activated.val(b);
-      },
-      onchange: function (value, option) {
-        onInvoiceTypeChange(value);
-      }
+export var $$invoiceTypeDropdown = $$dropdown({
+  defaultText: '请选择发票类型',
+  onchange(value) {
+    onInvoiceTypeChange(value);
+  },
+  $$options: $$.connect([$$invoiceTypes], function (l) {
+    return l.map(function (it) {
+      return {
+        value: it.id,
+        text: it.name,
+      };
     });
-  };
-  return $$.connect([$$activated, $$invoiceTypes, $$invoice], valueFunc);
-}();
+  }),
+  $$value: $$.connect([$$invoice], function (o) {
+    return o.invoiceTypeId;
+  }),
+});
 
 export var onInvoiceTypeChange = function (value) {
   value = parseInt(value);

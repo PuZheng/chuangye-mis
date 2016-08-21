@@ -124,7 +124,7 @@ export var $$searchBox = function (
         if (!options || options.length == 0) {
           if (searchText.length > minLen && active) {
             classNames += '.visible';
-            children = h('.message.c2', '没有搜索结果...');
+            children = h('.message', '没有搜索结果...');
           }
         } else {
           classNames += '.visible';

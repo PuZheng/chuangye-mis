@@ -14,7 +14,7 @@ $$toast.change(function (toast) {
 });
 
 var $$view = $$.connect([$$toast], function (toast) {
-  return toast? h(classNames('bg-' + toast.type || 'info', 'p2', 'color-gray-dark'), toast.message): h('');   
+  return toast? h(classNames('bg-' + toast.type || 'info', 'p2', 'center', 'color-gray-dark'), toast.message): h('');   
 });
 
 export default {

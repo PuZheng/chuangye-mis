@@ -7,7 +7,7 @@ var rev = require("gulp-rev");
 var revReplace = require("gulp-rev-replace");
 var rollup = require('rollup').rollup;
 var nodeResolve = require('rollup-plugin-node-resolve');
-var buble = require('rollup-plugin-buble');
+// var buble = require('rollup-plugin-buble');
 var commonjs = require('rollup-plugin-commonjs');
 var string = require('rollup-plugin-string');
 var rollupUglify = require('rollup-plugin-uglify');
@@ -15,12 +15,12 @@ var fse = require('fs-extra');
 var glob = require('glob');
 var path = require('path');
 var cheerio = require('cheerio');
-var R = require('ramda');
 var co = require('co');
 var OSS = require('ali-oss');
 var postcss    = require('gulp-postcss');
 var sourcemaps = require('gulp-sourcemaps');
 var json = require('rollup-plugin-json');
+var eslint = require('gulp-eslint');
 
 gulp.task('connect', function() {
   connect.server({
@@ -42,7 +42,6 @@ gulp.task('watch', function () {
 });
 
 gulp.task('collect-dist', ['rollup'], function (cb) {
-  var cnt = 0;
   co(function *() {
     var content = yield fs.readFile('index.html');
     let $ = cheerio.load(content);
@@ -52,7 +51,7 @@ gulp.task('collect-dist', ['rollup'], function (cb) {
     );
     filenames.push('index.html');
     // fonts
-    var fontsFiles = yield new Promise(function (resolve, reject) {
+    var fontsFiles = yield new Promise(function (resolve) {
       glob('semantic/dist/themes/default/assets/**/*', function (err, filenames) {
         resolve(filenames);
       });
@@ -60,8 +59,8 @@ gulp.task('collect-dist', ['rollup'], function (cb) {
     filenames = filenames.concat(fontsFiles);
     console.log('files to distribute: ', filenames);
     for (var filename of filenames) {
-      yield new Promise(function (resolve, reject) {
-        fse.copy(filename, 'dist/' + filename, function (err) {
+      yield new Promise(function (resolve) {
+        fse.copy(filename, 'dist/' + filename, function () {
           resolve();
         });
       }); 
@@ -137,7 +136,7 @@ gulp.task('rev-replace', ['rev'], function(){
 });
 
 var uploadDir = function * (client, dir, opts) {
-  var filenames = yield new Promise(function (resolve, reject) {
+  var filenames = yield new Promise(function (resolve) {
     glob(dir + '/**/*', function (err, filenames) {
       resolve(filenames);
     });
@@ -152,7 +151,7 @@ var uploadDir = function * (client, dir, opts) {
   };
 };
 
-gulp.task('deploy', ['dist'], function (cb) {
+gulp.task('deploy', ['dist'], function () {
   co(function * () {
     var config = JSON.parse((yield fs.readFile('config.json')).toString());
     var client = new OSS({
@@ -181,4 +180,17 @@ gulp.task('css', function () {
     ]) )
     .pipe( sourcemaps.write('.') )
     .pipe( gulp.dest('css/') ).pipe(connect.reload());
+});
+
+gulp.task('lint', function() {
+  return gulp.src(['js/**/*.js','!node_modules/**'])
+  // eslint() attaches the lint output to the "eslint" property
+  // of the file object so it can be used by other modules.
+  .pipe(eslint())
+  // eslint.format() outputs the lint results to the console.
+  // Alternatively use eslint.formatEach() (see Docs).
+  .pipe(eslint.format())
+  // To have the process exit with an error code (1) on
+  // lint error, return the stream and pipe to failAfterError last.
+  .pipe(eslint.failAfterError());
 });

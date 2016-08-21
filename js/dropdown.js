@@ -18,7 +18,7 @@ var parents = function parents(el, filter) {
 export var dropdown = function dropdown({defaultText='', options=[], value, activated, onactivate, onchange}) {
   let classNames = ['dropdown'];
   if (activated) {
-    classNames.push('dropdown-activated');
+    classNames.push('activated');
   }
   classNames = classNames.map( c => '.' + c ).join('');
   let selectedOption;

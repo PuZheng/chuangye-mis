@@ -1,42 +1,24 @@
-import { $$voucher, $$recipients } from './data-slots.js';
-import { searchDropdown } from '../dropdown.js';
+import { $$voucher, $$recipients } from './data-slots';
+import { $$searchDropdown } from '../search-dropdown-slot';
 import $$ from '../xx.js';
-import { match, optionContent } from '../dropdown-utils.js';
 
-var $$activated = $$(false, 'activated');
-var $$searchText = $$('', 'search-text');
-
-var valueFunc = function (activated, searchText, recipients, voucher) {
-  return searchDropdown({
-    defaultText: '请选择支付方',
-    searchText,
-    options: recipients.map( p => (
+export var $$recipientDropdown = $$searchDropdown({
+  defaultText: '请选择支付方',
+  onchange(value) {
+    $$voucher.patch({
+      recipientId: parseInt(value),
+    });
+  },
+  $$options: $$.connect([$$recipients], function (l) {
+    return l.map(it => (
       { 
-        value: p.id,
-        text: p.name,
-        acronym: p.acronym,
+        value: it.id,
+        text: it.name,
+        acronym: it.acronym,
       }
-    ) ),
-    value: voucher.recipientId,
-    activated,
-    onactivate(b) {
-      $$activated.val(b);
-    },
-    onchange(value) {
-      $$voucher.patch({
-        recipientId: parseInt(value),
-      });
-    },
-    onsearch(searchText) {
-      $$searchText.val(searchText);
-    },
-    match,
-    optionContent(option) {
-      return optionContent(option, searchText);
-    },
-  });
-};
-
-export var $$recipientDropdown = $$.connect(
-  [$$activated, $$searchText, $$recipients, $$voucher], valueFunc
-);
+    ));
+  }),
+  $$value: $$.connect([$$voucher], function (o) {
+    return o.recipientId;
+  }),
+});
