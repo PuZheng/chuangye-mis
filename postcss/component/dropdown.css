@@ -37,7 +37,7 @@
         visibility: hidden;
     }
     & > .text.default {
-        color: var(--color-gray-light);
+        color: var(--color-gray);
     }
     & > .menu {
         display: none;

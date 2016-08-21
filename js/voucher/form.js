@@ -66,7 +66,7 @@ const valueFunc = function valueFunc(
     field('recipientId', '(实际)收入方', recipientDropdown, errors, true),
     h('.clearfix'),
     h('hr'),
-    h('button.btn.btn-outline.c1.m1', {
+    h('button.primary', {
       onclick() {
         voucherStore.validate($$voucher.val()).then(function () {
           $$loading.val(true);

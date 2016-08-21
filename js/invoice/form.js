@@ -38,7 +38,7 @@ var valueFunc = function valueFunc(
   let classNames = ['form', 'm1', 'clearfix'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join();
-  return h('form#invoice-form' + classNames, [
+  return h('form.form#invoice-form' + classNames, [
     h('.col.col-6', [
       field('invoiceType', '发票类型', invoiceTypeDropdown, errors, true),
       field('date', '发票日期', h('input', {
@@ -91,7 +91,7 @@ var valueFunc = function valueFunc(
     ]): '',
     h('.clearfix'),
     h('hr'),
-    h('button.btn.c1.btn-outline.m1', {
+    h('button.primary', {
       onclick() {
         invoiceStore.validate($$invoice.val()).then(function () {
           $$loading.inc();

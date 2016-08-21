@@ -24,19 +24,19 @@
         }
         /* autoprefixer don't support placeholder */
         &::-webkit-input-placeholder {
-            color: var(--color-gray-light);
+            color: var(--color-gray);
         }
 
         &:-moz-placeholder { /* Firefox 18- */
-            color: var(--color-gray-light);
+            color: var(--color-gray);
         }
 
         &::-moz-placeholder {  /* Firefox 19+ */
-            color: var(--color-gray-light);
+            color: var(--color-gray);
         }
 
         &:-ms-input-placeholder {  
-            color: var(--color-gray-light);
+            color: var(--color-gray);
         }
     }
 

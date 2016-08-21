@@ -1,7 +1,6 @@
 import $$ from '../xx.js';
 import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import $$queryObj from '../query-obj';
-import { dropdown, searchDropdown } from '../dropdown';
 import $$searchBox from '../search-box-slot';
 import invoiceStore from '../store/invoice-store';
 import $$dropdown from '../dropdown-slot';
@@ -26,7 +25,7 @@ var $$invoiceTypeFilter = $$dropdown({
     return queryObj.invoice_type_id;
   }),
   defaultText: '请选择发票类型',
-  onchange(value, option) {
+  onchange(value) {
     $$queryObj.patch({
       invoice_type_id: value,
     });
@@ -43,7 +42,7 @@ var $$dateFilter = $$dropdown({
     return queryObj.date_span;
   }),
   defaultText: '请选择日期范围',
-  onchange(value, option) {
+  onchange(value) {
     $$queryObj.patch({
       date_span: value,
     });
@@ -65,7 +64,7 @@ var $$accountTermFilter = $$searchDropdown({
       };
     })); 
   }),
-  onchange(value, option) {
+  onchange(value) {
     $$queryObj.patch({
       account_term_id: value,
     });
@@ -88,7 +87,7 @@ var $$vendorFilter = $$searchDropdown({
       };
     }));
   }),
-  onchange(value, option) {
+  onchange(value) {
     $$queryObj.patch({
       vendor_id: value,
     });
@@ -111,7 +110,7 @@ var $$purchaserFilter = $$searchDropdown({
       };
     }));
   }),
-  onchange(value, option) {
+  onchange(value) {
     $$queryObj.patch({
       purchaser_id: value,
     });
@@ -145,7 +144,7 @@ export var $$filters = $$.connect([
   invoiceTypeFilter, dateFilter, accountTermFilter, vendorFilter,
   purchaserFilter, numberFilter
 ) {
-  return h('.border.box.rounded.p1.border-gray', [
+  return h('.filters', [
     numberFilter,
     invoiceTypeFilter,
     dateFilter,

@@ -8,7 +8,7 @@ import principal from './principal';
 import R from 'ramda';
 
 var _classNames = function (activated) {
-  return classNames('item', activated? 'c1': 'c2', activated && 'active');
+  return classNames('item', activated && 'active');
 };
 
 export var $$mods = $$({}, 'mods');
@@ -22,7 +22,7 @@ var valueFunc = function valueFunc(currentMod, mods) {
   return h('.menu.top', [
     h('a' + _classNames(currentMod === 'home'), {
       href: '/',
-      onclick(e) {
+      onclick() {
         page.route('/');
         return false;
       }
@@ -31,14 +31,14 @@ var valueFunc = function valueFunc(currentMod, mods) {
     ]),
     mods.viewInvoiceList? h('a' + _classNames(currentMod === 'invoice'), {
       href: '/invoice',
-      onclick(e) {
+      onclick() {
         page('/invoice-list');
         return false;
       }
     }, '发票模块'): '',
     mods.viewVoucherList? h('a' + _classNames(currentMod === 'voucher'), {
       href: '/voucher',
-      onclick(e) {
+      onclick() {
         page('/voucher');
         return false;
       }
@@ -48,10 +48,10 @@ var valueFunc = function valueFunc(currentMod, mods) {
       h('a.item.c1.username', {
         href: '/profile',
       }, accountStore.user.username),
-      h('a', {
+      h('a.px1', {
         title: '退出',
         href: '/lougout',
-        onclick(e) {
+        onclick() {
           accountStore.logout().then(function () {
             // refresh means hide, since there's no user
             $$mods.val({});

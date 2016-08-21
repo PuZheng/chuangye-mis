@@ -8,7 +8,7 @@ var paginator = function (pagination, goPrev, goNext) {
     h('a' + classNames('item', 'celled', !pagination.hasPrev && '.disabled'), {
       href: '#',
       title: '上一页',
-      onclick(e) {
+      onclick() {
         goPrev();
         return false;
       }
@@ -19,7 +19,7 @@ var paginator = function (pagination, goPrev, goNext) {
     h('a' + classNames('item', 'celled', !pagination.hasNext && '.disabled'), {
       href: '#',
       title: '下一页',
-      onclick(e) {
+      onclick() {
         goNext();
         return false;
       }

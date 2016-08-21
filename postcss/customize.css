@@ -3,9 +3,80 @@ body {
 }
 
 a {
-    color: var(--color-primary);
+    color: var(--color-secondary);
     &[disabled=disabled], &.disabled {
         color: var(--color-gray-dark);
+    }
+}
+
+.object-app {
+    padding: 0rem 2rem;
+
+    & .header {
+        margin: 0 .5rem 0 .5rem;
+        font-size: 1.3rem;
+        font-style: italic;
+        border-bottom: 2px solid var(--color-gray-light);
+        color: var(--color-primary);
+    }
+
+    & .form {
+        & button {
+            border-radius: 3px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+            line-height: 1.125rem;
+            padding: .5rem 1rem;
+            margin: 0;
+            height: auto;
+            border: 1px solid transparent;
+            vertical-align: middle;
+            -webkit-appearance: none;
+            background-color: transparent;
+            border-color: var(--color-gray);
+            &.primary {
+                color: var(--color-primary);
+                border-color: var(--color-primary);
+            }
+        }
+        
+        & hr {
+            border-color: var(--color-accent);
+            margin-bottom: 1rem;
+        }
+    }
+
+}
+
+.list-app {
+    padding: 0 1rem;
+    
+    & .header {
+        margin: 0 0 .5rem 0;
+        font-style: italic;
+        border-bottom: 2px solid var(--color-gray-light);
+        color: var(--color-primary);
+    }
+    & .filters {
+        border: 1px solid var(--color-primary);
+        padding: .5rem;
+        border-radius: 0.4rem .4rem 0 0;
+    }
+
+    & .hints {
+        text-align: right;
+        margin-top: .5rem;
+
+        & .record-no, & .page-no {
+            color: var(--color-primary);
+        }
+    }
+
+    & .paginator {
+        text-align: center;
+        margin: .5rem 0rem;
     }
 }
 
@@ -48,3 +119,5 @@ a {
 #invoice-list {
     min-height: 8rem;
 }
+
+

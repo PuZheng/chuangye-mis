@@ -2,7 +2,6 @@ import $$ from '../xx';
 import virtualDom from 'virtual-dom';
 import oth from '../oth';
 import classNames from '../class-names';
-import R from 'ramda';
 import page from 'page';
 import $$queryObj from '../query-obj';
 import paginator from '../paginator';
@@ -73,16 +72,16 @@ var $$paginator = $$.connect([
 });
 
 var $$tableHints = $$.connect([$$totalCnt, $$queryObj], function (totalCnt, queryObj) {
-  return h('div', [
-    '符合条件的记录: ',
-    h('span.underline', totalCnt),
+  return h('.hints', [
+    h('span', '符合条件的记录: '),
+    h('span.record-no', totalCnt),
     ', 分',
-    h('span.underline', '' + pagination({
+    h('span.page-no', '' + pagination({
       totalCnt,
       page: queryObj.page,
       pageSize: config.getPageSize('invoice'),
     }).totalPageCnt),
-    '页'
+    h('span', '页')
   ]);
 });
 
@@ -91,7 +90,8 @@ var valueFunc = function valueFunc(
   loading, list, idOth, dateOth, totalCnt, paginator, tableHints, filters,
   accountTermOth
 ) {
-  return h('.p1', [
+  return h('.list-app', [
+    h('h3.header', '发票列表'),
     filters,
     h('table#invoice-list' + classNames('striped', 'compact', 'relative', 'color-gray-dark', loading && 'loading'), [
       h('thead', [
@@ -113,7 +113,7 @@ var valueFunc = function valueFunc(
             h('td', [
               h('a', {
                 href: '/invoice/' + it.id,
-                onclick: function (e) {
+                onclick: function () {
                   page('/invoice/' + it.id);
                   return false;
                 },
@@ -133,8 +133,8 @@ var valueFunc = function valueFunc(
         })
       ]),
     ]),
-    h('.right-align.mt1', tableHints),
-    h('.center.my2', paginator),
+    tableHints,
+    h('.paginator', paginator),
   ]);
 };
 
