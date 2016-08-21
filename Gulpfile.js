@@ -169,7 +169,6 @@ gulp.task('css', function () {
     return gulp.src('postcss/main.css')
     .pipe( sourcemaps.init() )
     .pipe( postcss([ 
-      require('autoprefixer'), 
       require('postcss-import'),
       require('postcss-custom-media'),
       require('postcss-calc'),
@@ -178,6 +177,7 @@ gulp.task('css', function () {
       require('postcss-discard-comments'),
       require('postcss-extend'),
       require('postcss-nesting'),
+      require('autoprefixer'), 
     ]) )
     .pipe( sourcemaps.write('.') )
     .pipe( gulp.dest('css/') ).pipe(connect.reload());

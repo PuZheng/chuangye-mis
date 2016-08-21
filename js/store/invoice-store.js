@@ -33,6 +33,16 @@ var fetchList = function (queryObj) {
   });
 };
 
+var getHints = function (text) {
+  return axios.get(backendURL('/invoice/hints/' + text), {
+    headers: {
+      Authorization: 'Bearer ' + accountStore.user.token,
+    },
+  }).then(function (res) {
+    return res.data.data;
+  });
+};
+
 export default {
   get: function (id) {
     return axios.get(backendURL('/invoice/object/' + id), {
@@ -54,4 +64,5 @@ export default {
   },
   fetchList,
   validate,
+  getHints,
 };

@@ -8,7 +8,7 @@ import $$queryObj from '../query-obj';
 import paginator from '../paginator';
 import config from '../config.js';
 import pagination from '../pagination';
-import {$$invoiceTypes} from './data-slots';
+import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import { $$filters } from './list-filters';
 
 var h = virtualDom.h;
@@ -112,9 +112,9 @@ var valueFunc = function valueFunc(
           return h('tr', [
             h('td', [
               h('a', {
-                href: '/invoice/object/' + it.id,
+                href: '/invoice/' + it.id,
                 onclick: function (e) {
-                  page('/invoice/object' + it.id);
+                  page('/invoice/' + it.id);
                   return false;
                 },
               }, it.id),
@@ -150,4 +150,6 @@ export default {
   $$loading,
   $$totalCnt,
   $$invoiceTypes,
+  $$accountTerms,
+  $$entities
 };

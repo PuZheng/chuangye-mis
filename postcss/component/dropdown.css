@@ -30,12 +30,14 @@
     & > .text {
         display: inline-block;
         color: var(--color-primary-text);
+        position: relative;
+        left: 1px;
     }
     & > .text.filtered {
         display: none;
     }
-    & > .text-default {
-        color: var(--color-secondary-text);
+    & > .text.default {
+        color: var(--color-gray-light);
     }
     & > .menu {
         display: none;

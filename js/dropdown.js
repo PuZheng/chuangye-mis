@@ -59,7 +59,7 @@ export var dropdown = function dropdown({defaultText='', options=[], value, acti
     },
   }, [
     h('i.icon.fa.fa-caret-down'),
-    h('.text' + (selectedOption? '': '.text-default'), selectedOption? selectedOption.text: defaultText),
+    h('.text' + (selectedOption? '': '.default'), selectedOption? selectedOption.text: defaultText),
     h('.menu', options)
   ]);
 };
@@ -76,7 +76,7 @@ export var searchDropdown = function ({
   let selectedOption;
   if (value != 'undefined') {
     for (var option of options) {
-      if (option.value === value) {
+      if (option.value == value) {
         selectedOption = option;
         break;
       }
@@ -132,7 +132,7 @@ export var searchDropdown = function ({
       },
     }),
     h('.text' + function () {
-      let classNames = selectedOption? '': '.text-default';
+      let classNames = selectedOption? '': '.default';
       if (searchText) {
         classNames += '.filtered';
       }

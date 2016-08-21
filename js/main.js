@@ -55,13 +55,12 @@ var _could = function (request) {
 };
 var goto = function (queryObj) {
   page(location.pathname + '?' + 
-       R.toPairs(queryObj).map(p => p.join('=')).join('&'));
+       R.toPairs(queryObj).filter(p => p[1]).map(p => p.join('=')).join('&'));
 };
 
 page(function parseQuery(ctx, next) {
   ctx.query = qs.parse(ctx.querystring);
   $$queryObj.offChange(goto);
-  console.log($$queryObj.onChangeCbs);
   $$queryObj.val(ctx.query);
   // note!!! change only after $$queryObj set its value
   $$queryObj.change(goto);
@@ -105,12 +104,16 @@ page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('
   Promise.all([
     invoiceStore.fetchList(ctx.query),
     invoiceTypeStore.list,
-  ]).then(function ([data, invoiceTypes]) {
+    accountTermStore.list,
+    entityStore.fetchList(),
+  ]).then(function ([data, invoiceTypes, accountTerms, entities]) {
     x.update(
       [app.$$loading, false],
       [app.$$list, data.data],
       [app.$$totalCnt, data.totalCnt],
-      [app.$$invoiceTypes, invoiceTypes]
+      [app.$$invoiceTypes, invoiceTypes],
+      [app.$$accountTerms, accountTerms],
+      [app.$$entities, entities]
     );
   });
 });
