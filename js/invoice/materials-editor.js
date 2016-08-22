@@ -1,10 +1,10 @@
 import x from '../xx.js';
 import R from 'ramda';
-import {$$invoice} from './data-slots.js';
-import { dropdown } from '../dropdown.js';
-import { field } from '../field.js';
-import { validateObj } from '../validate-obj.js';
-import { notEmpty } from '../checkers.js';
+import { $$invoice } from './data-slots';
+import { $$dropdown } from '../dropdown-slot';
+import { field } from '../field';
+import { validateObj } from '../validate-obj';
+import { notEmpty } from '../checkers';
 
 
 export var $$materialSubjects = x([], 'material-subjects');
@@ -23,34 +23,22 @@ var rules = {
 
 var validate = R.partialRight(validateObj, [rules]);
 
-var $$materialSubjectDropdown = function () {
-  let $$activated = x(false, 'activated');
-  return x.connect([
-    $$activated, 
-    $$materialSubjects,
-    $$materialNote
-  ], function (activated, materialSubjects, materialNote) {
-    return dropdown({
-      defaultText: '请选择物料类别',
-      options: materialSubjects.map( ms => ({ value: ms.id, text: ms.name }) ),
-      onactivate(b) {
-        $$activated.val(b);
-      },
-      activated: activated,
-      value: materialNote.materialSubjectId,
-      onchange(value) {
-        value = parseInt(value);
-        x.update( 
-                 [$$materialNote, Object.assign($$materialNote.val(), {
-                   materialSubjectId: value,
-                   materialSubject: R.find(R.propEq('id', value))($$materialSubjects.val()),
-                 })]
-                );
-      }
-    });
-  });
-}();
-
+var $$materialSubjectDropdown = $$dropdown({
+  defaultText: '请选择物料类别',
+  $$options: x.connect([$$materialSubjects], function (l) {
+    return l.map(ms => ({ value: ms.id, text: ms.name }));
+  }),
+  $$value: x.connect([$$materialNote], function (mn) {
+    return mn.materialSubjectId;
+  }),
+  onchange(value) {
+    value = parseInt(value);
+    $$materialNote.val(Object.assign($$materialNote.val(), {
+      materialSubjectId: value,
+      materialSubject: R.find(R.propEq('id', value))($$materialSubjects.val()),
+    }));
+  }
+});
 
 let wrapIf = function wrapId(s, left='(', right=')') {
   return s? left + s + right: '';
