@@ -1,4 +1,4 @@
-import { $$dropdown } from '../dropdown-slot';
+import { $$dropdown } from '../widget/dropdown';
 import { $$voucher, $$voucherTypes } from './data-slots';
 import $$ from '../xx.js';
 

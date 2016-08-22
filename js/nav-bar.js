@@ -37,9 +37,9 @@ var valueFunc = function valueFunc(currentMod, mods) {
       }
     }, '发票模块'): '',
     mods.viewVoucherList? h('a' + _classNames(currentMod === 'voucher'), {
-      href: '/voucher',
+      href: '/voucher-list',
       onclick() {
-        page('/voucher');
+        page('/voucher-list');
         return false;
       }
     }, '凭证模块'): '',

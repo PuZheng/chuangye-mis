@@ -1,5 +1,5 @@
 import $$ from '../xx.js';
-import { $$searchDropdown } from '../search-dropdown-slot';
+import { $$searchDropdown } from '../widget/search-dropdown';
 import {$$invoice, $$purchasers} from './data-slots';
 
 export var $$purchaserDropdown = $$searchDropdown({

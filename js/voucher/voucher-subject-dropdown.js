@@ -1,4 +1,4 @@
-import { $$searchDropdown } from '../search-dropdown-slot';
+import { $$searchDropdown } from '../widget/search-dropdown';
 import $$ from '../xx.js';
 import { $$voucher, $$voucherSubjects, $$loading, $$selectedVoucherSubject, $$payers, $$recipients } from './data-slots.js';
 import R from 'ramda';

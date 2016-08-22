@@ -116,6 +116,12 @@ Slot.prototype.toggle = function () {
   this.val(!this.val());
 };
 
+Slot.prototype.trans = function (p, label) {
+  return connect([this], function (s) {
+    return p(s);
+  }, label);
+};
+
 
 /**
  * note! a child has only one chance to setup its parents

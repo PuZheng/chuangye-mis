@@ -4,94 +4,64 @@ import oth from '../oth';
 import classNames from '../class-names';
 import page from 'page';
 import $$queryObj from '../query-obj';
-import paginator from '../paginator';
 import config from '../config.js';
-import pagination from '../pagination';
 import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import { $$filters } from './list-filters';
+import getColOrder from '../get-col-order';
+import $$tableHints from '../widget/table-hints';
+import $$paginator from '../widget/paginator';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$list = $$([], 'list');
 var $$totalCnt = $$('', 'total-cnt');
 
-var getColOrder = function getColOrder(colName, query) {
-  if (!query.sort_by) {
-    return '';
-  }
-  let [sortByCol, order] = query.sort_by.split('.');
-  if (sortByCol == colName) {
-    return order || 'asc';
-  } else {
-    return '';
-  }
-};
 
 var $$idOth = $$.connect([$$queryObj], function (queryObj) {
   let order = getColOrder('id', queryObj);
-  return oth('id', order, function (order) {
-    $$queryObj.patch({
-      sort_by: 'id.' + order,
-    });
+  return oth({
+    label: 'id', 
+    order, 
+    onchange(order) {
+      $$queryObj.patch({
+        sort_by: 'id.' + order,
+      });
+    },
   });
 });
 
 var $$dateOth = $$.connect([$$queryObj], function (queryObj) {
   let order = getColOrder('date', queryObj);
-  return oth('日期', order, function (order) {
-    $$queryObj.patch({
-      sort_by: 'date.' + order,
-    });
+  return oth({
+    label: '日期', 
+    order, 
+    onchange(order) {
+      $$queryObj.patch({
+        sort_by: 'date.' + order,
+      });
+    }
   });
 });
 
 var $$accountTermOth = $$.connect([$$queryObj], function (queryObj) {
   let order = getColOrder('account_term', queryObj);
-  return oth('帐期', order, function (order) {
-    $$queryObj.patch({
-      sort_by: 'account_term.' + order,
-    });
+  return oth({
+    label: '帐期', 
+    order, 
+    onchange(order) {
+      $$queryObj.patch({
+        sort_by: 'account_term.' + order,
+      });
+    }
   });
 });
-
-var $$paginator = $$.connect([
-  $$totalCnt, $$queryObj], function (totalCnt, queryObj) {
-  return paginator(pagination({
-    totalCnt,
-    page: queryObj.page || 1,
-    pageSize: config.getPageSize('invoice'),
-  }), function goPrev() {
-    $$queryObj.patch({
-      page: Number(queryObj.page) - 1,
-    });
-  }, function goNext() {
-    $$queryObj.patch({
-      page: Number(queryObj.page) + 1,
-    });
-  });
-});
-
-var $$tableHints = $$.connect([$$totalCnt, $$queryObj], function (totalCnt, queryObj) {
-  return h('.hints', [
-    h('span', '符合条件的记录: '),
-    h('span.record-no', totalCnt),
-    ', 分',
-    h('span.page-no', '' + pagination({
-      totalCnt,
-      page: queryObj.page,
-      pageSize: config.getPageSize('invoice'),
-    }).totalPageCnt),
-    h('span', '页')
-  ]);
-});
-
 
 var valueFunc = function valueFunc(
   loading, list, idOth, dateOth, totalCnt, paginator, tableHints, filters,
   accountTermOth
 ) {
   return h('.list-app', [
-    h('h3.header', '发票列表'),
+    h('.header', '发票列表'),
     filters,
     h('table#invoice-list' + classNames('striped', 'compact', 'relative', 'color-gray-dark', loading && 'loading'), [
       h('thead', [
@@ -134,13 +104,21 @@ var valueFunc = function valueFunc(
       ]),
     ]),
     tableHints,
-    h('.paginator', paginator),
+    h('.paginator-container', paginator)
   ]);
 };
 
 var $$view = $$.connect([
   $$loading, $$list, $$idOth, 
-  $$dateOth, $$totalCnt, $$paginator, $$tableHints, $$filters, 
+  $$dateOth, $$totalCnt, $$paginator({
+    $$totalCnt,
+    $$queryObj,
+    pageSize: config.getPageSize('invoice'),
+  }), $$tableHints({
+    $$totalCnt,
+    $$queryObj,
+    pageSize: config.getPageSize('invoice'),
+  }), $$filters, 
   $$accountTermOth], 
   valueFunc);
 

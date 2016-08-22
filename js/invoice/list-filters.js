@@ -1,10 +1,10 @@
 import $$ from '../xx.js';
 import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import $$queryObj from '../query-obj';
-import $$searchBox from '../search-box-slot';
+import $$searchBox from '../widget/search-box';
 import invoiceStore from '../store/invoice-store';
-import $$dropdown from '../dropdown-slot';
-import $$searchDropdown from '../search-dropdown-slot';
+import $$dropdown from '../widget/dropdown';
+import $$searchDropdown from '../widget/search-dropdown';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
