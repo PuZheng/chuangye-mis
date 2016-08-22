@@ -57,12 +57,12 @@ var $$typeFilter = $$dropdown({
     });
   },
   $$options: $$voucherTypes.trans(function (list) {
-    return list.map(function (vt) {
+    return [{ value: '', text: '不限凭证类型' }].concat(list.map(function (vt) {
       return {
         value: vt.id,
         text: vt.name,
       };
-    });
+    }));
   }),
   $$value: $$queryObj.trans(qo => qo.voucher_type_id, 
                            'voucher-type'),
@@ -73,11 +73,11 @@ var $$subjectFilter = $$searchDropdown({
   $$value: $$queryObj.trans(qo => qo.voucher_subject_id,
                            'voucher-subject'),
   $$options: $$voucherSubjects.trans(
-    list => list.map(vs => ({
+    list => [{ value: '', text: '不限项目' }].concat(list.map(vs => ({
       value: vs.id,
       text: vs.name,
       acronym: vs.acronym,
-    })),
+    }))),
   'voucher-subjects'),
   onchange(v) {
     $$queryObj.patch({
@@ -93,11 +93,11 @@ var $$payerFilter = $$searchDropdown({
   $$value: $$queryObj.trans(qo => qo.payer_id, 
                            'payer'),
   $$options: $$entities.trans(
-    list => list.map(e => ({
+    list => [{ value: '', text: '不限支付方' }].concat(list.map(e => ({
       value: e.id,
       text: e.name,
       acronym: e.acronym,
-    })), 'entities'
+    }))), 'entities'
   ),
   onchange(v) {
     $$queryObj.patch({
@@ -107,15 +107,15 @@ var $$payerFilter = $$searchDropdown({
 });
 
 var $$recipientFilter = $$searchDropdown({
-  defaultText: '请选择支付方',
+  defaultText: '请选择收入方',
   $$value: $$queryObj.trans(qo => qo.recipient_id, 
                            'recipient'),
   $$options: $$entities.trans(
-    list => list.map(e => ({
+    list => [{ value: '', text: '不限收入方' }].concat(list.map(e => ({
       value: e.id,
       text: e.name,
       acronym: e.acronym,
-    })), 'entities'
+    }))), 'entities'
   ),
   onchange(v) {
     $$queryObj.patch({
@@ -182,6 +182,7 @@ var tableVf = function (vouchers, idOth, dateOth) {
         dateOth,
         h('th', '类型'),
         h('th', '项目'),
+        h('th', '是否进入总账'),
         h('th', '支付方'),
         h('th', '收入方'),
         h('th', '经办人'),
@@ -201,9 +202,10 @@ var tableVf = function (vouchers, idOth, dateOth) {
         h('td', v.date),
         h('td', v.voucherType.name),
         h('td', v.voucherSubject.name),
+        h('td', v.isPublic? h('i.fa.fa-check.color-success'): h('i.fa.fa-remove.color-gray')),
         h('td', v.payer.name),
         h('td', v.recipient.name),
-        h('td', v.creator.name)
+        h('td', v.creator.username)
       ]);
     })),
   ]);
