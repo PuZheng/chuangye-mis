@@ -1,30 +1,31 @@
 import moment from 'moment';
 import page from 'page';
-import invoiceObjectApp from './invoice/object-app.js';
-import invoiceListApp from './invoice/list-app.js';
-import voucherObjectApp from './voucher/object-app.js';
-import loginApp from './login/app.js';
-import dashboardApp from './dashboard/app.js';
-import chargeBillApp from './charge-bill/app.js';
-import x from './xx.js';
-import invoiceTypeStore from './store/invoice-type-store.js';
-import accountTermStore from './store/account-term-store.js';
-import invoiceStore from './store/invoice-store.js';
-import voucherTypeStore from './store/voucher-type-store.js';
-import voucherSubjectStore from './store/voucher-subject-store.js';
-import voucherStore from './store/voucher-store.js';
-import chargeBillStore from './store/charge-bill-store.js';
-import accountStore from './store/account-store.js';
+import invoiceObjectApp from './invoice/object-app';
+import invoiceListApp from './invoice/list-app';
+import voucherListApp from './voucher/list-app';
+import voucherObjectApp from './voucher/object-app';
+import loginApp from './login/app';
+import dashboardApp from './dashboard/app';
+import chargeBillApp from './charge-bill/app';
+import $$ from './xx';
+import invoiceTypeStore from './store/invoice-type-store';
+import accountTermStore from './store/account-term-store';
+import invoiceStore from './store/invoice-store';
+import voucherTypeStore from './store/voucher-type-store';
+import voucherSubjectStore from './store/voucher-subject-store';
+import voucherStore from './store/voucher-store';
+import chargeBillStore from './store/charge-bill-store';
+import accountStore from './store/account-store';
 import R from 'ramda';
-import entityStore from './store/entity-store.js';
-import mount from './mount.js';
-import { navBar, setupNavBar } from './nav-bar.js';
+import entityStore from './store/entity-store';
+import mount from './mount';
+import { navBar, setupNavBar } from './nav-bar';
 import toast from './toast';
 import { could } from './principal';
 import qs from 'query-string';
 import $$queryObj from './query-obj';
 
-x.init({ debug: true });
+$$.init({ debug: true });
 
 mount(navBar, '#nav-bar');
 mount(toast.page, '#toast');
@@ -93,7 +94,7 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar
       [app.$$loading, 0],
       [app.$$invoice, invoice]
     ];
-    x.update(...args);
+    $$.update(...args);
   });
 });
 
@@ -107,7 +108,7 @@ page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('
     accountTermStore.list,
     entityStore.fetchList(),
   ]).then(function ([data, invoiceTypes, accountTerms, entities]) {
-    x.update(
+    $$.update(
       [app.$$loading, false],
       [app.$$list, data.data],
       [app.$$totalCnt, data.totalCnt],
@@ -117,6 +118,32 @@ page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('
     );
   });
 });
+
+var voucherList = function voucherList(ctx) {
+  var app = voucherListApp;
+  mount(app.page);
+  app.$$loading.toggle();
+  Promise.all([
+    voucherStore.fetchList(ctx.query),
+    voucherTypeStore.list,
+    voucherSubjectStore.list,
+    entityStore.fetchList(),
+  ]).then(function ([data, voucherTypes, voucherSubjects, entities]) {
+    $$.update(
+      [app.$$vouchers, data.data],
+      [app.$$totalCnt, data.totalCnt],
+      [app.$$voucherTypes, voucherTypes],
+      [app.$$voucherSubjects, voucherSubjects],
+      [app.$$entities, entities],
+      [app.$$loading, false]
+    );
+  });
+};
+
+page('/voucher-list', loginRequired, 
+     _could('view.voucher.list'), _setupNavBar('voucher'),
+     voucherList);
+
 
 page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx) {
   let app = voucherObjectApp;
@@ -130,7 +157,7 @@ page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar
     }
   ];
   Promise.all(promises).then(function ([voucherTypes, voucherSubjects, voucher]) {
-    x.update(
+    $$.update(
       [app.$$voucherTypes, voucherTypes],
       [app.$$loading, false],
       [app.$$voucherSubjects, voucherSubjects],

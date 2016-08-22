@@ -1,5 +1,5 @@
 import $$ from '../xx';
-import $$dropdown from '../dropdown-slot';
+import $$dropdown from '../widget/dropdown';
 import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selectedInvoiceType} from './data-slots';
 import R from 'ramda';
 import entityStore from '../store/entity-store';

@@ -2,7 +2,7 @@ import virtualDom from 'virtual-dom';
 import classNames from './class-names';
 
 var h = virtualDom.h;
-var oth = function (label, order, onchange) {
+var oth = function ({label, order, onchange}) {
   order = order || '';
   return h('th.oth.c1', [
     label,

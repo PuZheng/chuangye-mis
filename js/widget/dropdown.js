@@ -1,4 +1,4 @@
-import $$ from './xx';
+import $$ from '../xx';
 import virtualDom from 'virtual-dom';
 
 const UP = 38;

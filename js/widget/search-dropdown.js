@@ -1,5 +1,5 @@
-import $$ from './xx';
-import { match, optionContent } from './dropdown-utils';
+import $$ from '../xx';
+import { match, optionContent } from '../dropdown-utils';
 import virtualDom from 'virtual-dom';
 
 var h = virtualDom.h;
@@ -29,22 +29,23 @@ export var $$searchDropdown = function (
         }
       }
     }
+    options = options.filter(function (o) {
+      return match(o, searchText);
+    });
     let optionElms = options.map(function (o, idx) {
-        let classNames = ['item'];
-        (o.value == value) && classNames.push('current-value');
-        (idx == selection) && classNames.push('selected');
-        let filtered = searchText && !match(o, searchText);
-        filtered && classNames.push('filtered');
-        classNames = classNames.map( c => '.' + c ).join('');
-        return h(classNames, {
-          dataFiltered: filtered,
-          // note!!!, don't use onclick, since onclick event fired after input.search's onblur
-          onmousedown: function () {
-            onchange(o.value, o);
-          },
-        }, optionContent(o, searchText));
-      });
-    if (optionElms.length == 0 || optionElms.every( o => o.properties.dataFiltered )) {
+      let classNames = ['item'];
+      (o.value == value) && classNames.push('current-value');
+      (idx == selection) && classNames.push('selected');
+      classNames = classNames.map( c => '.' + c ).join('');
+      return h(classNames, {
+        // note!!!, don't use onclick, since onclick event fired after input.search's onblur
+        onmousedown: function () {
+          onchange(o.value, o);
+        },
+      }, optionContent(o, searchText));
+    });
+  
+    if (optionElms.length == 0) {
       optionElms = [h('.message', '没有可选项')];
     }
     return h(classNames, {
@@ -61,9 +62,14 @@ export var $$searchDropdown = function (
           $$activated.val(true);
           return false;
         },
-        onmousedown: function () {
+        onmousedown: function (e) {
           // click an activated dropdown will make it blur
-          $$activated.toggle();
+          if (!activated) {
+            $$activated.toggle();
+          } else {
+            this.blur();
+            e.preventDefault();
+          }
         },
         onblur: function () {
           $$.update(

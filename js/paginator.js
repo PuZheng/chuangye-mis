@@ -3,7 +3,7 @@ import classNames from './class-names';
 
 var h = virtualDom.h;
 
-var paginator = function (pagination, goPrev, goNext) {
+var paginator = function ({pagination, goPrev, goNext}) {
   return h('.menu', [
     h('a' + classNames('item', 'celled', !pagination.hasPrev && '.disabled'), {
       href: '#',

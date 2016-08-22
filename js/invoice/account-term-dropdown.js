@@ -1,5 +1,5 @@
 import $$ from '../xx';
-import { $$dropdown } from '../dropdown-slot';
+import { $$dropdown } from '../widget/dropdown';
 import { $$invoice, $$accountTerms } from './data-slots';
 
 export var $$accountTermDropdown = $$dropdown({

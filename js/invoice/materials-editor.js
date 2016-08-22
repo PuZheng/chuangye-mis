@@ -1,16 +1,16 @@
-import x from '../xx.js';
+import $$ from '../xx';
 import R from 'ramda';
-import {$$invoice} from './data-slots.js';
-import { dropdown } from '../dropdown.js';
-import { field } from '../field.js';
-import { validateObj } from '../validate-obj.js';
-import { notEmpty } from '../checkers.js';
+import { $$invoice } from './data-slots';
+import { $$dropdown } from '../widget/dropdown';
+import { field } from '../field';
+import { validateObj } from '../validate-obj';
+import { notEmpty } from '../checkers';
 
 
-export var $$materialSubjects = x([], 'material-subjects');
+export var $$materialSubjects = $$([], 'material-subjects');
 // 正在编辑的物料单
-const $$materialNote = x({}, 'material-node');
-const $$errors = x({}, 'materials-editor-errors');
+const $$materialNote = $$({}, 'material-node');
+const $$errors = $$({}, 'materials-editor-errors');
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
@@ -23,34 +23,22 @@ var rules = {
 
 var validate = R.partialRight(validateObj, [rules]);
 
-var $$materialSubjectDropdown = function () {
-  let $$activated = x(false, 'activated');
-  return x.connect([
-    $$activated, 
-    $$materialSubjects,
-    $$materialNote
-  ], function (activated, materialSubjects, materialNote) {
-    return dropdown({
-      defaultText: '请选择物料类别',
-      options: materialSubjects.map( ms => ({ value: ms.id, text: ms.name }) ),
-      onactivate(b) {
-        $$activated.val(b);
-      },
-      activated: activated,
-      value: materialNote.materialSubjectId,
-      onchange(value) {
-        value = parseInt(value);
-        x.update( 
-                 [$$materialNote, Object.assign($$materialNote.val(), {
-                   materialSubjectId: value,
-                   materialSubject: R.find(R.propEq('id', value))($$materialSubjects.val()),
-                 })]
-                );
-      }
-    });
-  });
-}();
-
+var $$materialSubjectDropdown = $$dropdown({
+  defaultText: '请选择物料类别',
+  $$options: $$.connect([$$materialSubjects], function (l) {
+    return l.map(ms => ({ value: ms.id, text: ms.name }));
+  }),
+  $$value: $$.connect([$$materialNote], function (mn) {
+    return mn.materialSubjectId;
+  }),
+  onchange(value) {
+    value = parseInt(value);
+    $$materialNote.val(Object.assign($$materialNote.val(), {
+      materialSubjectId: value,
+      materialSubject: R.find(R.propEq('id', value))($$materialSubjects.val()),
+    }));
+  }
+});
 
 let wrapIf = function wrapId(s, left='(', right=')') {
   return s? left + s + right: '';
@@ -100,7 +88,7 @@ function materialsEditorValueFunc(
         onclick(e) {
           e.preventDefault();
           validate(materialNote).then(function () {
-            x.update(
+            $$.update(
               [$$invoice, Object.assign($$invoice.val(), {
                 materialNotes: ($$invoice.val().materialNotes || []).concat($$materialNote.val()),
               })],
@@ -151,7 +139,7 @@ function materialsEditorValueFunc(
   ]);
 };
 
-export var $$materialsEditor = x.connect(
+export var $$materialsEditor = $$.connect(
     [$$invoice, $$errors,
     $$materialNote, $$materialSubjectDropdown],
     materialsEditorValueFunc, 'materials-editor');

@@ -1,5 +1,5 @@
 import { $$voucher, $$payers } from './data-slots';
-import { $$searchDropdown } from '../search-dropdown-slot';
+import { $$searchDropdown } from '../widget/search-dropdown';
 import $$ from '../xx.js';
 
 export var $$payerDropdown = $$searchDropdown({
