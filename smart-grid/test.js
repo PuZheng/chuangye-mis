@@ -146,42 +146,51 @@ test('interpreter', function (t) {
 
 test('grid', function (t) {
   let grid = new SmartGrid({
-    columns: 4,
-    rows: 4,
+    def: {
+      columns: 4,
+      rows: 4,
+    }
   });
   t.is(grid.getCellVal(0, 0), '');
   t.deepEqual(grid.getCellDef(0, 0), {});
 
   grid = new SmartGrid({
-    columns: 2,
-    rows: 2,
-  }, [
-    ['00', '01'],
-    ['10', '11']
-  ]);
+    def: {
+      columns: 2,
+      rows: 2,
+    }, 
+    data: [
+      ['00', '01'],
+      ['10', '11']
+    ]
+  });
   t.is(grid.env[0][0].val(), '00');
   t.is(grid.env[0][1].val(), '01');
   t.is(grid.env[1][0].val(), '10');
   t.is(grid.env[1][1].val(), '11');
 
   grid = new SmartGrid({
-    columns: 2,
-    rows: 2,
-  }, [
-    ['=A2 + (-B1 * (B2 + 9))']
-  ]);
+    def: {
+      columns: 2,
+      rows: 2,
+    }, data: [
+      ['=A2 + (-B1 * (B2 + 9))']
+    ]
+  });
   t.truthy(~grid.dependencyMap['A1'].indexOf('A2'));
   t.truthy(~grid.dependencyMap['A1'].indexOf('B1'));
   t.truthy(~grid.dependencyMap['A1'].indexOf('B2'));
   t.is(grid.env[0][0].val(), '');
 
   grid = new SmartGrid({
-    columns: 2,
-    rows: 2,
-  }, [
-    ['=A2 + (-B1 * (B2 + 9))', '12'],
-    ['11', '9'],
-  ]);
+    def: {
+      columns: 2,
+      rows: 2,
+    }, data: [
+      ['=A2 + (-B1 * (B2 + 9))', '12'],
+      ['11', '9'],
+    ]
+  });
   t.is(grid.env[0][0].val(), '-205');
   t.is(grid.env[0][1].val(), '12');
   t.is(grid.env[1][0].val(), '11');

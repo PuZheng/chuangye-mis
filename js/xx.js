@@ -187,7 +187,7 @@ var update = function (...slotValuePairs) {
         };
       }
   };
-  slotValuePairs.forEach(function ([slot, value]) {
+  slotValuePairs.forEach(function ([slot]) {
     objectValues(slot.offsprings).forEach(function ({slot: offspring, level}) {
       addToRelatedSlots(offspring, level);
     });

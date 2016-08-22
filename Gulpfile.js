@@ -183,7 +183,7 @@ gulp.task('css', function () {
 });
 
 gulp.task('lint', function() {
-  return gulp.src(['js/**/*.js','!node_modules/**'])
+  return gulp.src(['js/**/*.js','!node_modules/**', '!js/bundle.js', '!js/vendor/**'])
   // eslint() attaches the lint output to the "eslint" property
   // of the file object so it can be used by other modules.
   .pipe(eslint())

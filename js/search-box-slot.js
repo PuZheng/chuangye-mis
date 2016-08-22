@@ -43,7 +43,7 @@ export var $$searchBox = function (
       h('i.icon.fa.fa-search'),
       h('input.search', {
         tabIndex: 0,
-        onfocus(e) {
+        onfocus() {
           $$active.val(true);
           if (searchText && searchText.length >= minLen) {
             $$loading.val(true);
@@ -56,14 +56,14 @@ export var $$searchBox = function (
             });
           }
         },
-        onblur(e) {
+        onblur() {
           $$.update(
             [$$active, false],
             [$$options, []],
             [$$loading, false]
           );
         },
-        oninput(e) {
+        oninput() {
           $$.update(
             [$$searchText, this.value],
             [$$selection, -1]
@@ -131,7 +131,7 @@ export var $$searchBox = function (
           children = options.map(function (o, idx) {
             return h('.item' + (idx == selection? '.selected': ''), {
               // don't use onclick, becauase onclick fired after onblur
-              onmousedown(e) {
+              onmousedown() {
                 $$.update(
                   [$$searchText, o],
                   [$$options, []],

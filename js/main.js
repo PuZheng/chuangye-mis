@@ -67,7 +67,7 @@ page(function parseQuery(ctx, next) {
   next();
 });
 
-page('/login', function (ctx, next) {
+page('/login', function () {
   if (!accountStore.user) {
     mount(loginApp.page);
   } else {
@@ -75,7 +75,7 @@ page('/login', function (ctx, next) {
   }
 });
 
-page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar('invoice'), function (ctx, next) {
+page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar('invoice'), function (ctx) {
   let app = invoiceObjectApp;
   mount(invoiceObjectApp.page);
   let promises = [
@@ -97,7 +97,7 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar
   });
 });
 
-page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function (ctx, next) {
+page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function (ctx) {
   let app = invoiceListApp;
   mount(app.page);
   app.$$loading.toggle();
@@ -118,7 +118,7 @@ page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('
   });
 });
 
-page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx, next) {
+page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx) {
   let app = voucherObjectApp;
   mount(voucherObjectApp.page);
   app.$$loading.val(true);
@@ -139,7 +139,7 @@ page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar
   });
 });
 
-page('/charge-bill/:id?', function (ctx, next) {
+page('/charge-bill/:id?', function (ctx) {
   let app = chargeBillApp;
   mount(chargeBillApp.makePage());
   app.$$loading.val(true);
@@ -149,9 +149,9 @@ page('/charge-bill/:id?', function (ctx, next) {
   });
 });
 
-page('/', loginRequired, _setupNavBar('home'), function (ctx, next) {
+page('/', loginRequired, _setupNavBar('home'), function () {
   let app = dashboardApp;
-  mount(dashboardApp.page);
+  mount(app.page);
 });
 
 page();

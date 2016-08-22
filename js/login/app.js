@@ -26,7 +26,7 @@ var $$page = x.connect(
       h(classNames('block', 'p2', 'border', 'box', 'rounded', 'border-gray', 'mx-auto', loading), [
         h('h3.header.c1', '欢迎登陆创业电镀管理系统'),
         h('form.form', {
-          onsubmit(e) {
+          onsubmit() {
             let p = accountStore.validate({
               username, 
               password
@@ -59,14 +59,14 @@ var $$page = x.connect(
         }, [
           field('username', '', h('input', {
             placeholder: '请输入用户名',
-            onchange(e) {
+            onchange() {
               $$username.val(this.value);
             }
           }), errors),
           field('password', '', h('input', {
             placeholder: '请输入密码',
             type: 'password',
-            onchange(e) {
+            onchange() {
               $$password.val(this.value);
             }
           }), errors),

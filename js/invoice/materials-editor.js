@@ -1,7 +1,6 @@
 import x from '../xx.js';
 import R from 'ramda';
 import {$$invoice} from './data-slots.js';
-import once from 'once';
 import { dropdown } from '../dropdown.js';
 import { field } from '../field.js';
 import { validateObj } from '../validate-obj.js';
@@ -39,7 +38,7 @@ var $$materialSubjectDropdown = function () {
       },
       activated: activated,
       value: materialNote.materialSubjectId,
-      onchange(value, option) {
+      onchange(value) {
         value = parseInt(value);
         x.update( 
                  [$$materialNote, Object.assign($$materialNote.val(), {
@@ -67,7 +66,7 @@ function materialsEditorValueFunc(
            materialSubjectDropdown, errors, true),
       field('quantity', '数量' + wrapIf((materialNote.materialSubject || {}).unit), h('input', {
         value: materialNote.quantity || '',
-        onchange(e) {
+        onchange() {
           $$materialNote.patch({
             quantity: parseFloat(this.value),
           });
@@ -75,7 +74,7 @@ function materialsEditorValueFunc(
       }), errors, true),
       field('unitPrice', '单价(元)', h('input', {
           value: materialNote.unitPrice || '',
-          onchange(e) {
+          onchange() {
             $$materialNote.patch({
               unitPrice: parseFloat(this.value),
             });
@@ -87,7 +86,7 @@ function materialsEditorValueFunc(
       ]),
       field('taxRate', '税率(百分比)', h('input', {
         value: materialNote.taxRate || '',
-        onchange(e) {
+        onchange() {
           $$materialNote.patch({
             taxRate: parseFloat(this.value),
           });
@@ -136,7 +135,7 @@ function materialsEditorValueFunc(
             h('td', '' + (mn.taxRate * mn.quantity * mn.unitPrice / 100.0)),
             h('td', [
               h('i.fa.fa-remove.ca', {
-                onclick(e) {
+                onclick() {
                   let materialNotes = $$invoice.val().materialNotes;
                   materialNotes.splice(idx, 1);
                   $$invoice.patch({

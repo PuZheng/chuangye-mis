@@ -64,7 +64,7 @@ class Cell {
   get onclick() {
     let cell = this;
     if (cell.$$mode.val() === CellMode.DEFAULT) {
-      return function onclick(e) {
+      return function onclick() {
         let args = [
           [cell.$$mode, CellMode.SELECTED],
         ];
@@ -80,7 +80,7 @@ class Cell {
   get ondblclick() {
     let cell = this;
     if (!cell.def.readOnly && cell.$$mode.val() != CellMode.EDIT) {
-      return function (e) {
+      return function () {
         let args = [
           [cell.$$mode, CellMode.EDIT]
         ];
@@ -145,7 +145,7 @@ class Cell {
           return true;
         }
       },
-      onblur: function (e) {
+      onblur: function () {
         onChangeCb(this.value);
       },
     });
@@ -222,7 +222,7 @@ export class SmartGrid {
   }
   get env() {
     if (!this._env) {
-      this._env = range(0, this.def.rows).map(row => Array(this.def.columns));
+      this._env = range(0, this.def.rows).map(() => Array(this.def.columns));
       // first round, setup tag dependency map
       // second round, create slots
       for (var i = 0; i < this.def.rows; ++i) {
