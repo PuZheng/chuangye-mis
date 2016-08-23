@@ -21,6 +21,7 @@ import entityStore from './store/entity-store';
 import mount from './mount';
 import { navBar, setupNavBar } from './nav-bar';
 import toast from './toast';
+import overlay from './overlay';
 import { could } from './principal';
 import qs from 'query-string';
 import $$queryObj from './query-obj';
@@ -29,6 +30,7 @@ $$.init({ debug: true });
 
 mount(navBar, '#nav-bar');
 mount(toast.page, '#toast');
+mount(overlay.page, '#overlay');
 
 var _setupNavBar = function (mod) {
   return function (ctx, next) {

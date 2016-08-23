@@ -6,6 +6,8 @@ import accountStore from '../store/account-store.js';
 import classNames from '../class-names.js';
 import page from 'page';
 import promiseFinally from 'promise-finally';
+import overlay from '../overlay';
+import axiosError2Dom from '../axios-error-2-dom';
 
 var $$username = x('', 'username');
 var $$password = x('', 'password');
@@ -42,14 +44,17 @@ var $$page = x.connect(
             }).then(function () {
               page('/');
             }).catch(function (error) {
-              if (error.response.status === 403) {
+              if (error.response && error.response.status === 403) {
                 $$errors.val({
                   username: error.response.data.message,
                 });
                 return;
               } 
-              console.error(error.response);
-              // TODO show error message;
+              overlay.$$content.val({
+                type: 'error',
+                title: '很不幸, 出错了!',
+                message: axiosError2Dom(error),
+              });
             });
             promiseFinally(p, function () {
               $$loading.val('');
