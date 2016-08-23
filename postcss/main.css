@@ -8,6 +8,7 @@
 @import 'component/menu';
 @import 'component/oth';
 @import 'component/search-box';
+@import 'component/overlay';
 
 @import "generic.css";
 @import "atomic.css";
