@@ -44,7 +44,7 @@ a {
         
         & hr {
             border-color: var(--color-accent);
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
         }
     }
 
@@ -52,14 +52,32 @@ a {
 
 .list-app {
     padding: 0 1rem;
-    
+
     & .header {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         margin: 0 0 .5rem 0;
         font-style: italic;
         border-bottom: 2px solid var(--color-gray-light);
         color: var(--color-primary);
+
+        & .new-btn {
+            outline: none;
+            background: transparent;
+            margin: 0 1rem;
+            border: none;
+            outline: none;
+            & i {
+                color: var(--color-accent);
+            }
+        }
+
+        & .search {
+            display: inline-block;
+            float: right;
+            font-size: 1rem;
+        }
     }
+
     & .filters {
         border: 1px solid var(--color-primary);
         padding: .5rem;
@@ -122,4 +140,36 @@ a {
     min-height: 8rem;
 }
 
+#departments-app {
+    & .department {
+        display: inline-block;
+        padding: .5rem 1rem;
+        width: 25%;
 
+        & .title {
+            display: inline-block;
+        }
+
+        & .remove-btn {
+            background: transparent;
+            border: none;
+            outline: none;
+
+            & i {
+                color: var(--color-accent);
+            }
+        }
+    }
+    & .message {
+        font-size: 1.3rem;
+        font-style: italic;
+        padding: 2rem;
+    }
+}
+
+.confirm-delete-department {
+    & .confirm-btn {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+}

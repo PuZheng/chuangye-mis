@@ -40,9 +40,14 @@ var valueFunc = function valueFunc(currentMod, mods) {
       href: '/voucher-list',
       onclick() {
         page('/voucher-list');
-        return false;
       }
     }, '凭证模块'): '',
+    mods.editDepartment? h('a' + _classNames(currentMod === 'department'), {
+      href: '/department-list',
+      onclick() {
+        page('/department-list');
+      }
+    }, '车间信息'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
@@ -77,11 +82,13 @@ export var setupNavBar = function (mod) {
     return principal
     .could('view.invoice.list')
     .could('view.voucher.list')
-    .then(function (viewInvoiceList, viewVoucherList) {
+    .could('edit.department')
+    .then(function (viewInvoiceList, viewVoucherList, editDepartment) {
       $$.update(
         [$$mods, {
           viewInvoiceList,
           viewVoucherList,
+          editDepartment,
         }],
         [$$currentMod, mod]
       );

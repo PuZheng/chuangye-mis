@@ -1,7 +1,10 @@
 :root {
     --padding-y: .78571429rem;
+    --small-padding-y: .3rem;
     --padding-right: 1rem;
+    --small-padding-right: 1rem;
     --line-height: 1.2142em;
+    --small-line-height: .8rem;
 }
 .search-box {
     position: relative;
@@ -46,13 +49,22 @@
         /* make icon square */
         width: calc(var(--line-height) + 2 * var(--padding-y));
         height: 100%;
-        line-height: 1.2142em;
-        top: .78571429em;
-        left: .78571429em;
+        line-height: var(--line-height);
+        top: var(--padding-y);
+        left: var(--padding-y);
         z-index: 3;
-        margin: -.78571429em;
-        padding: .78571429em;
+        margin: -var(--padding-y);
+        padding: var(--padding-y);
         opacity: .8;
+    }
+
+    & > .icon::before {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     &.loading:before {
@@ -142,6 +154,22 @@
         }
     }
     
+}
+
+.search-box.small {
+    & input {
+        line-height: var(--small-line-height);
+        padding: calc(var(--small-padding-y) - 1px) calc(var(--small-padding-right) - 1px) calc(var(--small-padding-y) - 1px) calc(var(--line-height) + 2 * var(--small-padding-y) - 1px);
+    }
+    & > .icon {
+        /* make icon square */
+        width: calc(var(--small-line-height) + 2 * var(--small-padding-y));
+        line-height: var(--small-line-height);
+        top: var(--small-padding-y);
+        left: var(--small-padding-y);
+        margin: -var(--small-padding-y);
+        padding: var(--small-padding-y);
+    }
 }
 
 @keyframes button-spin {

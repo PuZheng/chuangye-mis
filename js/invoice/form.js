@@ -35,7 +35,7 @@ var valueFunc = function valueFunc(
   accountTermDropdown, vendorDropdown, purchaserDropdown,
   materialsEditor
 ) {
-  let classNames = ['form', 'm1', 'clearfix'];
+  let classNames = ['form'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join();
   return h('form.form#invoice-form' + classNames, [
@@ -95,7 +95,7 @@ var valueFunc = function valueFunc(
       onclick() {
         invoiceStore.validate($$invoice.val()).then(function () {
           $$loading.inc();
-          invoiceStore.save($$invoice.val()).then(function (id) {
+          return invoiceStore.save($$invoice.val()).then(function (id) {
             $$loading.dec();
             console.log('create invoice done');
             $$toast.val({
@@ -105,7 +105,6 @@ var valueFunc = function valueFunc(
             page('/invoice/' + id);
           });
         }).catch(function (errors) {
-          console.error(errors);
           $$errors.val(errors);
         });
         return false;

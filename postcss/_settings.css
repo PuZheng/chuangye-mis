@@ -2,7 +2,7 @@
     --space-1: 0.5rem;
     --space-2: calc(var(--space-1) * 2);
     --font-family: Georgia, "Times New Roman", "Microsoft YaHei", "微软雅黑", STXihei, "华文细黑", "宋体", serif;
-    --color-accent: hsla(0, 55%, 50%, .9);
+    --color-accent: hsla(317, 98%, 46%, 0.86);
     --color-primary: hsla(170, 75%, 40%, 1);
     --color-secondary: hsla(190, 55%, 50%, 0.75);
     --color-tertiary: hsla(220, 45%, 50%, 1);
@@ -13,6 +13,7 @@
     --color-primary-text: color(#000 a(70%));
     --color-secondary-text: color(#000 a(50%)); 
     --color-success: hsla(170, 75%, 62%, 0.87);
+    --color-warning: hsla(35, 95%, 42%, 0.95);
     --color-info: hsla(200, 72%, 82%, 0.87);
-    --color-danger: hsla(0, 92%, 62%, 0.85);
+    --color-danger: hsla(0, 92%, 62%, 0.90);
 }

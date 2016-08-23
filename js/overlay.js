@@ -4,17 +4,12 @@ import R from 'ramda';
 import classNames from './class-names';
 
 var h = virtualDom.h;
-var $$content = $$({}, 'content');
-
+var $$content = $$({}, 'content'); 
 let vf = function (content) {
   if (R.isEmpty(content)) {
 
   }
-  return h(classNames('overlay', !R.isEmpty(content) && 'open', content.type || ''), {
-    onkeypress() {
-      debugger;
-    }
-  }, [
+  return h(classNames('overlay', !R.isEmpty(content) && 'open', content.type || '', content.className || ''), [
     h('button.close-btn', {
       onclick() {
         $$content.val({});
@@ -27,13 +22,18 @@ let vf = function (content) {
   ]);  
 };
 
+const ESC = 27;
+
 export default {
   page: {
     $$view: $$content.trans(c => vf(c)),
     onMount: function () {
-      document.addEventListener('keydown', function () {
-        if (!R.isEmpty($$content.val())) {
-          $$content.val({});
+      document.addEventListener('keydown', function (e) {
+        if (e.which == ESC || e.keyCode == ESC) {
+          if (!R.isEmpty($$content.val())) {
+            $$content.val({});
+            e.preventDefault();
+          }
         }
       });
     },

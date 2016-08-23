@@ -7,6 +7,8 @@ import voucherObjectApp from './voucher/object-app';
 import loginApp from './login/app';
 import dashboardApp from './dashboard/app';
 import chargeBillApp from './charge-bill/app';
+import departmentListApp from './department/list-app';
+import departmentApp from './department/object-app';
 import $$ from './xx';
 import invoiceTypeStore from './store/invoice-type-store';
 import accountTermStore from './store/account-term-store';
@@ -16,6 +18,7 @@ import voucherSubjectStore from './store/voucher-subject-store';
 import voucherStore from './store/voucher-store';
 import chargeBillStore from './store/charge-bill-store';
 import accountStore from './store/account-store';
+import departmentStore from './store/department-store';
 import R from 'ramda';
 import entityStore from './store/entity-store';
 import mount from './mount';
@@ -146,6 +149,31 @@ page('/voucher-list', loginRequired,
      _could('view.voucher.list'), _setupNavBar('voucher'),
      voucherList);
 
+var departmentList = function () {
+  var app = departmentListApp;
+  mount(app.page);
+  app.$$loading.val(true);
+  departmentStore.list.then(function (departments) {
+    $$.update(
+      [app.$$departments, departments],
+      [app.$$loading, false]
+    );
+  });
+};
+
+page(
+  '/department-list', loginRequired, _could('edit.department'),
+  _setupNavBar('department'), departmentList
+);
+
+var department = function () {
+  var app = departmentApp;  
+  mount(app.page);
+};
+
+page('/department', loginRequired, 
+    _could('edit.department'), _setupNavBar('department'),
+    department);
 
 page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx) {
   let app = voucherObjectApp;

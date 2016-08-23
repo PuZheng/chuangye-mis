@@ -1,5 +1,6 @@
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
+
 export var field = function field(field, label, input, errors, required) {
   let err = errors[field];
   let classNames = ['field', 'inline'];
@@ -14,3 +15,5 @@ export var field = function field(field, label, input, errors, required) {
     ]),
   ]);
 };
+
+export default field;
