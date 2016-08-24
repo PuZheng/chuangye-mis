@@ -44,7 +44,7 @@ export var $$paginator = function (
         title: '下一页',
         onclick() {
           $$queryObj.patch({
-            page: Number(queryObj.page) - 1,
+            page: Number(queryObj.page || 1) + 1,
           });
           return false;
         }

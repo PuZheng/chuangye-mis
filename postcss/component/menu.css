@@ -43,6 +43,7 @@
     
     & .item.disabled {
         pointer-events: none;
+        color: var(--color-gray);
     }
 
     & .item.active {

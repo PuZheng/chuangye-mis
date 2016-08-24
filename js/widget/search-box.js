@@ -8,6 +8,23 @@ const ESC = 27;
 
 var h = virtualDom.h;
 
+var getText = function (option) {
+  if (!option) {
+    return '';
+  }
+  if (typeof option == 'object') {
+    return option.text || '';
+  }
+  return String(option);
+};
+
+var getAcronym = function (option) {
+  if (typeof option == 'object') {
+    return option.acronym || '';
+  }
+  return '';
+};
+
 export var $$searchBox = function (
   {
     defaultText, 
@@ -16,19 +33,23 @@ export var $$searchBox = function (
     getHints, 
     minLen=1, 
     optionContent=function (o, searchText) {
-      o = o.toUpperCase();
+      let text = getText(o).toUpperCase();
       searchText = searchText.toUpperCase();
-      let pos = o.indexOf(searchText);
-      let content = [];
+      let acronym = getAcronym(o).toUpperCase();
+      let pos = text.indexOf(searchText);
+      if (pos == -1 && acronym) {
+        pos = acronym.indexOf(searchText);
+      }
       if (pos == -1) {
-        return o;
+        return text;
       }
+      let content = [];
       if (pos > 0) {
-        content.push(o.slice(0, pos));
+        content.push(text.slice(0, pos));
       }
-      content.push(h('.span.color-accent.inline', o.slice(pos, pos + searchText.length)));
-      if (pos + searchText.length < o.length) {
-        content.push(o.slice(pos + searchText.length));
+      content.push(h('.span.color-accent.inline', text.slice(pos, pos + searchText.length)));
+      if (pos + searchText.length < text.length) {
+        content.push(text.slice(pos + searchText.length));
       }
       return content;
     },
@@ -39,7 +60,7 @@ export var $$searchBox = function (
   let $$loading = $$(false, 'loading');
   let $$active = $$(false, 'active');
   let valueFunc = function (searchText, loading, options, selection, active) {
-    return h('.search-box' + (loading? '.loading': ''), [
+    return h('.search-box.small' + (loading? '.loading': ''), [
       h('i.icon.fa.fa-search'),
       h('input.search', {
         tabIndex: 0,
@@ -104,7 +125,8 @@ export var $$searchBox = function (
               [$$options, []],
               [$$selection, -1]
             );
-            onsearch(selection || searchText);
+
+            onsearch(getText(selection) || searchText);
             return false;
           }
           if (e.which == ESC || e.keyCode == ESC) {
@@ -133,11 +155,11 @@ export var $$searchBox = function (
               // don't use onclick, becauase onclick fired after onblur
               onmousedown() {
                 $$.update(
-                  [$$searchText, o],
+                  [$$searchText, getText(o)],
                   [$$options, []],
                   [$$searchText, -1]
                 );
-                onsearch(o);
+                onsearch(getText(o), o);
                 return false;
               }
             }, optionContent(o, searchText));

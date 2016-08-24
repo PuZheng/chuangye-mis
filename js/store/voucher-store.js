@@ -1,9 +1,9 @@
 import R from 'ramda';
-import { validateObj } from '../validate-obj.js';
-import { notEmpty } from '../checkers.js';
-import { backendURL } from '../backend-url.js';
+import { validateObj } from '../validate-obj';
+import { notEmpty } from '../checkers';
+import { backendURL } from '../backend-url';
 import accountStore from './account-store';
-import config from '../config.js';
+import config from '../config';
 
 var rules = {
   voucherTypeId: notEmpty('凭证类型'),

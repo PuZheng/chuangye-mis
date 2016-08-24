@@ -54,11 +54,22 @@ a {
     padding: 0 1rem;
 
     & .header {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         margin: 0 0 .5rem 0;
         font-style: italic;
         border-bottom: 2px solid var(--color-gray-light);
         color: var(--color-primary);
+
+        &::after {
+            content: '';
+            width: 100%;
+            clear: both;
+            display: block;
+        }
+
+        & .title {
+            display: inline-block;
+        }
 
         & .new-btn {
             outline: none;
