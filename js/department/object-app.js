@@ -23,7 +23,7 @@ let vf = function (department, errors, loading) {
         value: department.name,
         oninput() {
           let acronym = pinyin(this.value, {
-            style: pinyin.STYLE_INITIALS
+            style: pinyin.STYLE_NORMAL,
           }).map(function (it) {
             return it[0][0];
           }).join('');

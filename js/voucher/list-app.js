@@ -6,7 +6,7 @@ import oth from '../oth';
 import getColOrder from '../get-col-order';
 import $$queryObj from '../query-obj';
 import page from 'page';
-import config from '../config.js';
+import config from '../config';
 import $$tableHints from '../widget/table-hints';
 import $$paginator from '../widget/paginator';
 import $$searchBox from '../widget/search-box';

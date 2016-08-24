@@ -19,6 +19,8 @@ import voucherStore from './store/voucher-store';
 import chargeBillStore from './store/charge-bill-store';
 import accountStore from './store/account-store';
 import departmentStore from './store/department-store';
+import tenantStore from './store/tenant-store';
+import tenantListApp from './tenant/list-app';
 import R from 'ramda';
 import entityStore from './store/entity-store';
 import mount from './mount';
@@ -195,6 +197,24 @@ page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar
     );
   });
 });
+
+let tenantList = function (ctx) {
+  var app = tenantListApp;
+  mount(app.page);
+  app.$$loading.toggle();
+  tenantStore.fetchList(ctx.query).then(function ({data: tenants, totalCnt}) {
+    $$.update(
+      [app.$$tenants, tenants],
+      [app.$$totalCnt, totalCnt],
+      [app.$$loading, false]
+    );
+  });
+};
+
+page('/tenant-list', 
+     loginRequired, 
+     _could('view.tenant.list'), 
+     _setupNavBar('tenant'), tenantList);
 
 page('/charge-bill/:id?', function (ctx) {
   let app = chargeBillApp;
