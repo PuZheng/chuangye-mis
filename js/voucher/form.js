@@ -8,7 +8,7 @@ import { $$voucherTypeDropdown } from './voucher-type-dropdown.js';
 import { $$voucherSubjectDropdown, onVoucherSubjectChange } from './voucher-subject-dropdown.js';
 import { $$payerDropdown } from './payer-dropdown.js';
 import { $$recipientDropdown } from './recipient-dropdown.js';
-import { field } from '../field.js';
+import { field } from '../field';
 import { $$toast } from '../toast';
 
 const $$errors = x({}, 'errors');

@@ -21,6 +21,7 @@ import accountStore from './store/account-store';
 import departmentStore from './store/department-store';
 import tenantStore from './store/tenant-store';
 import tenantListApp from './tenant/list-app';
+import tenantObjectApp from './tenant/object-app';
 import R from 'ramda';
 import entityStore from './store/entity-store';
 import mount from './mount';
@@ -215,6 +216,22 @@ page('/tenant-list',
      loginRequired, 
      _could('view.tenant.list'), 
      _setupNavBar('tenant'), tenantList);
+
+let tenantObject = function () {
+  var app = tenantObjectApp;
+  mount(app.page);
+  app.$$loading.toggle();
+  departmentStore.list.then(function (departments) {
+    $$.update(
+      [app.$$loading, false],
+      [app.$$departments, departments]
+    );
+  });
+};
+
+page('/tenant/:id?', loginRequired,
+    _could('edit.tenant.object'),
+    _setupNavBar('tenant'), tenantObject);
 
 page('/charge-bill/:id?', function (ctx) {
   let app = chargeBillApp;
