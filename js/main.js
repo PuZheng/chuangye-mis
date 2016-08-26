@@ -217,14 +217,19 @@ page('/tenant-list',
      _could('view.tenant.list'), 
      _setupNavBar('tenant'), tenantList);
 
-let tenantObject = function () {
+let tenantObject = function (ctx) {
   var app = tenantObjectApp;
   mount(app.page);
   app.$$loading.toggle();
-  departmentStore.list.then(function (departments) {
+  Promise.all([
+    departmentStore.list,
+    ctx.params.id? tenantStore.get(ctx.params.id): {}
+  ])
+  .then(function ([departments, tenant]) {
     $$.update(
       [app.$$loading, false],
-      [app.$$departments, departments]
+      [app.$$departments, departments],
+      [app.$$tenant, tenant]
     );
   });
 };
