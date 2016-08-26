@@ -117,8 +117,8 @@ Slot.prototype.toggle = function () {
 };
 
 Slot.prototype.trans = function (p, label) {
-  return connect([this], function (s) {
-    return p(s);
+  return connect([this], function (slot) {
+    return p(slot);
   }, label);
 };
 

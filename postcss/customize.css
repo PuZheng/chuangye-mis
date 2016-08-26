@@ -18,6 +18,13 @@ a {
         font-style: italic;
         border-bottom: 2px solid var(--color-gray-light);
         color: var(--color-primary);
+        &.dirty {
+            color: var(--color-accent);
+            &::after {
+                content: '*';
+            }
+        }
+        
     }
 
     & .form {
