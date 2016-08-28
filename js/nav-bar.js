@@ -54,6 +54,12 @@ var valueFunc = function valueFunc(currentMod, mods) {
         page('/tenant-list');
       }
     }, '承包人信息'): '',
+    mods.editDepartment? h('a' + _classNames(currentMod === 'settings'), {
+      href: '/settings',
+      onclick() {
+        page('/settings');
+      }
+    }, '系统设置'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
@@ -90,13 +96,15 @@ export var setupNavBar = function (mod) {
     .could('view.voucher.list')
     .could('edit.department')
     .could('view.tenant.list')
-    .then(function (viewInvoiceList, viewVoucherList, editDepartment, viewTenantList) {
+    .could('edit.settings')
+    .then(function (viewInvoiceList, viewVoucherList, editDepartment, viewTenantList, editSettings) {
       $$.update(
         [$$mods, {
           viewInvoiceList,
           viewVoucherList,
           editDepartment,
           viewTenantList,
+          editSettings,
         }],
         [$$currentMod, mod]
       );

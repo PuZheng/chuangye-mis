@@ -1,6 +1,6 @@
 import { $$loading } from './data-slots.js';
 import x from '../xx.js';
-import SmartGrid from '../../smart-grid/smart-grid.js';
+import SmartGrid from '../smart-grid/';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 

@@ -1,7 +1,7 @@
 import R from 'ramda';
 
 export default {
-  get: function (id) {
+  get: function () {
     return new Promise(function (resolve) {
       setTimeout(function () {
         let readOnly = {
