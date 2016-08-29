@@ -175,7 +175,7 @@ export class SmartGrid {
       }, [
         h('div', [
           h('.v-h-header'), 
-          h('.top-label-row', h('.h-header', 'A')),
+          h('.top-label-row', h('.header', 'A')),
         ]),
         h('div', h('.v-header', '1'))
       ])
@@ -400,7 +400,7 @@ export class SmartGrid {
     var $$topLabelCells = range(0, Math.floor((this.$$viewportWidth.val() - 1) / this.cellWidth) + 1).map(function (idx) {
       return $$.connect([sg.$$left, sg.$$actualWidth], function (left, actualWidth) {
         let offset = Math.floor((left * actualWidth) / sg.cellWidth);
-        return h('.h-header', toColumnIdx(idx + offset));
+        return h('.header', toColumnIdx(idx + offset));
       });
     });
     return $$.connect($$topLabelCells, function (...cells) {

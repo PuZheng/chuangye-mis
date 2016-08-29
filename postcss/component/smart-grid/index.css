@@ -9,6 +9,9 @@
     --focused-color: color(var(--red) l(+20%));
     --scrollbar-width: 10px;
     --tab-nav-height: 1.4rem;
+    --cell-height: 1.4rem;
+    --cell-width: 6rem;
+    --v-header-width: 3rem;
 }
 
 .smart-grid {
@@ -77,10 +80,11 @@
             box-sizing: border-box;
         }
 
-        & .h-header, & .v-header {
+        & .header {
             background: var(--color-gray-light);
             border-right: 1px solid white;
             border-bottom: 1px solid white;
+            display: inline-block;
         }
 
         & .v-h-header {
@@ -88,8 +92,8 @@
             top: 0;
             left: 0;
             display: inline-block;
-            width: 3rem;
-            max-width: 3rem;
+            width: var(--v-header-width);
+            height: var(--cell-height);
         }
          
         & .top-label-row {
@@ -98,21 +102,25 @@
             left: 3rem;
             width: 1000%;
             
-            & .h-header {
-                display: inline-block;
-                width: 6rem;
-                max-width: 6rem;
+            & .header {
+                width: var(--cell-width);
                 padding: .2rem 0rem .2rem 1rem;
             }
         }
 
-        & .v-header {
-            display: inline-block;
-            width: 3rem;
-            max-width: 3rem;
-            text-align: center;
-            padding: .2rem 0rem;
+        & .left-label-row {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: var(--v-header-width);
+
+            & .header {
+                width: var(--v-header-width);
+                text-align: center;
+                padding: .2rem 0rem;
+            }
         }
+
     }
 
     & .v-scrollbar {
