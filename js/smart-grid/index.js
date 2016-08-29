@@ -164,6 +164,22 @@ export class SmartGrid {
   constructor(def) {
     this.def = def;
     this.$$focusedCell = $$(null, 'focused-cell');
+    var sg = this;
+    this.$$view = $$(h('.smart-grid', [
+      h('.table', {
+        hook: new class Hook {
+          hook(node) {
+            sg.tableEl = node;
+          }
+        },
+      }, [
+        h('div', [
+          h('.v-h-header'), 
+          h('.top-label-row', h('.h-header', 'A')),
+        ]),
+        h('div', h('.v-header', '1'))
+      ])
+    ]), 'view');
     this.tableEl = null;
     this.$$actualWidth = $$(0, 'actual-width');
     this.$$viewportWidth = $$(0, 'viewport-width');
@@ -279,9 +295,33 @@ export class SmartGrid {
       [this.$$actualWidth, 2 * viewportWidth],
       [this.$$height, 2 * viewportHeight]
     );
+    let $$activeTab = $$(0, 'active-tab');
+    let tabNames = [];
+    for (var [tabName] of this.def.grids) {
+      tabNames.push(tabName);
+    }
+    this.$$view.connect([$$activeTab, this.$$vScrollbar, this.$$hScrollbar, this.$$table], function (activeTab, vScrollbar, hScrollbar, table) {
+      return h('.smart-grid', [
+        table,
+        hScrollbar,
+        vScrollbar,
+        h('.tabs', tabNames.map(function (tn, idx) {
+          return h('a' + (idx == activeTab? '.active': ''), {
+            href: '#',
+            onclick() {
+              if (idx != activeTab) {
+                $$activeTab.val(idx);
+              }
+              return false;
+            }
+          }, tn);
+        }))
+      ]);
+    }).update();
   }
-  get $$view() {
-    if (!this._$$view) {
+  // get $$view() {
+  //   return this._$$view;
+  //   if (!this._$$view) {
       // var grid = this;
       // let $$topHeaderRowVn = $$.connect([grid.$$focusedCell], function (focusedCell) {
       //   return h('tr.header', [
@@ -320,34 +360,34 @@ export class SmartGrid {
       //   ];
       // }, 'smart-grid');
       // var $$tabs = [];
-      var tabNames = [];
-      for (var [tabName, def] of this.def.grids) {
-        // $$tabs.push(this.makeTabSlot(tabName, def));
-        tabNames.push(tabName);
-      }
-      let $$activeTab = $$(0, 'active-tab');
-      this._$$view = $$.connect([$$activeTab, this.$$vScrollbar, this.$$hScrollbar, this.$$table], function (activeTab, vScrollbar, hScrollbar, table) {
-        // let tab = tabs[activeTab];
-        return h('.smart-grid', [
-          table,
-          hScrollbar,
-          vScrollbar,
-          h('.tabs', tabNames.map(function (tn, idx) {
-            return h('a' + (idx == activeTab? '.active': ''), {
-              href: '#',
-              onclick() {
-                if (idx != activeTab) {
-                  $$activeTab.val(idx);
-                }
-                return false;
-              }
-            }, tn);
-          }))
-        ]);
-      });
-    }
-    return this._$$view;
-  }
+      // var tabNames = [];
+      // for (var [tabName, def] of this.def.grids) {
+      //   // $$tabs.push(this.makeTabSlot(tabName, def));
+      //   tabNames.push(tabName);
+      // }
+      // let $$activeTab = $$(0, 'active-tab');
+      // this._$$view = $$.connect([$$activeTab, this.$$vScrollbar, this.$$hScrollbar, this.$$table], function (activeTab, vScrollbar, hScrollbar, table) {
+      //   // let tab = tabs[activeTab];
+      //   return h('.smart-grid', [
+      //     table,
+      //     hScrollbar,
+      //     vScrollbar,
+      //     h('.tabs', tabNames.map(function (tn, idx) {
+      //       return h('a' + (idx == activeTab? '.active': ''), {
+      //         href: '#',
+      //         onclick() {
+      //           if (idx != activeTab) {
+      //             $$activeTab.val(idx);
+      //           }
+      //           return false;
+      //         }
+      //       }, tn);
+      //     }))
+      //   ]);
+      // });
+    // }
+    // return this._$$view;
+  // }
   getVisibleCols() {
     let start = Math.floor(this.$$left.val() * this.$$actualWidth.val() / this.cellWidth);
     return range(
@@ -355,35 +395,37 @@ export class SmartGrid {
       start + Math.floor((this.$$viewportWidth.val() - 1) / this.cellWidth) + 1
     );
   }
-  get $$table() {
+  get $$topLabelRow() {
     var sg = this;
-    return $$.connect([this.$$left, this.$$viewportWidth], function (left, viewportWidth) {
-      let grid;
-      if (viewportWidth === 0) {
-        grid = [
-          h('div', [h('.v-h-header'), h('.h-header', 'A')]),
-          h('div', h('.v-header', '1'))
-        ];
-      } else {
-        let visibleCols = sg.getVisibleCols();
-        grid = [
-          h('div', {
-            style: {
-              width: viewportWidth + sg.cellWidth + sg.vHeaderWidth + 'px',
-            }
-          }, [h('.v-h-header')].concat(visibleCols.map(function (col) {
-            return h('.h-header', toColumnIdx(col));
-          }))),
-        ];
-      }
-      return h('.table', {
-        hook: new class Hook {
-          hook(node) {
-            sg.tableEl = node;
-          }
-        },
-      }, grid);
+    var $$topLabelCells = range(0, Math.floor((this.$$viewportWidth.val() - 1) / this.cellWidth) + 1).map(function (idx) {
+      return $$.connect([sg.$$left, sg.$$actualWidth], function (left, actualWidth) {
+        let offset = Math.floor((left * actualWidth) / sg.cellWidth);
+        return h('.h-header', toColumnIdx(idx + offset));
+      });
     });
+    return $$.connect($$topLabelCells, function (...cells) {
+      return h('.top-label-row', cells);      
+    });
+  }
+  get $$table() {
+    return $$.connect([this.$$topLabelRow], function (topLabelRow) {
+      return h('.table', [
+        h('.v-h-header'),
+        topLabelRow,
+      ]);
+    });
+    // return $$.connect([this.$$left, this.$$viewportWidth], function (left, viewportWidth) {
+    //   let visibleCols = sg.getVisibleCols();
+    //   return h('.table', [
+    //     h('div', {
+    //       style: {
+    //         width: viewportWidth + sg.cellWidth + sg.vHeaderWidth + 'px',
+    //       }
+    //     }, [h('.v-h-header')].concat(visibleCols.map(function (col) {
+    //       return h('.h-header', toColumnIdx(col));
+    //     }))),
+    //   ]);
+    // });
   }
   get $$hScrollbar() {
     let $$dragging = $$(false, 'dragging');

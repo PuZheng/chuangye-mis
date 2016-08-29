@@ -90,7 +90,7 @@ Slot.prototype.calcOffsprings = function () {
         };
       } else {
         this.offsprings[i.id].level = Math.max(
-          this.offsprings[i.id], level
+          this.offsprings[i.id].level, level
         );
       }
     }

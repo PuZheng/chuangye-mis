@@ -14,7 +14,7 @@ var vf = function () {
   ]);
 };
 
-var $$view = $$.connect([], vf);
+var $$view = $$.connect([], vf, 'settings-app');
 var sg;
 
 $$settings.change(function (settings) {

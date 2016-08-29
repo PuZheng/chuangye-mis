@@ -11,7 +11,7 @@
     --tab-nav-height: 1.4rem;
 }
 
-.sg, .smart-grid {
+.smart-grid {
     position: relative;
 	border-collapse: collapse;
 	border-spacing: 0px;
@@ -84,17 +84,28 @@
         }
 
         & .v-h-header {
+            position: absolute;
+            top: 0;
+            left: 0;
             display: inline-block;
             width: 3rem;
             max-width: 3rem;
         }
-
-        & .h-header:not(:first-child) {
-            display: inline-block;
-            width: 6rem;
-            max-width: 6rem;
-            padding: .2rem 0rem .2rem 1rem;
+         
+        & .top-label-row {
+            position: absolute;
+            top: 0;
+            left: 3rem;
+            width: 1000%;
+            
+            & .h-header {
+                display: inline-block;
+                width: 6rem;
+                max-width: 6rem;
+                padding: .2rem 0rem .2rem 1rem;
+            }
         }
+
         & .v-header {
             display: inline-block;
             width: 3rem;

@@ -83,10 +83,8 @@ Slot.prototype.val = function (newValue) {
 };
 
 Slot.prototype.update = function () {
-  this.val(this.valueFunc.apply(
-    this,
-    this.parents.map(parent => parent.val())
-  ));
+  this.val(this.value);
+  return this;
 };
 
 Slot.prototype.refresh = function () {
