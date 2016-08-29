@@ -7,8 +7,8 @@
     --table-border: 1px solid #eee;
     --table-striped-background-color: #f4f4f4;
     --focused-color: color(var(--red) l(+20%));
-    --scrollbar-width: 12px;
-    --tab-nav-height: 1.2rem;
+    --scrollbar-width: 10px;
+    --tab-nav-height: 1.4rem;
 }
 
 .sg, .smart-grid {
@@ -20,6 +20,7 @@
     height: 100%;
 	empty-cells: show;
     margin-top: -1px;
+
 
 	& td, & th {
 		border: var(--table-border);
@@ -67,6 +68,42 @@
         }
     }
 
+    & .table {
+        width: calc(100% - var(--scrollbar-width));
+        height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
+        user-select: none;
+
+        & * {
+            box-sizing: border-box;
+        }
+
+        & .h-header, & .v-header {
+            background: var(--color-gray-light);
+            border-right: 1px solid white;
+            border-bottom: 1px solid white;
+        }
+
+        & .v-h-header {
+            display: inline-block;
+            width: 3rem;
+            max-width: 3rem;
+        }
+
+        & .h-header:not(:first-child) {
+            display: inline-block;
+            width: 6rem;
+            max-width: 6rem;
+            padding: .2rem 0rem .2rem 1rem;
+        }
+        & .v-header {
+            display: inline-block;
+            width: 3rem;
+            max-width: 3rem;
+            text-align: center;
+            padding: .2rem 0rem;
+        }
+    }
+
     & .v-scrollbar {
         position: absolute;
         height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
@@ -75,14 +112,20 @@
         border-radius: var(--scrollbar-width);
         top: 0;
         right: 0;
+        &.dragging {
+           & .bar {
+               background: var(--color-gray);
+           }
+        }
         & .bar {
             position: absolute;
-            height: 30%;
             width: 100%;
-            background: var(--color-gray);
+            background: var(--color-gray-dark);
             border-radius: var(--scrollbar-width);
         }
     }
+
+
 
     & .h-scrollbar {
        position: absolute;
@@ -93,11 +136,16 @@
        border-radius: var(--scrollbar-width);
        margin-right: var(--scrollbar-width);
 
+       &.dragging {
+           & .bar {
+               background: var(--color-gray);
+           }
+       }
+
        & .bar {
            position: absolute;
            height: 100%;
-           width: 30%;
-           background: var(--color-gray);
+           background: var(--color-gray-dark);
            border-radius: var(--scrollbar-width);
        }
    }
@@ -108,6 +156,8 @@
         height: var(--tab-nav-height);
 
         & a {
+            -webkit-user-select: none;
+            outline: none;
             float: left;
             text-decoration: none;
             height: 100%;
@@ -115,7 +165,7 @@
             box-sizing: border-box;
             padding: 0 1rem;
             border: 1px solid var(--color-gray-light);
-            color: var(--color-gray);
+            color: var(--color-gray-dark);
             &.active {
                 color: var(--color-primary);
                 border: 1px solid var(--color-primary);

@@ -2,6 +2,7 @@ import $$ from '../slot/';
 import virtualDom from 'virtual-dom';
 import SmartGrid from '../smart-grid/';
 import R from 'ramda';
+import once from 'once';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -14,6 +15,7 @@ var vf = function () {
 };
 
 var $$view = $$.connect([], vf);
+var sg;
 
 $$settings.change(function (settings) {
   var def = {
@@ -51,7 +53,7 @@ $$settings.change(function (settings) {
       }))
     ]);
   }
-  var sg = new SmartGrid(def);
+  sg = new SmartGrid(def);
   $$view
   .connect([sg.$$view], function (sg) {
     return h('#settings-app', sg);
@@ -59,10 +61,18 @@ $$settings.change(function (settings) {
   .refresh();
 });
 
+var setupLayout = once(function () {
+  sg.setupLayout();
+});
 
 export default {
   page: {
     $$view,
+    onUpdated() {
+      if (sg) {
+        setupLayout();
+      }
+    }
   },
   $$loading,
   $$settings,

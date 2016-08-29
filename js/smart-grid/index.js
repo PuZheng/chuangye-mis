@@ -164,6 +164,12 @@ export class SmartGrid {
   constructor(def) {
     this.def = def;
     this.$$focusedCell = $$(null, 'focused-cell');
+    this.tableEl = null;
+    this.$$actualWidth = $$(0, 'actual-width');
+    this.$$viewportWidth = $$(0, 'viewport-width');
+    this.$$left = $$(0, 'left');
+    this.$$height = $$(0, 'height');
+    this.$$viewportHeight = $$(0, 'viewport-height');
   }
   isPrimitive(val) {
     return val[0] != '=';
@@ -258,6 +264,22 @@ export class SmartGrid {
     }
     return this._cells;
   }
+  setupLayout() {
+    let vHeader = this.tableEl.getElementsByClassName('v-header')[0];
+    let hHeader = this.tableEl.getElementsByClassName('h-header')[0];
+    this.vHeaderWidth = vHeader.offsetWidth;
+    this.hHeaderHeight = hHeader.offsetHeight;
+    this.cellWidth = hHeader.offsetWidth;
+    this.cellHeight = vHeader.offsetHeight;
+    var viewportWidth = this.tableEl.offsetWidth - this.hHeaderHeight;
+    var viewportHeight = this.tableEl.offsetWidth - this.vHeaderWidth;
+    $$.update(
+      [this.$$viewportWidth, viewportWidth],
+      [this.$$viewportHeight, viewportHeight],
+      [this.$$actualWidth, 2 * viewportWidth],
+      [this.$$height, 2 * viewportHeight]
+    );
+  }
   get $$view() {
     if (!this._$$view) {
       // var grid = this;
@@ -304,9 +326,10 @@ export class SmartGrid {
         tabNames.push(tabName);
       }
       let $$activeTab = $$(0, 'active-tab');
-      this._$$view = $$.connect([$$activeTab, this.$$vScrollbar, this.$$hScrollbar], function (activeTab, vScrollbar, hScrollbar) {
+      this._$$view = $$.connect([$$activeTab, this.$$vScrollbar, this.$$hScrollbar, this.$$table], function (activeTab, vScrollbar, hScrollbar, table) {
         // let tab = tabs[activeTab];
         return h('.smart-grid', [
+          table,
           hScrollbar,
           vScrollbar,
           h('.tabs', tabNames.map(function (tn, idx) {
@@ -325,17 +348,110 @@ export class SmartGrid {
     }
     return this._$$view;
   }
+  getVisibleCols() {
+    let start = Math.floor(this.$$left.val() * this.$$actualWidth.val() / this.cellWidth);
+    return range(
+      start,
+      start + Math.floor((this.$$viewportWidth.val() - 1) / this.cellWidth) + 1
+    );
+  }
+  get $$table() {
+    var sg = this;
+    return $$.connect([this.$$left, this.$$viewportWidth], function (left, viewportWidth) {
+      let grid;
+      if (viewportWidth === 0) {
+        grid = [
+          h('div', [h('.v-h-header'), h('.h-header', 'A')]),
+          h('div', h('.v-header', '1'))
+        ];
+      } else {
+        let visibleCols = sg.getVisibleCols();
+        grid = [
+          h('div', {
+            style: {
+              width: viewportWidth + sg.cellWidth + sg.vHeaderWidth + 'px',
+            }
+          }, [h('.v-h-header')].concat(visibleCols.map(function (col) {
+            return h('.h-header', toColumnIdx(col));
+          }))),
+        ];
+      }
+      return h('.table', {
+        hook: new class Hook {
+          hook(node) {
+            sg.tableEl = node;
+          }
+        },
+      }, grid);
+    });
+  }
   get $$hScrollbar() {
-    return $$.connect([], function () {
-      return h('.h-scrollbar', [
-        h('.bar'),
+    let $$dragging = $$(false, 'dragging');
+    let railEl;
+    let smartGrid = this;
+    return $$.connect([this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left], function (viewportWidth, actualWidth, dragging, left) {
+      return h('.h-scrollbar' + (dragging? '.dragging': ''), {
+        hook: new class Hook {
+          hook(el) {
+            railEl = el;
+          }
+        },
+      }, [
+        actualWidth * viewportWidth != 0? h('.bar', {
+          style: {
+            width: (viewportWidth / actualWidth) * 100 + '%',
+            left: left * 100  + '%',
+          }, 
+          // note, this function won't be recreated, so 
+          // it always remembers the first "left" etc.
+          onmousedown(e) {
+            $$dragging.toggle();
+            let lastX = e.clientX;
+            let scrollbarWidth = this.offsetWidth;
+            let onmouseup = function () {
+              $$dragging.toggle();
+              document.removeEventListener('mouseup', onmouseup);
+              document.removeEventListener('mousemove', onmousemove);
+            };
+            document.addEventListener('mouseup', onmouseup);
+            let onmousemove = function (left) {
+              return function (e) {
+                // why prevent default? http://stackoverflow.com/questions/9776086/how-to-disable-drag-drop-functionality-in-chrome
+                e.preventDefault();
+                let railWidth = railEl.offsetWidth;
+                left = (left * railWidth + (e.clientX - lastX)) / railWidth;
+                if (left < 0) {
+                  left = 0;
+                  smartGrid.$$left.val(left);
+                  return;
+                }
+                smartGrid.$$left.val(left);
+                // met the end
+                if (left * railWidth + scrollbarWidth >= railWidth) {
+                  let scrolledWidth = actualWidth - viewportWidth;
+                  let newGridWidth = actualWidth + viewportWidth;
+                  left = scrolledWidth / newGridWidth;
+                  smartGrid.$$left.val(left);
+                  smartGrid.$$actualWidth.val(newGridWidth);
+                } else {
+                  lastX = e.clientX;
+                }
+              };
+            }(left);
+            document.addEventListener('mousemove', onmousemove);
+          },
+        }): '',
       ]);
     });
   }
   get $$vScrollbar() {
-    return $$.connect([], function () {
+    return $$.connect([this.$$viewportHeight, this.$$height], function (viewportHeight, height) {
       return h('.v-scrollbar', [
-        h('.bar'),
+        viewportHeight * height != 0? h('.bar', {
+          style: {
+            height: (viewportHeight / height) * 100 + '%',
+          }
+        }): '',
       ]);
     });
   }
