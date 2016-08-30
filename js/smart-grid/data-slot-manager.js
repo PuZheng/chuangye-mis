@@ -2,30 +2,40 @@ import $$ from '../slot/';
 import { Lexer } from './script/lexer.js';
 import { Interpreter } from './script/interpreter.js';
 import { Parser } from './script/parser.js';
+import Analyzer from './analyzer';
 
 class DataSlotManager {
-  constructor(parser) {
+  constructor(def) {
     this._data = {};
-    for (let sheet of parser.sheets) {
-      this._data[sheet.name] = {};
+    this.analyzer = new Analyzer(def);
+    for (let sheet of this.analyzer.sheets) {
+      this._data[sheet.name] = this._data[sheet.name] || {};
       var slots = this._data[sheet.name];
-      for (let cell of sheet.cells) {
-        slots[cell.tag] = this.makeSlot(cell);
+      for (let tag in sheet.cells) {
+        slots[tag] = this.makeSlot(sheet.cells[tag], sheet.name);
       }
     }
   }
-  makeSlot(cell) {
+  makeSlot(cell, defaultSheetName) {
     if (cell.primitive)  {
       return $$(cell.val, `cell-${cell.tag}`);
     } else {
       let dependentSlots = [];
       let variableNames = [];
-      for (let {tabName, tag} of cell.dependencies) {
-        if (!this._data[tabName][tag]) {
-          this._data[tabName][tag] = this.makeSlot(tabName, tag);
+      for (let {sheetName, tag} of cell.dependencies) {
+        variableNames.push(sheetName? sheetName + ':' + tag: tag);
+        sheetName = sheetName || defaultSheetName;
+        if (!this._data[sheetName]) {
+          this._data[sheetName] = {};
         }
-        dependentSlots.push(this._data[tabName][tag]);
-        variableNames.push(tabName? tabName + ':' + tag: tag);
+        if (!this._data[sheetName][tag]) {
+          this._data[sheetName][tag] = this.makeSlot(this.analyzer.getCellDef(sheetName, tag) || {
+            primitive: true,
+            val: '',
+            tag: tag,
+          }, sheetName);
+        }
+        dependentSlots.push(this._data[sheetName][tag]);
       }
       return $$.connect(dependentSlots, function (...slots) {
         let env = {};
@@ -38,8 +48,8 @@ class DataSlotManager {
       });
     }
   }
-  get(tabName, tag) {
-    return this._data[tabName][tag];
+  get(sheetName, tag) {
+    return (this._data[sheetName] || {})[tag];
   }
 };
 
