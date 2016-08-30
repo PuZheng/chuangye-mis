@@ -127,6 +127,26 @@
             }
         }
 
+        & .data-grid {
+            position: absolute;
+            top: var(--cell-height);
+            left: var(--v-header-width);
+            width: 1000%;
+            height: 1000%;
+
+            & .row {
+                height: var(--cell-height);
+                width: 100%;
+                border-bottom: 1px solid var(--color-gray-light);
+
+                & .cell {
+                    display: inline-block;
+                    width: var(--cell-width);
+                    height: 100%;
+                    border-right: 1px solid var(--color-gray-light);
+                }
+            }
+        }
     }
 
     & .scrollbar {

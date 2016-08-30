@@ -288,6 +288,8 @@ export class SmartGrid {
     this.cellHeight = vHeader.offsetHeight;
     var viewportWidth = this.gridEl.offsetWidth - this.vHeaderWidth;
     var viewportHeight = this.gridEl.offsetHeight - this.hHeaderHeight;
+    this.rowNum = Math.floor((viewportHeight - 1) / this.cellHeight) + 1;
+    this.colNum = Math.floor((viewportWidth - 1) / this.cellWidth) + 1;
     $$.update(
       [this.$$viewportWidth, viewportWidth],
       [this.$$viewportHeight, viewportHeight],
@@ -396,10 +398,7 @@ export class SmartGrid {
   }
   get $$topLabelRow() {
     var sg = this;
-    var $$topLabelCells = range(
-      0, 
-      Math.floor((this.$$viewportWidth.val() - 1) / this.cellWidth) + 1
-    ).map(function (idx) {
+    var $$topLabelCells = range(0, this.colNum).map(function (idx) {
       return $$.connect(
         [sg.$$left, sg.$$actualWidth], 
         function (left, actualWidth) {
@@ -413,11 +412,7 @@ export class SmartGrid {
   }
   get $$leftLabelRow() {
     var sg = this;
-    console.log(this.$$viewportHeight.val(), this.cellHeight);
-    var $$leftLabelCells = range(
-      0, 
-      Math.floor((this.$$viewportHeight.val() - 1) / this.cellHeight) + 1
-    ).map(function (idx) {
+    var $$leftLabelCells = range(0, this.rowNum).map(function (idx) {
      return $$.connect(
        [sg.$$top, sg.$$actualHeight], 
        function (top, actualHeight) {
@@ -429,9 +424,25 @@ export class SmartGrid {
       return h('.left-label-row', cells);
     });
   }
+  get $$dataGrid() {
+    var sg = this;
+    let $$rows = range(0, sg.rowNum).map(function (row) {
+      let $$cells = range(0, sg.colNum).map(function (col) {
+        return $$.connect([], function () {
+          return h('.cell' + '.' + makeTag(row, col));
+        });
+      });
+      return $$.connect($$cells, function (...cells) {
+        return h('.row', cells);
+      });
+    });
+    return $$.connect($$rows, function (...rows) {
+      return h('.data-grid', rows);
+    });
+  }
   get $$grid() {
     let smartGrid = this;
-    return $$.connect([this.$$topLabelRow, this.$$leftLabelRow], function (topLabelRow, leftLabelRow) {
+    let vf = function (topLabelRow, leftLabelRow, dataGrid) {
       return h('.grid', {
         onwheel(e) {
           let actualHeight = smartGrid.$$actualHeight.val();
@@ -451,28 +462,20 @@ export class SmartGrid {
       }, [
         h('.v-h-header'),
         topLabelRow,
-        leftLabelRow
+        leftLabelRow,
+        dataGrid,
       ]);
-    });
-    // return $$.connect([this.$$left, this.$$viewportWidth], function (left, viewportWidth) {
-    //   let visibleCols = sg.getVisibleCols();
-    //   return h('.table', [
-    //     h('div', {
-    //       style: {
-    //         width: viewportWidth + sg.cellWidth + sg.vHeaderWidth + 'px',
-    //       }
-    //     }, [h('.v-h-header')].concat(visibleCols.map(function (col) {
-    //       return h('.h-header', toColumnIdx(col));
-    //     }))),
-    //   ]);
-    // });
+    };
+    return $$.connect(
+      [this.$$topLabelRow, this.$$leftLabelRow, this.$$dataGrid], 
+      vf);
   }
   get $$hScrollbar() {
     let $$dragging = $$(false, 'dragging');
     let railEl;
     let barEl;
     let smartGrid = this;
-    return $$.connect([this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left], function (viewportWidth, actualWidth, dragging, left) {
+    let vf = function (viewportWidth, actualWidth, dragging, left) {
       return h('.scrollbar.horizontal' + (dragging? '.dragging': ''), {
         hook: new class Hook {
           hook(el) {
@@ -522,7 +525,10 @@ export class SmartGrid {
           },
         }),
       ]);
-    });
+    };
+    return $$.connect(
+      [this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left], 
+      vf);
   }
   get $$vScrollbar() {
     let $$dragging = $$(false, 'dragging');
