@@ -12,17 +12,16 @@
     --cell-height: 1.4rem;
     --cell-width: 6rem;
     --v-header-width: 3rem;
+    --cell-padding-x: .5rem;
+    --cell-padding-y: .2rem;
 }
 
 .smart-grid {
     position: relative;
-	border-collapse: collapse;
-	border-spacing: 0px;
 	max-width: 100%;
 	width: 100%;
     height: 100%;
-	empty-cells: show;
-    margin-top: -1px;
+    overflow: hidden;
 
 
 	& td, & th {
@@ -71,7 +70,9 @@
         }
     }
 
-    & .table {
+    & .grid {
+        position: absolute;
+        overflow: hidden;
         width: calc(100% - var(--scrollbar-width));
         height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
         user-select: none;
@@ -82,9 +83,9 @@
 
         & .header {
             background: var(--color-gray-light);
-            border-right: 1px solid white;
-            border-bottom: 1px solid white;
             display: inline-block;
+            line-height: calc(var(--cell-height) - 2 * var(--cell-padding-y));
+            padding: var(--cell-padding-y) var(--cell-padding-x);
         }
 
         & .v-h-header {
@@ -101,73 +102,69 @@
             top: 0;
             left: 3rem;
             width: 1000%;
+            border-bottom: 1px solid var(--color-gray);
             
             & .header {
                 width: var(--cell-width);
-                padding: .2rem 0rem .2rem 1rem;
+                border-right: 1px solid var(--color-gray);
             }
         }
 
         & .left-label-row {
             position: absolute;
-            top: 0;
+            top: var(--cell-height);
             left: 0;
             width: var(--v-header-width);
+            height: 1000%;
+            border-right: 1px solid var(--color-gray);
 
             & .header {
-                width: var(--v-header-width);
+                width: 100%;
                 text-align: center;
-                padding: .2rem 0rem;
+                padding-left: 0;
+                padding-right: 0;
+                border-bottom: 1px solid var(--color-gray);
             }
         }
 
     }
 
-    & .v-scrollbar {
+    & .scrollbar {
         position: absolute;
-        height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
-        width: var(--scrollbar-width);
         background: var(--color-gray-light);
         border-radius: var(--scrollbar-width);
-        top: 0;
-        right: 0;
-        &.dragging {
-           & .bar {
-               background: var(--color-gray);
-           }
-        }
+
         & .bar {
             position: absolute;
-            width: 100%;
             background: var(--color-gray-dark);
             border-radius: var(--scrollbar-width);
         }
+
+        &.dragging .bar {
+            background: var(--color-gray);
+        }
+
+        &.horizontal {
+            left: 0;
+            bottom: var(--tab-nav-height);
+            height: var(--scrollbar-width);
+            width: calc(100% - var(--scrollbar-width));
+
+            & .bar {
+                height: 100%;
+            }
+        }
+
+        &.vertical {
+            top: 0;
+            right: 0;
+            height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
+            width: var(--scrollbar-width);
+            & .bar {
+                width: 100%;
+            }
+        }
     }
-
-
-
-    & .h-scrollbar {
-       position: absolute;
-       bottom: var(--tab-nav-height);
-       height: var(--scrollbar-width);
-       width: calc(100% - var(--scrollbar-width));
-       background: var(--color-gray-light);
-       border-radius: var(--scrollbar-width);
-       margin-right: var(--scrollbar-width);
-
-       &.dragging {
-           & .bar {
-               background: var(--color-gray);
-           }
-       }
-
-       & .bar {
-           position: absolute;
-           height: 100%;
-           background: var(--color-gray-dark);
-           border-radius: var(--scrollbar-width);
-       }
-   }
 
     & > .tabs {
         position: absolute;
