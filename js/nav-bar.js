@@ -1,4 +1,4 @@
-import $$ from './xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import page from 'page';
 var h = virtualDom.h;
@@ -15,7 +15,7 @@ export var $$mods = $$({}, 'mods');
 
 export var $$currentMod = $$('home', 'current-module');
 
-var valueFunc = function valueFunc(currentMod, mods) {
+var valueFunc = function valueFunc([currentMod, mods]) {
   if (!accountStore.user) {
     return h('');
   }
@@ -23,7 +23,7 @@ var valueFunc = function valueFunc(currentMod, mods) {
     h('a' + _classNames(currentMod === 'home'), {
       href: '/',
       onclick() {
-        page.route('/');
+        page('/');
         return false;
       }
     }, [

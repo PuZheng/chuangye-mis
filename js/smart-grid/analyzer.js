@@ -47,12 +47,12 @@ export var skipUndefined = function skipUndefined(grids, i, j) {
 class Analyzer {
   constructor(def) {
     this.def = def;
-    this.sheets = def.map(function ([name, { grids=[] }], idx) {
+    this.sheets = def.sheets.map(function ({label, grids=[]}, idx) {
       var cells = {};
       let [cellDef, i, j] = skipUndefined(grids, 0, 0);
       while (cellDef != undefined) {
         let tag = makeTag(i, j);
-        let val = (typeof cellDef === 'string')? cellDef: (cellDef.value || '');
+        let val = (typeof cellDef === 'string')? cellDef: (cellDef.val || '');
         let primitive = val[0] != '=';
         let dependencies = [];
         let script;
@@ -65,13 +65,13 @@ class Analyzer {
           }
           script = val.slice(1);
         }
-        cells[tag] = {
+        cells[tag] = Object.assign(cellDef, {
           val, 
           tag,
           primitive, 
           dependencies,
           script,
-        };
+        });
         j++;
         if (j == grids[i].length) {
           j = 0;
@@ -80,23 +80,22 @@ class Analyzer {
         [cellDef, i, j] = skipUndefined(grids, i, j);
       }
       return {
-        name: name || ('SHEET' + (idx + 1)),
+        idx: idx,
+        label: label || ('SHEET' + (idx + 1)),
         cells,
       };
     });
   }
-  getCellDef(sheetName, tag) {
-    let sheet;
-    for (var it of this.sheets) {
-      if (it.name === sheetName) {
-        sheet = it;
-        break;
-      }
-    }
+  getCellDef(sheetIdx, tag) {
+    let sheet = this.sheets[sheetIdx];
     if (!sheet) {
       return;
     }
     return (sheet.cells || {})[tag];
+  }
+
+  getSheet(sheetIdx) {
+    return this.sheets[sheetIdx];
   }
 };
 

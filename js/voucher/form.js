@@ -1,4 +1,4 @@
-import x from '../xx.js';
+import x from 'slot';
 import { $$voucher, $$loading } from './data-slots.js';
 import page from 'page';
 import voucherStore from '../store/voucher-store.js';
@@ -25,11 +25,11 @@ $$voucher.change(function () {
 }());
 
 
-const valueFunc = function valueFunc(
+const valueFunc = function valueFunc([
   loading, voucher, errors,
   voucherTypeDropdown, voucherSubjectDropdown,
   payerDropdown, recipientDropdown
-) {
+]) {
   let classNames = ['form', 'relative'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join('');

@@ -1,10 +1,10 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import { $$dropdown } from '../widget/dropdown';
 import { $$invoice, $$accountTerms } from './data-slots';
 
 export var $$accountTermDropdown = $$dropdown({
   defaultText: '请选择会计账期',
-  $$options: $$.connect([$$accountTerms], function (l) {
+  $$options: $$.connect([$$accountTerms], function ([l]) {
     return l.map(function (t) {
       return {
         value: t.id,
@@ -12,7 +12,7 @@ export var $$accountTermDropdown = $$dropdown({
       };
     });
   }),
-  $$value: $$.connect([$$invoice], function (o) {
+  $$value: $$.connect([$$invoice], function ([o]) {
     return o.accountTermId;
   }),
   onchange(value) {

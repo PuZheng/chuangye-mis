@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import pagination from '../pagination';
 var h = virtualDom.h;
@@ -6,7 +6,7 @@ var h = virtualDom.h;
 export var $$tableHints = function (
   {$$totalCnt, $$queryObj, pageSize}
 ) {
-  return $$.connect([$$totalCnt, $$queryObj], function (totalCnt, queryObj) {
+  return $$.connect([$$totalCnt, $$queryObj], function ([totalCnt, queryObj]) {
     return h('.table-hints', [
       h('span', '符合条件的记录: '),
       h('span.record-no', '' + totalCnt),

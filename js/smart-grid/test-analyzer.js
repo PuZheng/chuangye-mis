@@ -3,21 +3,28 @@ import Analyzer from './analyzer';
 import R from 'ramda';
 
 test('analyzer', function (t) {
-  let def = [
-    ['A', {
-      grids: [
-        ['1', '2', 'abc'],
-        [, '3'],
-      ],
-    }],
-    ['B', {}],
-    ['', {}],
-  ];
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['1', '2', 'abc'],
+          [, '3'],
+        ],
+      },
+      {
+        label: 'B',
+      },
+      {
+        label: '',
+      }
+    ]
+  };
   let analyzer = new Analyzer(def);
   let sheets = analyzer.sheets;
-  t.is(sheets[0].name, 'A');
-  t.is(sheets[1].name, 'B');
-  t.is(sheets[2].name, 'SHEET3');
+  t.is(sheets[0].label, 'A');
+  t.is(sheets[1].label, 'B');
+  t.is(sheets[2].label, 'SHEET3');
   let cells = sheets[0].cells;
   let cell = cells['A1'];
   t.is(cell.val, '1');
@@ -41,32 +48,38 @@ test('analyzer', function (t) {
 });
 
 test('getCellDef', function (t) {
-  let def = [
-    ['A', {
-      grids: [
-        ['a', 'b', 'c'],
-        [, , 'f'],
-      ]
-    }]
-  ];
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['a', 'b', 'c'],
+          [, , 'f'],
+        ]
+      }
+    ]
+  };
 
   let analyzer = new Analyzer(def);
-  let cellDef = analyzer.getCellDef('A', 'A1');
+  let cellDef = analyzer.getCellDef(0, 'A1');
   t.is(cellDef.val, 'a');
 });
 
 test('dependencies', function (t) {
-  let def = [
-    ['A', {
-      grids: [
-        ['a', 'b', 'c'],
-        ['=A1+B1+C1+A:A1', , 'f'],
-      ]
-    }]
-  ];
+  let def = {
+    sheets: [
+      {
+        name: 'A',
+        grids: [
+          ['a', 'b', 'c'],
+          ['=A1+B1+C1+SHEET1:A1', , 'f'],
+        ]
+      }
+    ]
+  };
   let analyzer = new Analyzer(def);
-  let cellDef = analyzer.getCellDef('A', 'A2');
-  t.is(cellDef.val, '=A1+B1+C1+A:A1');
+  let cellDef = analyzer.getCellDef(0, 'A2');
+  t.is(cellDef.val, '=A1+B1+C1+SHEET1:A1');
   t.false(cellDef.primitive);
 
   let dependencies = cellDef.dependencies;
@@ -83,7 +96,7 @@ test('dependencies', function (t) {
     tag: 'C1'
   });
   t.deepEqual(dependencies[3], {
-    sheetName: 'A',
+    sheetName: 'SHEET1',
     tag: 'A1'
   });
 });

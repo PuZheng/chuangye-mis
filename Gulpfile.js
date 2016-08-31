@@ -21,6 +21,7 @@ var postcss    = require('gulp-postcss');
 var sourcemaps = require('gulp-sourcemaps');
 var json = require('rollup-plugin-json');
 var eslint = require('gulp-eslint');
+var includePaths = require('rollup-plugin-includepaths');
 
 gulp.task('connect', function() {
   connect.server({
@@ -80,10 +81,18 @@ gulp.task('rollup', function () {
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot']
     }),
     commonjs({
       ignoreGlobal: true,
+    }),
+    includePaths({
+      paths: ['js'],
+      include: {
+        slot: 'js/slot/index.js',
+        'throttle-slot': 'js/throttle-slot/index.js',
+        'smart-grid': 'js/smart-grid/index.js',
+      }
     }),
     string({
       include: ['js/**/*.ejs'],

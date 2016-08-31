@@ -1,5 +1,5 @@
 import { $$searchDropdown } from '../widget/search-dropdown';
-import $$ from '../xx.js';
+import $$ from 'slot';
 import { $$voucher, $$voucherSubjects, $$loading, $$selectedVoucherSubject, $$payers, $$recipients } from './data-slots.js';
 import R from 'ramda';
 import entityStore from '../store/entity-store.js';
@@ -7,10 +7,10 @@ import entityStore from '../store/entity-store.js';
 
 export var $$voucherSubjectDropdown = $$searchDropdown({
     defaultText: '请选择凭证项目',
-    $$value: $$.connect([$$voucher], function (o) {
+    $$value: $$.connect([$$voucher], function ([o]) {
       return o.voucherSubjectId;
     }),
-    $$options: $$.connect([$$voucherSubjects], function (l) {
+    $$options: $$.connect([$$voucherSubjects], function ([l]) {
       return l.map(vs => (
         {
           value: vs.id,

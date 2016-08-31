@@ -93,6 +93,7 @@
     "rollup-plugin-babel": "^2.6.1",
     "rollup-plugin-buble": "^0.12.1",
     "rollup-plugin-commonjs": "^3.1.0",
+    "rollup-plugin-includepaths": "^0.1.5",
     "rollup-plugin-json": "^2.0.1",
     "rollup-plugin-node-resolve": "^1.7.1",
     "rollup-plugin-string": "^2.0.2",

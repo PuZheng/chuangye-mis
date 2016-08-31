@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 
 const UP = 38;
@@ -59,7 +59,7 @@ export var $$searchBox = function (
   let $$options = $$([], 'options');
   let $$loading = $$(false, 'loading');
   let $$active = $$(false, 'active');
-  let valueFunc = function (searchText, loading, options, selection, active) {
+  let valueFunc = function ([searchText, loading, options, selection, active]) {
     return h('.search-box.small' + (loading? '.loading': ''), [
       h('i.icon.fa.fa-search'),
       h('input.search', {

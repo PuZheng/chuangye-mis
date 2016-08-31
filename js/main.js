@@ -9,7 +9,7 @@ import dashboardApp from './dashboard/app';
 import chargeBillApp from './charge-bill/app';
 import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
-import $$ from './xx';
+import $$ from 'slot';
 import invoiceTypeStore from './store/invoice-type-store';
 import accountTermStore from './store/account-term-store';
 import invoiceStore from './store/invoice-store';
@@ -34,7 +34,7 @@ import { could } from './principal';
 import qs from 'query-string';
 import $$queryObj from './query-obj';
 
-$$.init({ debug: true });
+// $$.init({ debug: true });
 
 mount(navBar, '#nav-bar');
 mount(toast.page, '#toast');

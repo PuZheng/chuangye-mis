@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import page from 'page';
 import overlay from '../overlay';
@@ -20,7 +20,7 @@ var searchBox = h('.search-box.small', [
   }),
 ]);
 
-var vf = function (loading, departments, searchText) {
+var vf = function ([loading, departments, searchText]) {
   return h('#departments-app.list-app' + (loading? '.loading': ''), [
     h('.header', [
       '车间列表(' + departments.length + '个)',

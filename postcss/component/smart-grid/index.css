@@ -97,7 +97,7 @@
             height: var(--cell-height);
         }
          
-        & .top-label-row {
+        & .top-tag-row {
             position: absolute;
             top: 0;
             left: 3rem;
@@ -110,7 +110,7 @@
             }
         }
 
-        & .left-label-row {
+        & .left-tag-row {
             position: absolute;
             top: var(--cell-height);
             left: 0;
@@ -144,6 +144,15 @@
                     width: var(--cell-width);
                     height: 100%;
                     border-right: 1px solid var(--color-gray-light);
+                    vertical-align: text-bottom;
+                    padding: var(--cell-padding-y) var(--cell-padding-x);
+                    line-height: calc(var(--cell-height) - 2 * var(--cell-padding-y));
+
+                    & .content {
+                        display: block;
+                        overflow: hidden;
+                        height: 100%;
+                    }
                 }
             }
         }

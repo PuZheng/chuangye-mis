@@ -1,4 +1,4 @@
-import $$ from './xx.js';
+import $$ from 'slot';
 import classNames from './class-names.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
@@ -13,7 +13,7 @@ $$toast.change(function (toast) {
   }
 });
 
-var $$view = $$.connect([$$toast], function (toast) {
+var $$view = $$.connect([$$toast], function ([toast]) {
   return toast? h(classNames('bg-' + toast.type || 'info', 'p2', 'center', 'color-gray-dark'), toast.message): h('');   
 });
 

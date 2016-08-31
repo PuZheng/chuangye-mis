@@ -1,4 +1,4 @@
-import $$ from './xx';
+import $$ from 'slot';
 
 var $$queryObj = $$({}, 'query-obj');
 

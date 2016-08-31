@@ -1,4 +1,4 @@
-import x from '../xx.js';
+import x from 'slot';
 
 export const $$voucher = x({}, 'voucher');
 export const $$voucherTypes = x([], 'voucher-types');

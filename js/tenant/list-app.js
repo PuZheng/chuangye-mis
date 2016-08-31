@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import $$searchBox from '../widget/search-box';
 import $$queryObj from '../query-obj';
@@ -14,7 +14,7 @@ var $$loading = $$(false, 'loading');
 var $$tenants = $$([], 'tenants');
 var $$totalCnt = $$(0, 'totalCnt');
 
-var tableVf = function (queryObj, tenants) {
+var tableVf = function ([tenants]) {
   return h('table.table.compact.striped', [
     h('thead', h('tr', [
       h('th', '姓名'),
@@ -36,7 +36,7 @@ var tableVf = function (queryObj, tenants) {
   ]);
 };
 
-var $$table = $$.connect([$$queryObj, $$tenants], tableVf);
+var $$table = $$.connect([$$tenants], tableVf);
 
 var $$nameFilter = $$searchBox({
   defaultText: '输入承包人姓名/车间',
@@ -52,7 +52,7 @@ var $$nameFilter = $$searchBox({
 
 });
 
-var vf = function (nameFilter, table, loading, tableHints, paginator) {
+var vf = function ([nameFilter, table, loading, tableHints, paginator]) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '承包人列表'),

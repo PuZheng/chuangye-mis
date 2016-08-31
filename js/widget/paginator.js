@@ -1,5 +1,5 @@
 import virtualDom from 'virtual-dom';
-import $$ from '../xx';
+import $$ from 'slot';
 import pagination from '../pagination';
 
 var h = virtualDom.h;
@@ -7,7 +7,7 @@ var h = virtualDom.h;
 export var $$paginator = function (
   {$$totalCnt, $$queryObj, pageSize}
 ) {
-  let vf = function (totalCnt, queryObj) {
+  let vf = function ([totalCnt, queryObj]) {
     let pg = pagination({
       totalCnt,
       page: queryObj.page || 1,

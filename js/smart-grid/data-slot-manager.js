@@ -2,21 +2,24 @@ import $$ from '../slot/';
 import { Lexer } from './script/lexer.js';
 import { Interpreter } from './script/interpreter.js';
 import { Parser } from './script/parser.js';
-import Analyzer from './analyzer';
 
 class DataSlotManager {
-  constructor(def) {
-    this._data = {};
-    this.analyzer = new Analyzer(def);
-    for (let sheet of this.analyzer.sheets) {
-      this._data[sheet.name] = this._data[sheet.name] || {};
-      var slots = this._data[sheet.name];
+  constructor(analyzer) {
+    this._data = [];
+    this.analyzer = analyzer;
+    for (var [idx, sheet] of this.analyzer.sheets.entries()) {
+      // note, this._data[idx] may already created
+      this._data[idx] = this._data[idx] || {};
+      var slots = this._data[idx];
       for (let tag in sheet.cells) {
-        slots[tag] = this.makeSlot(sheet.cells[tag], sheet.name);
+        let cell = sheet.cells[tag];
+        if (!cell.primitive) {
+          slots[tag] = this.makeSlot(cell, sheet);
+        }
       }
     }
   }
-  makeSlot(cell, defaultSheetName) {
+  makeSlot(cell, currentSheet) {
     if (cell.primitive)  {
       return $$(cell.val, `cell-${cell.tag}`);
     } else {
@@ -24,20 +27,26 @@ class DataSlotManager {
       let variableNames = [];
       for (let {sheetName, tag} of cell.dependencies) {
         variableNames.push(sheetName? sheetName + ':' + tag: tag);
-        sheetName = sheetName || defaultSheetName;
-        if (!this._data[sheetName]) {
-          this._data[sheetName] = {};
+        sheetName = sheetName;
+        let sheetIdx;
+        if (sheetName) {
+          sheetIdx = Number(sheetName.replace(/SHEET/i, '')) - 1;
+        } else {
+          sheetIdx = currentSheet.idx;
         }
-        if (!this._data[sheetName][tag]) {
-          this._data[sheetName][tag] = this.makeSlot(this.analyzer.getCellDef(sheetName, tag) || {
+        if (!this._data[sheetIdx]) {
+          this._data[sheetIdx] = {};
+        }
+        if (!this._data[sheetIdx][tag]) {
+          this._data[sheetIdx][tag] = this.makeSlot(this.analyzer.getCellDef(sheetIdx, tag) || {
             primitive: true,
             val: '',
             tag: tag,
-          }, sheetName);
+          }, this.analyzer.getSheet(sheetIdx));
         }
-        dependentSlots.push(this._data[sheetName][tag]);
+        dependentSlots.push(this._data[sheetIdx][tag]);
       }
-      return $$.connect(dependentSlots, function (...slots) {
+      return $$.connect(dependentSlots, function (slots) {
         let env = {};
         for (var i = 0; i < variableNames.length; ++i) {
           env[variableNames[i]] = slots[i];
@@ -48,8 +57,8 @@ class DataSlotManager {
       });
     }
   }
-  get(sheetName, tag) {
-    return (this._data[sheetName] || {})[tag];
+  get(sheetIdx, tag) {
+    return (this._data[sheetIdx] || {})[tag];
   }
 };
 

@@ -31,6 +31,10 @@ var Slot = function (initial, tag) {
   this.token = this.tag + '-' + this.id;
 };
 
+Slot.prototype.isRoot = function () {
+  return this.parents.length == 0;
+};
+
 Slot.prototype.change = function (proc) {
   this.onChangeCbs.push(proc);
 };
@@ -42,7 +46,7 @@ Slot.prototype.val = function (newValue) {
   if (newValue === undefined) {
     return this.value;
   } else {
-    opt.debug && console.info(`xx: slot ${this.tag} updated -- `, this.value, '->', newValue);
+    opt.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
     var oldValue = this.value;
     this.value = newValue; 
     this.onChangeCbs.forEach(function (cb) {
@@ -50,8 +54,8 @@ Slot.prototype.val = function (newValue) {
     });
     for (var level of this.offspringsByLevels) {
       for (var slot of level) {
-        opt.debug && console.info(`xx: slot ${slot.tag} will be refreshed`);
-        slot.refresh();
+        opt.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
+        slot.refresh([this]);
       }
     }
     return oldValue;
@@ -59,10 +63,7 @@ Slot.prototype.val = function (newValue) {
 };
 
 Slot.prototype.update = function () {
-  this.val(this.valueFunc.apply(
-    this,
-    this.parents.map(parent => parent.val())
-  ));
+  this.val(this.value);
 };
 
 Slot.prototype.calcOffsprings = function () {
@@ -109,18 +110,20 @@ Slot.prototype.calcOffsprings = function () {
   return this;
 };
 
-Slot.prototype.refresh = function () {
+Slot.prototype.refresh = function (initiators) {
+  let args = [this.parents.map(parent => parent.val())];
+  args.push(initiators);
   this.value = this.valueFunc.apply(
     this,
-    this.parents.map(parent => parent.val())
+    args
   );
   for (var cb of this.onChangeCbs) {
-    cb(this.value);
+    cb(this.value, initiators);
   }
 };
 
 Slot.prototype.patch = function (obj) {
-  console.info(`xx: slot ${this.tag} is about to be patched`, obj);
+  console.info(`slot: slot ${this.tag} is about to be patched`, obj);
   this.val(Object.assign(this.val(), obj));
 };
 
@@ -137,7 +140,7 @@ Slot.prototype.toggle = function () {
 };
 
 Slot.prototype.trans = function (p, label) {
-  return connect([this], function (slot) {
+  return connect([this], function ([slot]) {
     return p(slot);
   }, label);
 };
@@ -167,7 +170,7 @@ Slot.prototype.connect = function (slots, valueFunc) {
   // initialize
   self.value = self.valueFunc.apply(
     self,
-    self.parents.map(parent => parent.val())
+    [self.parents.map(parent => parent.val())]
   );
   // re-collect ancestors/un-ancestors
   var unvisited = objectValues(affected);
@@ -234,8 +237,8 @@ var update = function (...slotValuePairs) {
   });
   for (var level of levels) {
     for (var slot of level) {
-      opt.debug && console.info(`xx: slot ${slot.tag} will be refreshed`);
-      slot.refresh();
+      opt.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
+      slot.refresh([slotValuePairs.map( it => it[0] )]);
     }
   }
 };
@@ -246,10 +249,13 @@ var init = function (opt_ = {}) {
   opt.debug = !!opt_.debug;
 };
 
-export default (function (p) {
-  p.slot = Slot;
-  p.connect = connect;
-  p.update = update;
-  p.init = init;
-  return p;
+export default (function ($$) {
+  $$.Slot = Slot;
+  $$.slot = function (...args) {
+    return new Slot(args);
+  };
+  $$.connect = connect;
+  $$.update = update;
+  $$.init = init;
+  return $$;
 })((initial, tag) => new Slot(initial, tag));

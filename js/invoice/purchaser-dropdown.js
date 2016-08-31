@@ -1,10 +1,10 @@
-import $$ from '../xx.js';
+import $$ from 'slot';
 import { $$searchDropdown } from '../widget/search-dropdown';
 import {$$invoice, $$purchasers} from './data-slots';
 
 export var $$purchaserDropdown = $$searchDropdown({
   defaultText: '请选择购买方',
-  $$options: $$.connect([$$purchasers], function (l) {
+  $$options: $$.connect([$$purchasers], function ([l]) {
     return l.map(p => ({ 
       value: p.id, text: p.name, acronym: p.acronym 
     }));
@@ -14,7 +14,7 @@ export var $$purchaserDropdown = $$searchDropdown({
       purchaserId: parseInt(value)
     });
   },
-  $$value: $$.connect([$$invoice], function (o) {
+  $$value: $$.connect([$$invoice], function ([o]) {
     return o.purchaserId;
   }),
 });

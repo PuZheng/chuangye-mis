@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import { match, optionContent } from '../dropdown-utils';
 import virtualDom from 'virtual-dom';
 
@@ -14,7 +14,7 @@ export var $$searchDropdown = function (
   let $$searchText = $$('', 'search-text');
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
-  let valueFunc = function (activated, searchText, options, value, selection) {
+  let valueFunc = function ([activated, searchText, options, value, selection]) {
     let classNames = ['dropdown', 'search'];
     if (activated) {
       classNames.push('activated');

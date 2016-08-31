@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import oth from '../oth';
 import classNames from '../class-names';
@@ -17,7 +17,7 @@ var $$list = $$([], 'list');
 var $$totalCnt = $$('', 'total-cnt');
 
 
-var $$idOth = $$.connect([$$queryObj], function (queryObj) {
+var $$idOth = $$.connect([$$queryObj], function ([queryObj]) {
   let order = getColOrder('id', queryObj);
   return oth({
     label: 'id', 
@@ -30,7 +30,7 @@ var $$idOth = $$.connect([$$queryObj], function (queryObj) {
   });
 });
 
-var $$dateOth = $$.connect([$$queryObj], function (queryObj) {
+var $$dateOth = $$.connect([$$queryObj], function ([queryObj]) {
   let order = getColOrder('date', queryObj);
   return oth({
     label: '日期', 
@@ -43,7 +43,7 @@ var $$dateOth = $$.connect([$$queryObj], function (queryObj) {
   });
 });
 
-var $$accountTermOth = $$.connect([$$queryObj], function (queryObj) {
+var $$accountTermOth = $$.connect([$$queryObj], function ([queryObj]) {
   let order = getColOrder('account_term', queryObj);
   return oth({
     label: '帐期', 
@@ -56,10 +56,10 @@ var $$accountTermOth = $$.connect([$$queryObj], function (queryObj) {
   });
 });
 
-var valueFunc = function valueFunc(
-  loading, list, idOth, dateOth, totalCnt, paginator, tableHints, filters,
+var valueFunc = function valueFunc([
+  loading, list, idOth, dateOth, paginator, tableHints, filters,
   accountTermOth
-) {
+]) {
   return h('.list-app', [
     h('.header', '发票列表'),
     filters,
@@ -110,7 +110,7 @@ var valueFunc = function valueFunc(
 
 var $$view = $$.connect([
   $$loading, $$list, $$idOth, 
-  $$dateOth, $$totalCnt, $$paginator({
+  $$dateOth, $$paginator({
     $$totalCnt,
     $$queryObj,
     pageSize: config.getPageSize('invoice'),

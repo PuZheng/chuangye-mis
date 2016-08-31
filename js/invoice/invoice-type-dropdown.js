@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import $$dropdown from '../widget/dropdown';
 import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selectedInvoiceType} from './data-slots';
 import R from 'ramda';
@@ -11,7 +11,7 @@ export var $$invoiceTypeDropdown = $$dropdown({
   onchange(value) {
     onInvoiceTypeChange(value);
   },
-  $$options: $$.connect([$$invoiceTypes], function (l) {
+  $$options: $$.connect([$$invoiceTypes], function ([l]) {
     return l.map(function (it) {
       return {
         value: it.id,
@@ -19,7 +19,7 @@ export var $$invoiceTypeDropdown = $$dropdown({
       };
     });
   }),
-  $$value: $$.connect([$$invoice], function (o) {
+  $$value: $$.connect([$$invoice], function ([o]) {
     return o.invoiceTypeId;
   }),
 });

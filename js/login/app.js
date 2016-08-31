@@ -1,4 +1,4 @@
-import x from '../xx.js';
+import x from 'slot';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 import { field } from '../field.js';
@@ -23,7 +23,7 @@ $$password.change(function () {
 
 var $$page = x.connect(
   [$$username, $$password, $$errors, $$loading], 
-  function (username, password, errors, loading) {
+  function ([username, password, errors, loading]) {
     return h('#login-app', [
       h(classNames('block', 'p2', 'border', 'box', 'rounded', 'border-gray', 'mx-auto', loading), [
         h('h3.header.c1', '欢迎登陆创业电镀管理系统'),
