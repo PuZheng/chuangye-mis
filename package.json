@@ -11,7 +11,7 @@
   },
   "ava": {
     "files": [
-      "smart-grid/test.js",
+      "js/smart-grid/test-*.js",
       "!**/not-this-file.js"
     ],
     "source": [

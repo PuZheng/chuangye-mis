@@ -48,4 +48,4 @@ export default (function (p) {
   };
   p.init = init;
   return p;
-})((initial, tag) => new ThrottleSlot(initial, tag));
+})((initial, tag, changed) => new ThrottleSlot(initial, tag, changed));

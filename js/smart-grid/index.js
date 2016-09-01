@@ -169,26 +169,43 @@ export class SmartGrid {
     this.dataSlotManager = new DataSlotManager(this.analyzer);
     this.$$focusedCell = $$(null, 'focused-cell');
     var sg = this;
-    this.$$view = $$(h('.smart-grid', [
-      h('.grid', {
+    this.$$view = $$(h('.smart-grid', h('.grid-container', {
         hook: new class Hook {
           hook(node) {
-            sg.gridEl = node;
+            sg.gridContainerEl = node;
           }
         },
-      }, [
-        h('.v-h-header'), 
-        h('.top-tag-row', h('.header', 'A')),
-        h('.left-tag-row', h('.header', '1'))
+    }, [
+      h('.grid', [
+        h('.top-tag-row', [
+          h('.v-h-header'), 
+          h('.header', 'A')
+        ]),
+        h('.row', h('.header', '1'))
       ])
-    ]), 'view');
-    this.gridEl = null;
+    ])), 'view');
+    this.gridContainerEl = null;
     this.$$actualWidth = $$(0, 'actual-width');
     this.$$actualHeight = $$(0, 'actual-height');
     this.$$viewportWidth = $$(0, 'viewport-width');
     this.$$viewportHeight = $$(0, 'viewport-height');
     this.$$left = $$(0, 'left');
     this.$$top = $$(0, 'top');
+    let topmostRowVf = function ([top, actualHeight]) {
+      if (!actualHeight) return 0;
+      return Math.floor(top * actualHeight / sg.cellHeight); 
+    };
+    this.$$topmostRow = $$.connect(
+      [this.$$top, this.$$actualHeight], topmostRowVf, 
+      'topmost', 
+      function (oldVal, newVal) { 
+        return oldVal != newVal; 
+      }
+    );
+    this.$$leftmostCol = $$.connect([this.$$left, this.$$actualWidth], function ([top, actualWidth]) {
+      if (!actualWidth) return 0;
+      return Math.floor(top * actualWidth / sg.cellWidth); 
+    }, 'leftmost', function (oldVal, newVal) { return oldVal != newVal; });
   }
   isPrimitive(val) {
     return val[0] != '=';
@@ -284,14 +301,14 @@ export class SmartGrid {
     return this._cells;
   }
   setupLayout() {
-    let vHeader = this.gridEl.querySelector('.left-tag-row .header');
-    let hHeader = this.gridEl.querySelector('.top-tag-row .header');
+    let vHeader = this.gridContainerEl.querySelector('.row .header');
+    let hHeader = this.gridContainerEl.querySelector('.top-tag-row .header');
     this.vHeaderWidth = vHeader.offsetWidth;
     this.hHeaderHeight = hHeader.offsetHeight;
     this.cellWidth = hHeader.offsetWidth;
     this.cellHeight = vHeader.offsetHeight;
-    var viewportWidth = this.gridEl.offsetWidth - this.vHeaderWidth;
-    var viewportHeight = this.gridEl.offsetHeight - this.hHeaderHeight;
+    var viewportWidth = this.gridContainerEl.offsetWidth - this.vHeaderWidth;
+    var viewportHeight = this.gridContainerEl.offsetHeight - this.hHeaderHeight;
     this.rowNum = Math.floor((viewportHeight - 1) / this.cellHeight) + 1;
     this.colNum = Math.floor((viewportWidth - 1) / this.cellWidth) + 1;
     $$.update(
@@ -405,14 +422,13 @@ export class SmartGrid {
     var sg = this;
     var $$topTagCells = range(0, this.colNum).map(function (idx) {
       return $$.connect(
-        [sg.$$left, sg.$$actualWidth], 
-        function ([left, actualWidth]) {
-          let offset = Math.floor((left * actualWidth) / sg.cellWidth);
-          return h('.header', toColumnIdx(idx + offset));
+        [sg.$$leftmostCol], 
+        function ([leftmostCol]) {
+          return h('.header', toColumnIdx(Number(leftmostCol) + idx));
         });
     });
     return $$.connect($$topTagCells, function (cells) {
-      return h('.top-tag-row', cells);      
+      return h('.top-tag-row', [h('.v-h-header')].concat(cells));      
     });
   }
   get $$leftTagRow() {
@@ -440,15 +456,13 @@ export class SmartGrid {
   makeCellSlot(row, col) {
     let sg = this;
     var $$data;
-    var vf = function ([left, top, val], initiators) {
-      let offsetX = Math.floor((left * sg.$$actualWidth.val()) / sg.cellWidth);
-      let offsetY = Math.floor((top * sg.$$actualHeight.val()) / sg.cellHeight);
+    var vf = function ([leftmostCol, topmostRow, val], initiators) {
 
-      let tag = makeTag(row + offsetY, col + offsetX);
+      let tag = makeTag(row + topmostRow, col + leftmostCol);
       let cellDef = sg.analyzer.getCellDef(sg.$$activeSheetIdx.val(), tag);
       if (initiators) {
-        let leftChanged = ~initiators.indexOf(sg.$$left);
-        let topChanged = ~initiators.indexOf(sg.$$top);
+        let leftChanged = ~initiators.indexOf(sg.$$leftmostCol);
+        let topChanged = ~initiators.indexOf(sg.$$topmostRow);
         if (leftChanged || topChanged) {
           let $$cellData = sg.dataSlotManager.get(sg.$$activeSheetIdx.val(), tag);
           if ($$cellData) {
@@ -474,50 +488,56 @@ export class SmartGrid {
       $$data = $$(cellDef? cellDef.val: '', 'cell-data-${tag}');
     }
 
-    return $$.connect([this.$$left, this.$$top, $$data], vf);
+    return $$.connect([this.$$leftmostCol, this.$$topmostRow, $$data], vf);
+  }
+  makeLeftTagHeaderSlot(row) {
+    return $$.connect([this.$$topmostRow], function ([topmostRow]) {
+      return h('.header', '' + (topmostRow + row + 1));
+    });
   }
   get $$dataGrid() {
     var sg = this;
     let $$rows = range(0, sg.rowNum).map(function (row) {
-      let $$cells = range(0, sg.colNum).map(function (col) {
-        return sg.makeCellSlot(row, col);
-      });
-      return $$.connect($$cells, function (cells) {
-        return h('.row', cells);
+      return $$.connect([sg.makeLeftTagHeaderSlot(row), sg.$$leftmostCol, sg.$$topmostRow], function ([leftTagHeader, leftmostCol, topmostRow]) {
+        console.log('row');
+        let cells = range(0, sg.colNum).map(function (col) {
+          return h('.cell');
+        });
+        return h('.row', [leftTagHeader].concat(cells));
       });
     });
     return $$.connect($$rows, function (rows) {
-      return h('.data-grid', rows);
+      return [rows];
     });
   }
   get $$grid() {
     let smartGrid = this;
-    let vf = function ([topTagRow, leftTagRow, dataGrid]) {
-      return h('.grid', {
-        onwheel(e) {
-          let actualHeight = smartGrid.$$actualHeight.val();
-          let viewportHeight = smartGrid.$$viewportHeight.val();
-          var top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
-          if (top < 0) {
-            top = 0;
+    let vf = function ([topTagRow, dataGrid]) {
+      return h('.grid-container', [
+        h('.grid', {
+          onwheel(e) {
+            let actualHeight = smartGrid.$$actualHeight.val();
+            let viewportHeight = smartGrid.$$viewportHeight.val();
+            var top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
+            if (top < 0) {
+              top = 0;
+            }
+            if (top * actualHeight + viewportHeight >= actualHeight) {
+              let scrolledHeight = actualHeight - viewportHeight;
+              actualHeight += viewportHeight;
+              top = scrolledHeight / actualHeight;
+              smartGrid.$$actualHeight.val(actualHeight);
+            }
+            smartGrid.$$top.val(top);
           }
-          if (top * actualHeight + viewportHeight >= actualHeight) {
-            let scrolledHeight = actualHeight - viewportHeight;
-            actualHeight += viewportHeight;
-            top = scrolledHeight / actualHeight;
-            smartGrid.$$actualHeight.val(actualHeight);
-          }
-          smartGrid.$$top.val(top);
-        }
-      }, [
-        h('.v-h-header'),
-        topTagRow,
-        leftTagRow,
-        dataGrid,
+        }, [
+          topTagRow,
+          dataGrid,
+        ])
       ]);
     };
     return $$.connect(
-      [this.$$topTagRow, this.$$leftTagRow, this.$$dataGrid], 
+      [this.$$topTagRow, this.$$dataGrid], 
       vf);
   }
   get $$hScrollbar() {
