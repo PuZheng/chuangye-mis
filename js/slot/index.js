@@ -171,6 +171,17 @@ Slot.prototype.trans = function (p, label) {
   }, label);
 };
 
+Slot.prototype.map = function (f) {
+  return new Proxy(this, {
+    get(target, name) {
+      if (name == 'value') {
+        return f(target.value);
+      }
+      return target[name];
+    }
+  });
+};
+
 Slot.prototype.connect = function (slots, valueFunc) {
   var self = this;
   self.valueFunc = valueFunc;

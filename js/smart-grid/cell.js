@@ -1,9 +1,11 @@
+import virtualDom from 'virtual-dom';
+var h = virtualDom.h;
 class Cell {
-  constructor() {
-
+  constructor(value) {
+    this.value = value;
   }
-  get $$view() {
-
+  get vnode() {
+    return h('.cell', this.value);
   }
 };
 

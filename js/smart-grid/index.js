@@ -4,6 +4,7 @@ import { Parser } from './script/parser.js';
 import { Interpreter } from './script/interpreter.js';
 import Analyzer from './analyzer';
 import DataSlotManager from './data-slot-manager';
+import Cell from './cell';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
@@ -52,115 +53,115 @@ export const CellMode = {
   DEFAULT: 'DEFAULT',
 };
 
-class Cell {
-  constructor(row, col, def, $$val, $$focusedCell) {
-    this.row = row;
-    this.col = col;
-    this.tag = makeTag(row, col);
-    this.def = def;
-    this.$$focusedCell = $$focusedCell;
-    this.$$val = $$val;
-    this.$$mode = $$(CellMode.DEFAULT, `cel-${this.tag}-mode`);
-    this.$$view = this.makeView();
-  }
-  get onclick() {
-    let cell = this;
-    if (cell.$$mode.val() === CellMode.DEFAULT) {
-      return function onclick() {
-        let args = [
-          [cell.$$mode, CellMode.SELECTED],
-        ];
-        let focusedCell = cell.$$focusedCell.val();
-        if (focusedCell && (focusedCell.tag != cell.tag)) {
-          args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-        }
-        args.push([cell.$$focusedCell, cell]);
-        $$.update(...args);
-      };
-    }
-  }
-  get ondblclick() {
-    let cell = this;
-    if (!cell.def.readOnly && cell.$$mode.val() != CellMode.EDIT) {
-      return function () {
-        let args = [
-          [cell.$$mode, CellMode.EDIT]
-        ];
-        let focusedCell = cell.$$focusedCell.val();
-        if (focusedCell && (focusedCell.tag != cell.tag)) {
-          args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-        };
-        args.push([cell.$$focusedCell, cell]);
-        $$.update(...args);
-      };
-    }
-  }
-  makeView() {
-    let cell = this;
-    return $$.connect([this.$$val, this.$$mode], function ([val, mode]) {
-      let className = [cell.tag];
-      if (cell.def.readOnly) {
-        className.push('readonly');
-      }
-      let selected = mode == CellMode.SELECTED;
-      if (selected) {
-        className.push('-selected');
-      }
-      let editing = mode == CellMode.EDIT;
-      if (editing) {
-        className.push('-editing');
-      }
-      return h('td' + className.map( i => '.' + i ), {
-        style: cell.def.style,
-        onclick: cell.onclick,
-        ondblclick: cell.ondblclick, 
-      }, [
-        cell.makeContentVnode(cell.def, val, editing),
-        cell.makeEditor(cell.def, val, editing, function (val) {
-          $$.update(
-            [cell.$$val, val],
-            [cell.$$mode, CellMode.SELECTED]
-          );
-          return false;
-        }),
-      ]);
-    }, 'cell-' + this.tag);
-  }
-  makeEditor(def, val, editing, onChangeCb) {
-    // it could be more sophisticated
-    return h('input.editor', {
-      type: 'text',
-      value: val,
-      style: editing? {
-      }: {
-        display: 'none',
-      }, 
-      onfocus: function moveCaretAtEnd (e) {
-        var temp_value = e.target.value;
-        e.target.value = '';
-        e.target.value = temp_value;
-      },
-      onkeydown: function (e) {
-        if (e.keyCode == 27 || e.keyCode == 13) {
-          e.stopPropagation();
-          onChangeCb(this.value);
-          return true;
-        }
-      },
-      onblur: function () {
-        onChangeCb(this.value);
-      },
-    });
-  }
-  makeContentVnode(def, val, editing) {
-    // it could be more sophisticated
-    return h('.content', editing? {
-      style: {
-        display: 'none'
-      }
-    }: {}, String(val));
-  }
-}
+// class Cell {
+//   constructor(row, col, def, $$val, $$focusedCell) {
+//     this.row = row;
+//     this.col = col;
+//     this.tag = makeTag(row, col);
+//     this.def = def;
+//     this.$$focusedCell = $$focusedCell;
+//     this.$$val = $$val;
+//     this.$$mode = $$(CellMode.DEFAULT, `cel-${this.tag}-mode`);
+//     this.$$view = this.makeView();
+//   }
+//   get onclick() {
+//     let cell = this;
+//     if (cell.$$mode.val() === CellMode.DEFAULT) {
+//       return function onclick() {
+//         let args = [
+//           [cell.$$mode, CellMode.SELECTED],
+//         ];
+//         let focusedCell = cell.$$focusedCell.val();
+//         if (focusedCell && (focusedCell.tag != cell.tag)) {
+//           args.push([focusedCell.$$mode, CellMode.DEFAULT]);
+//         }
+//         args.push([cell.$$focusedCell, cell]);
+//         $$.update(...args);
+//       };
+//     }
+//   }
+//   get ondblclick() {
+//     let cell = this;
+//     if (!cell.def.readOnly && cell.$$mode.val() != CellMode.EDIT) {
+//       return function () {
+//         let args = [
+//           [cell.$$mode, CellMode.EDIT]
+//         ];
+//         let focusedCell = cell.$$focusedCell.val();
+//         if (focusedCell && (focusedCell.tag != cell.tag)) {
+//           args.push([focusedCell.$$mode, CellMode.DEFAULT]);
+//         };
+//         args.push([cell.$$focusedCell, cell]);
+//         $$.update(...args);
+//       };
+//     }
+//   }
+//   makeView() {
+//     let cell = this;
+//     return $$.connect([this.$$val, this.$$mode], function ([val, mode]) {
+//       let className = [cell.tag];
+//       if (cell.def.readOnly) {
+//         className.push('readonly');
+//       }
+//       let selected = mode == CellMode.SELECTED;
+//       if (selected) {
+//         className.push('-selected');
+//       }
+//       let editing = mode == CellMode.EDIT;
+//       if (editing) {
+//         className.push('-editing');
+//       }
+//       return h('td' + className.map( i => '.' + i ), {
+//         style: cell.def.style,
+//         onclick: cell.onclick,
+//         ondblclick: cell.ondblclick, 
+//       }, [
+//         cell.makeContentVnode(cell.def, val, editing),
+//         cell.makeEditor(cell.def, val, editing, function (val) {
+//           $$.update(
+//             [cell.$$val, val],
+//             [cell.$$mode, CellMode.SELECTED]
+//           );
+//           return false;
+//         }),
+//       ]);
+//     }, 'cell-' + this.tag);
+//   }
+//   makeEditor(def, val, editing, onChangeCb) {
+//     // it could be more sophisticated
+//     return h('input.editor', {
+//       type: 'text',
+//       value: val,
+//       style: editing? {
+//       }: {
+//         display: 'none',
+//       }, 
+//       onfocus: function moveCaretAtEnd (e) {
+//         var temp_value = e.target.value;
+//         e.target.value = '';
+//         e.target.value = temp_value;
+//       },
+//       onkeydown: function (e) {
+//         if (e.keyCode == 27 || e.keyCode == 13) {
+//           e.stopPropagation();
+//           onChangeCb(this.value);
+//           return true;
+//         }
+//       },
+//       onblur: function () {
+//         onChangeCb(this.value);
+//       },
+//     });
+//   }
+//   makeContentVnode(def, val, editing) {
+//     // it could be more sophisticated
+//     return h('.content', editing? {
+//       style: {
+//         display: 'none'
+//       }
+//     }: {}, String(val));
+//   }
+// }
 
 export class SmartGrid {
   constructor(def) {
@@ -495,18 +496,86 @@ export class SmartGrid {
       return h('.header', '' + (topmostRow + row + 1));
     });
   }
+  getCellSlot(tag) {
+    return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
+  }
+  getCellDef(tag) {
+    return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
+  }
+  $$createRow(row) {
+    let sg = this;
+    let dataVf = function ([leftmostCol, topmostRow, ...cellValues], initiators) {
+      if (initiators && initiators.length) {
+        let leftmostChanged = ~initiators.indexOf(sg.$$leftmostCol);
+        let topmostChanged = ~initiators.indexOf(sg.$$topmostRow);
+        if (leftmostChanged || topmostChanged) {
+          console.log('reconnect');
+          let $$cellSlots = [];
+          for (let col = 0; col < sg.colNum; ++col) {
+            let tag = makeTag(row + topmostRow, col + leftmostCol);
+            let $$cellSlot = sg.getCellSlot(tag);
+            if ($$cellSlot) {
+              $$cellSlots.push($$cellSlot.map(function (v) {
+                return {
+                  tag, 
+                  value: v
+                };
+              }));
+            }
+          }
+          if ($$cellSlots && $$cellSlots.length) {
+            this.connect([sg.$$leftmostCol, sg.$$topmostRow].concat($$cellSlots), dataVf);
+          }
+        }
+      }
+      let data = {};
+      for (var { tag, value } of cellValues) {
+        data[tag] = value;
+      }
+      return data;
+    };
+    let $$cellSlots = [];
+    for (let col = 0; col < sg.colNum; ++col) {
+      let tag = makeTag(row, col);
+      let $$cellSlot = this.getCellSlot(tag);
+      if ($$cellSlot) {
+        $$cellSlots.push($$cellSlot.map(function (v) {
+          return {
+            tag, 
+            value: v
+          };
+        }));
+      }
+    }
+    let $$data = $$.connect(
+      [sg.$$leftmostCol, sg.$$topmostRow].concat($$cellSlots), 
+      dataVf, 
+      'row-${row}-data'
+    );
+    let vf = function (
+      [leftTagHeader, leftmostCol, topmostRow, data]
+    ) {
+      let cells = range(0, sg.colNum).map(function (col) {
+        let tag = makeTag(row + topmostRow, col + leftmostCol);
+        let val;
+        if (tag in data) {
+          val = data[tag];
+        } else {
+          let cellDef = sg.getCellDef(tag);
+          val = cellDef && cellDef.val;
+        }
+        return new Cell(val).vnode;
+      });
+      return h('.row', [leftTagHeader].concat(cells));
+    };
+    return $$.connect([sg.makeLeftTagHeaderSlot(row), sg.$$leftmostCol, 
+                      sg.$$topmostRow, $$data], vf);
+  }
   get $$dataGrid() {
     var sg = this;
-    let $$rows = range(0, sg.rowNum).map(function (row) {
-      return $$.connect([sg.makeLeftTagHeaderSlot(row), sg.$$leftmostCol, sg.$$topmostRow], function ([leftTagHeader, leftmostCol, topmostRow]) {
-        console.log('row');
-        let cells = range(0, sg.colNum).map(function (col) {
-          return h('.cell');
-        });
-        return h('.row', [leftTagHeader].concat(cells));
-      });
-    });
-    return $$.connect($$rows, function (rows) {
+    return $$.connect(range(0, sg.rowNum).map(function (row) {
+      return sg.$$createRow(row);
+    }), function (rows) {
       return [rows];
     });
   }

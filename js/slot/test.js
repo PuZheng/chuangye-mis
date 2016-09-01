@@ -185,3 +185,13 @@ test('changed4', function (t) {
   t.is(cnt, 1);
   t.is($$s5.val(), 5);
 });
+
+test('map', function (t) {
+  let $$s1 = $$(1, 's1');
+  let $$s2 = $$.connect([$$s1], function (s1) {
+    return s1 * 2;
+  }).map(function (v) {
+    return v * 2;
+  });
+  t.is($$s2.val(), 4);
+});
