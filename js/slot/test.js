@@ -159,13 +159,19 @@ test('changed3', function (t) {
 });
 
 test('changed4', function (t) {
-  let $$s1 = $$(1, 's1');
-  let $$s2 = $$(2, 's2');
+  let $$s1 = $$(1, 's1', function () {
+    return false;
+  });
+  let $$s2 = $$(2, 's2', function () {
+    return false;
+  });
   let $$s3 = $$.connect([$$s1], function ([s1]) {
     return s1 + 1;
   }, 's3', function () { 
     return false; 
   });
+  $$.update([$$s1, 2]);
+  t.is($$s3.val(), 2);
   let $$s4 = $$.connect([$$s2], function([s2]) {
     return s2 + 1;
   }, 's4', function () {

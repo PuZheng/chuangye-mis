@@ -81,7 +81,7 @@ gulp.task('rollup', function () {
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot']
     }),
     commonjs({
       ignoreGlobal: true,
@@ -92,6 +92,7 @@ gulp.task('rollup', function () {
         slot: 'js/slot/index.js',
         'throttle-slot': 'js/throttle-slot/index.js',
         'smart-grid': 'js/smart-grid/index.js',
+        'pipe-slot': 'js/pipe-slot/index.js',
       }
     }),
     string({

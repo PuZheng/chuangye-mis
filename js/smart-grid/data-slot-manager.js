@@ -1,4 +1,4 @@
-import $$ from '../slot/';
+import $$ from 'slot';
 import { Lexer } from './script/lexer.js';
 import { Interpreter } from './script/interpreter.js';
 import { Parser } from './script/parser.js';
@@ -18,6 +18,21 @@ class DataSlotManager {
         }
       }
     }
+  }
+  get slots() {
+    let dsm = this;
+    return function *() {
+      for (let sheetIdx = 0; sheetIdx < dsm._data.length; ++sheetIdx) {
+        let sheet = dsm._data[sheetIdx];
+        for (let tag in sheet) {
+          yield {
+            sheetIdx,
+            tag,
+            slot: sheet[tag],
+          };
+        }
+      }
+    }();
   }
   makeSlot(cell, currentSheet) {
     if (cell.primitive)  {
@@ -46,7 +61,7 @@ class DataSlotManager {
         }
         dependentSlots.push(this._data[sheetIdx][tag]);
       }
-      return $$.connect(dependentSlots, function (slots) {
+      return $$(null, 'cell-${cell.tag}').connect(dependentSlots, function (slots) {
         let env = {};
         for (var i = 0; i < variableNames.length; ++i) {
           env[variableNames[i]] = slots[i];

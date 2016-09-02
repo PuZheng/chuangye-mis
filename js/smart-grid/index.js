@@ -6,6 +6,7 @@ import Analyzer from './analyzer';
 import DataSlotManager from './data-slot-manager';
 import Cell from './cell';
 import virtualDom from 'virtual-dom';
+import pipeSlot from 'pipe-slot';
 var h = virtualDom.h;
 
 const makeTag = function (row, col) {
@@ -502,74 +503,47 @@ export class SmartGrid {
   getCellDef(tag) {
     return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
   }
+  $$createCell(row, col) {
+    let sg = this;
+    let vf = function ([leftmostCol, topmostRow, data], initiators) {
+      let tag = makeTag(row + topmostRow, col + leftmostCol);
+      let cellDef = sg.analyzer.getCellDef(sg.$$activeSheetIdx.val(), tag);
+      if (initiators) {
+        let leftChanged = ~initiators.indexOf(sg.$$leftmostCol);
+        let topChanged = ~initiators.indexOf(sg.$$topmostRow);
+        if (leftChanged || topChanged) {
+          let $$cellData = sg.dataSlotManager.get(sg.$$activeSheetIdx.val(), tag);
+          if ($$cellData) {
+            $$data.connect([$$cellData], ([it]) => it);
+          } else {
+            $$data.connect([], () => cellDef? cellDef.val: '');
+          }
+          data = $$data.val();
+        }
+      }
+      return h('.cell', data);
+    };
+    let $$data;
+    let tag = makeTag(row, col);
+    let $$cellData = this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
+    if ($$cellData) {
+      $$data = $$.connect([$$cellData], function ([it]) {
+        return it;
+      }, 'cell-data-${tag}');
+    } else {
+      let cellDef = this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
+      $$data = $$(cellDef? cellDef.val: '', 'cell-data-${tag}');
+    }
+    return pipeSlot(null, 'cell-{tag}').connect([this.$$leftmostCol, this.$$topmostRow, $$data], vf);
+  }
   $$createRow(row) {
     let sg = this;
-    let dataVf = function ([leftmostCol, topmostRow, ...cellValues], initiators) {
-      if (initiators && initiators.length) {
-        let leftmostChanged = ~initiators.indexOf(sg.$$leftmostCol);
-        let topmostChanged = ~initiators.indexOf(sg.$$topmostRow);
-        if (leftmostChanged || topmostChanged) {
-          console.log('reconnect');
-          let $$cellSlots = [];
-          for (let col = 0; col < sg.colNum; ++col) {
-            let tag = makeTag(row + topmostRow, col + leftmostCol);
-            let $$cellSlot = sg.getCellSlot(tag);
-            if ($$cellSlot) {
-              $$cellSlots.push($$cellSlot.map(function (v) {
-                return {
-                  tag, 
-                  value: v
-                };
-              }));
-            }
-          }
-          if ($$cellSlots && $$cellSlots.length) {
-            this.connect([sg.$$leftmostCol, sg.$$topmostRow].concat($$cellSlots), dataVf);
-          }
-        }
-      }
-      let data = {};
-      for (var { tag, value } of cellValues) {
-        data[tag] = value;
-      }
-      return data;
-    };
-    let $$cellSlots = [];
-    for (let col = 0; col < sg.colNum; ++col) {
-      let tag = makeTag(row, col);
-      let $$cellSlot = this.getCellSlot(tag);
-      if ($$cellSlot) {
-        $$cellSlots.push($$cellSlot.map(function (v) {
-          return {
-            tag, 
-            value: v
-          };
-        }));
-      }
-    }
-    let $$data = $$.connect(
-      [sg.$$leftmostCol, sg.$$topmostRow].concat($$cellSlots), 
-      dataVf, 
-      'row-${row}-data'
-    );
-    let vf = function (
-      [leftTagHeader, leftmostCol, topmostRow, data]
-    ) {
-      let cells = range(0, sg.colNum).map(function (col) {
-        let tag = makeTag(row + topmostRow, col + leftmostCol);
-        let val;
-        if (tag in data) {
-          val = data[tag];
-        } else {
-          let cellDef = sg.getCellDef(tag);
-          val = cellDef && cellDef.val;
-        }
-        return new Cell(val).vnode;
-      });
+    let $$cells = range(0, sg.colNum).map(function (col) {
+      return new Cell(sg, row, col).$$view;
+    });
+    return $$.connect([sg.makeLeftTagHeaderSlot(row)].concat($$cells), function ([leftTagHeader, ...cells]) {
       return h('.row', [leftTagHeader].concat(cells));
-    };
-    return $$.connect([sg.makeLeftTagHeaderSlot(row), sg.$$leftmostCol, 
-                      sg.$$topmostRow, $$data], vf);
+    });
   }
   get $$dataGrid() {
     var sg = this;
@@ -819,7 +793,7 @@ export class SmartGrid {
 };
 
 SmartGrid.onUpdated = function (node) {
-  var inputEl = node.querySelector('td.-editing > input');
+  var inputEl = node.querySelector('td.editing > input');
   inputEl && inputEl.focus();
 };
 

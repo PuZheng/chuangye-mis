@@ -5,6 +5,9 @@ var _uniqueId = function () {
   };
 }();
 
+var isEmptyObject = function (obj) {
+  return Object.keys(obj).length === 0 && obj.constructor === Object;
+};
 
 var objectValues = obj => (Object.values?  obj => Object.values(obj): function (obj) {
   var values = [];
@@ -38,6 +41,7 @@ Slot.prototype.isRoot = function () {
 
 Slot.prototype.change = function (proc) {
   this.onChangeCbs.push(proc);
+  return this;
 };
 
 Slot.prototype.offChange = function (proc) {
@@ -50,12 +54,22 @@ Slot.prototype.val = function (newValue) {
     if (this.changed && !this.changed(this.value, newValue)) {
       return this.value;
     }
+    if (this.children.length == 0) {
+      return this.value;
+    }
+    if (this.children.lenght == 1) {
+      this.children[0].update();
+      return this.value;
+    }
     opt.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
     var oldValue = this.value;
     this.value = newValue; 
     this.onChangeCbs.forEach(function (cb) {
       cb.call(this, newValue);
     });
+    if (this.offspringsByLevels.length === 0) {
+      this.calcOffsprings();
+    }
     let cleanSlots = {};
     let updateRoot = this;
     for (var level of this.offspringsByLevels) {
@@ -96,8 +110,25 @@ var collectDirectChildren = function collectDirectChildren(slots) {
   return objectValues(ret);
 };
 
-Slot.prototype.calcOffsprings = function calcOffsprings() {
+var calcOffsprings = function calcOffsprings(from) {
+  var affected = {};
+  for (let slot of from) {
+    for (let parent of slot.parents) {
+      affected[parent.id] = parent;
+    }
+  }
+
+  for (var id in affected) {
+    let slot = affected[id];
+    slot.calcOffsprings();
+  }
+};
+
+Slot.prototype.calcOffsprings = function () {
   this.offsprings = {};
+  if (this.children.length <= 1) {
+    return;
+  }
   // level by level
   for (
     var offsprings = objectValues(this.children), level = 1; 
@@ -182,7 +213,7 @@ Slot.prototype.map = function (f) {
   });
 };
 
-Slot.prototype.connect = function (slots, valueFunc) {
+Slot.prototype.connect = function (slots, valueFunc, parentsCalcOffsprings=false) {
   var self = this;
   self.valueFunc = valueFunc;
   // affected slots are parents/un-parents
@@ -209,6 +240,13 @@ Slot.prototype.connect = function (slots, valueFunc) {
     self,
     [self.parents.map(parent => parent.val())]
   );
+  if (!parentsCalcOffsprings) {
+    self.parents.forEach(function (parent) {
+      parent.offsprings = {};
+      parent.offspringsByLevels = [];
+    });
+    return self;
+  }
   // re-collect ancestors/un-ancestors
   var unvisited = objectValues(affected);
   while (unvisited.length) {
@@ -230,15 +268,21 @@ Slot.prototype.connect = function (slots, valueFunc) {
 /**
  * note! a child has only one chance to setup its parents
  * */
-var connect = function connect(slots, valueFunc, tag, changed) {
+var connect = function connect(slots, valueFunc, tag, changed, parentsCalcOffsprings=false) {
   var self = new Slot(null, tag, changed);
-  return self.connect(slots, valueFunc);
+  return self.connect(slots, valueFunc, parentsCalcOffsprings);
 };
 
 var update = function (...slotValuePairs) {
+  let cleanSlots = {};
   slotValuePairs.forEach(function ([slot, value]) {
     opt.debug && console.info(`slot ${slot.tag} changed`, slot.value, value);
+    let oldValue = slot.value;
     slot.value = value;
+    if (slot.changed && !slot.changed(oldValue, value)) {
+      cleanSlots[slot.id] = slot;
+      return;
+    }
     for (var cb of slot.onChangeCbs) {
       cb.call(slot, value);
     }
@@ -255,6 +299,9 @@ var update = function (...slotValuePairs) {
       }
   };
   slotValuePairs.forEach(function ([slot]) {
+    if (isEmptyObject(slot.offsprings)) {
+      slot.calcOffsprings();
+    }
     objectValues(slot.offsprings).forEach(function ({slot: offspring, level}) {
       addToRelatedSlots(offspring, level);
     });
@@ -272,7 +319,6 @@ var update = function (...slotValuePairs) {
     }
     slots.push(slot);
   });
-  let cleanSlots = {};
   let mayChange = {};
   for (var k in relatedSlots) {
     mayChange[k] = true;
@@ -312,6 +358,7 @@ export default (function ($$) {
     return new Slot(args);
   };
   $$.connect = connect;
+  $$.calcOffsprings = calcOffsprings;
   $$.update = update;
   $$.init = init;
   return $$;
