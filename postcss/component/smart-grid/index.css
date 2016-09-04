@@ -92,7 +92,12 @@
             display: table-cell;
             height: var(--cell-height);
             min-height: var(--cell-height);
+            &.selected {
+                background: var(--focused-color);
+            }
         }
+
+
 
         & .v-h-header {
             display: table-cell;

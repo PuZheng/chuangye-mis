@@ -7,11 +7,10 @@ import DataSlotManager from './data-slot-manager';
 import Cell from './cell';
 import virtualDom from 'virtual-dom';
 import pipeSlot from 'pipe-slot';
-var h = virtualDom.h;
+import CellMode from './cell-mode';
+import makeTag from './make-tag';
 
-const makeTag = function (row, col) {
-  return `${toColumnIdx(col)}${row + 1}`;
-};
+var h = virtualDom.h;
 
 /**
  * change to column index notation, this notation is very bizzare, for example:
@@ -169,7 +168,6 @@ export class SmartGrid {
     this.def = def;
     this.analyzer = new Analyzer(def);
     this.dataSlotManager = new DataSlotManager(this.analyzer);
-    this.$$focusedCell = $$(null, 'focused-cell');
     var sg = this;
     this.$$view = $$(h('.smart-grid', h('.grid-container', {
         hook: new class Hook {
@@ -208,6 +206,7 @@ export class SmartGrid {
       if (!actualWidth) return 0;
       return Math.floor(top * actualWidth / sg.cellWidth); 
     }, 'leftmost', function (oldVal, newVal) { return oldVal != newVal; });
+    this.$$focusedCell = $$(null, 'focused-cell');
   }
   isPrimitive(val) {
     return val[0] != '=';
@@ -290,18 +289,6 @@ export class SmartGrid {
   getCellDef(row, col) {
     return ((((this.def.grids || [])[row] || [])[col]) || {});
   }
-  get cells() {
-    if (!this._cells) {
-      let grid = this;
-      let newCell = function (row, col) {
-        return new Cell(row, col, grid.getCellDef(row, col), grid.env[row][col], grid.$$focusedCell);
-      };
-      this._cells = range(0, grid.def.rows).map(function newRow(row) {
-        return range(0, grid.def.columns).map(col => newCell(row, col));
-      });
-    }
-    return this._cells;
-  }
   setupLayout() {
     let vHeader = this.gridContainerEl.querySelector('.row .header');
     let hHeader = this.gridContainerEl.querySelector('.top-tag-row .header');
@@ -320,6 +307,13 @@ export class SmartGrid {
       [this.$$actualHeight, 2 * viewportHeight]
     );
     this.$$activeSheetIdx = $$(0, 'active-tab');
+    this.cells = function (sg) {
+      return range(0, sg.rowNum).map(function (row) {
+        return range(0, sg.colNum).map(function (col) {
+          return new Cell(sg, row, col);
+        });
+      });
+    }(this);
     let sheetNames = [];
     for (var {name} of this.analyzer.sheets) {
       sheetNames.push(name);
@@ -503,6 +497,9 @@ export class SmartGrid {
   getCellDef(tag) {
     return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
   }
+  setCellDef(tag, def) {
+    return this.analyzer.setCellDef(this.$$activeSheetIdx.val(), tag, def);
+  }
   $$createCell(row, col) {
     let sg = this;
     let vf = function ([leftmostCol, topmostRow, data], initiators) {
@@ -538,10 +535,7 @@ export class SmartGrid {
   }
   $$createRow(row) {
     let sg = this;
-    let $$cells = range(0, sg.colNum).map(function (col) {
-      return new Cell(sg, row, col).$$view;
-    });
-    return $$.connect([sg.makeLeftTagHeaderSlot(row)].concat($$cells), function ([leftTagHeader, ...cells]) {
+    return $$.connect([sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)), function ([leftTagHeader, ...cells]) {
       return h('.row', [leftTagHeader].concat(cells));
     });
   }
@@ -792,9 +786,17 @@ export class SmartGrid {
   }
 };
 
-SmartGrid.onUpdated = function (node) {
-  var inputEl = node.querySelector('td.editing > input');
-  inputEl && inputEl.focus();
+SmartGrid.prototype.onUpdated = function () {
+  let focusedCell = this.$$focusedCell.val();
+  if (focusedCell && focusedCell.mode == CellMode.EDIT) {
+    let [row, col] = parseTag(focusedCell.tag);
+    row -= this.$$topmostRow.val();
+    if (row >= 0) {
+      col -= this.$$leftmostCol.val();
+      focusedCell = this.cells[row][col];
+      focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
+    }
+  }
 };
 
 const range = function (start, end) {

@@ -153,6 +153,9 @@ $$settings.change(function (settings) {
 export default {
   page: {
     $$view,
+    onUpdated() {
+      sg.onUpdated();
+    }
   },
   $$loading,
   $$settings,

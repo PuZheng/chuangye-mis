@@ -51,8 +51,13 @@ class Analyzer {
       var cells = {};
       let [cellDef, i, j] = skipUndefined(grids, 0, 0);
       while (cellDef != undefined) {
+        if (typeof cellDef === 'string') {
+          cellDef = {
+            val: cellDef,
+          };
+        }
+        let val = cellDef.val;
         let tag = makeTag(i, j);
-        let val = (typeof cellDef === 'string')? cellDef: (cellDef.val || '');
         let primitive = val[0] != '=';
         let dependencies = [];
         let script;
@@ -66,7 +71,6 @@ class Analyzer {
           script = val.slice(1);
         }
         cells[tag] = Object.assign(cellDef, {
-          val, 
           tag,
           primitive, 
           dependencies,
@@ -92,6 +96,16 @@ class Analyzer {
       return;
     }
     return (sheet.cells || {})[tag];
+  }
+  setCellDef(sheetIdx, tag, def) {
+    let sheet = this.sheets[sheetIdx];
+    if (!sheet) {
+      return;
+    }
+    if (sheet.cells == undefined) {
+      sheet.cells = {};
+    };
+    sheet.cells[tag] = def;
   }
 
   getSheet(sheetIdx) {

@@ -2,24 +2,25 @@ import virtualDom from 'virtual-dom';
 import makeTag from './make-tag';
 import $$ from 'slot';
 import pipeSlot from 'pipe-slot';
+import CellMode from './cell-mode';
 
 var VNode = virtualDom.VNode;
 var VText = virtualDom.VText;
 
-
-export const CellMode = {
-  EDIT: 'EDIT',
-  SELECTED: 'SELECTED',
-  DEFAULT: 'DEFAULT',
-};
 
 class Hook {
   constructor(cell) {
     this.cell = cell;
   }
   hook(el) {
-    el.addEventListener('dblclick', this.cell.ondblclick);
-    el.addEventListener('click', this.cell.click);
+    let cell = this.cell;
+    el.addEventListener('dblclick', function (e) {
+      cell.ondblclick(e);
+    });
+    el.addEventListener('click', function (e) {
+      cell.onclick(e);
+    });
+    cell.el = el;
   }
   unhook(el) {
     el.removeEventListener('dblclick', this.cell.ondblclick);
@@ -65,28 +66,32 @@ class Cell {
     this.sg = sg;
     this.row = row;
     this.col = col;
-    this.tag = makeTag(row, col);
-    this.$$mode = $$(CellMode.DEFAULT, 'cell-mode');
     this.hook = new Hook(this);
     let cell = this;
     this.editorHook = new EditHook(function (val) {
-      $$.update(
-        [cell.$$envSlot, val],
-        [cell.$$mode, CellMode.SELECTED]
-      );
+      let updates = [];
+      if (cell.$$envSlot) {
+        updates.push([cell.$$envSlot, val]);
+      } else {
+        cell.sg.setCellDef(cell.tag, Object.assign(cell.def, {
+          val 
+        }));
+        updates.push([cell.$$val, val]);
+      }
+      $$.update(...updates);
       return false;
     });
   }
   get $$view() {
     let cell = this;
-    let vf = function ([leftmostCol, topmostRow, val, mode], initiators) {
-      let tag = makeTag(cell.row + topmostRow, cell.col + leftmostCol);
-      cell.def = cell.sg.getCellDef(tag);
+    let vf = function ([focusedCell, leftmostCol, topmostRow, val], initiators) {
+      cell.tag = makeTag(cell.row + topmostRow, cell.col + leftmostCol);
+      cell.def = cell.sg.getCellDef(cell.tag);
       if (initiators) {
         let leftChanged = ~initiators.indexOf(cell.sg.$$leftmostCol);
         let topChanged = ~initiators.indexOf(cell.sg.$$topmostRow);
         if (leftChanged || topChanged) {
-          cell.$$envSlot = cell.sg.getCellSlot(tag);
+          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
           if (cell.$$envSlot) {
             cell.$$val.connect([cell.$$envSlot], ([it]) => it);
           } else {
@@ -99,6 +104,7 @@ class Cell {
       if (cell.def && cell.def.readOnly) {
         className.push('readonly');
       }
+      let mode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
       let selected = mode == CellMode.SELECTED;
       if (selected) {
         className.push('selected');
@@ -119,18 +125,18 @@ class Cell {
         cell.makeEditor(cell.def, val, editing),
       ]);
     };
-    let tag = makeTag(this.row, this.col);
-    this.$$envSlot = this.sg.getCellSlot(tag);
+    cell.tag = makeTag(this.row, this.col);
+    this.$$envSlot = this.sg.getCellSlot(cell.tag);
     if (this.$$envSlot) {
       this.$$val = $$.connect([this.$$envSlot], function ([it]) {
         return it;
-      }, 'cell-val-${tag}');
+      }, 'cell-val-${cell.tag}');
     } else {
-      cell.def = this.sg.getCellDef(tag);
-      this.$$val = $$(cell.def? cell.def.val: '', 'cell-val-${tag}');
+      cell.def = this.sg.getCellDef(cell.tag);
+      this.$$val = $$(cell.def? cell.def.val: '', 'cell-val-${cell.tag}');
     }
-    return pipeSlot(null, 'cell-{tag}').connect(
-      [this.sg.$$leftmostCol, this.sg.$$topmostRow, this.$$val, this.$$mode], 
+    return pipeSlot(null, 'cell-${cell.tag}').connect(
+      [this.sg.$$focusedCell, this.sg.$$leftmostCol, this.sg.$$topmostRow, this.$$val], 
       vf);
   }
   makeEditor(def, val, editing) {
@@ -156,38 +162,26 @@ class Cell {
     };
     return new VNode('div', properties, [new VText(String(val))]);
   }
-  get onclick() {
-    let cell = this;
-    if (cell.$$mode.val() === CellMode.DEFAULT) {
-      return function onclick() {
-        let args = [
-          [cell.$$mode, CellMode.SELECTED],
-        ];
-        let focusedCell = cell.sg.$$focusedCell.val();
-        if (focusedCell && (focusedCell.tag != cell.tag)) {
-          args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-        }
-        args.push([cell.sg.$$focusedCell, cell]);
-        $$.update(...args);
-      };
+  onclick() {
+    let focusedCell = this.sg.$$focusedCell;
+    if (focusedCell && focusedCell.tag == this.tag) {
+      return;
     }
+    this.sg.$$focusedCell.val({
+      tag: this.tag,
+      mode: CellMode.SELECTED,
+    });
   }
-  get ondblclick() {
-    let cell = this;
-    if (!(cell.def && cell.def.readOnly) && cell.$$mode.val() != CellMode.EDIT) {
-      return function () {
-        let args = [
-          [cell.$$mode, CellMode.EDIT]
-        ];
-        let focusedCell = cell.sg.$$focusedCell.val();
-        if (focusedCell && (focusedCell.tag != cell.tag)) {
-          args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-        };
-        args.push([cell.sg.$$focusedCell, cell]);
-        $$.update(...args);
-        this.querySelector('input').focus();
-      };
+  ondblclick() {
+    let focusedCell = this.sg.$$focusedCell;
+    if ((this.def && this.def.readOnly) || 
+        (focusedCell && focusedCell.tag == this.tag && focusedCell.mode === CellMode.EDIT)) {
+      return;
     }
+    this.sg.$$focusedCell.val({
+      tag: this.tag,
+      mode: CellMode.EDIT,
+    });
   }
 };
 

@@ -65,7 +65,7 @@ Slot.prototype.val = function (newValue) {
     var oldValue = this.value;
     this.value = newValue; 
     this.onChangeCbs.forEach(function (cb) {
-      cb.call(this, newValue);
+      cb.call(this, newValue, oldValue);
     });
     if (this.offspringsByLevels.length === 0) {
       this.calcOffsprings();
@@ -174,7 +174,7 @@ Slot.prototype.refresh = function (initiators) {
     return false;
   }
   for (var cb of this.onChangeCbs) {
-    cb(this.value, initiators);
+    cb.call(this, this.value, oldValue, initiators);
   }
   return true;
 };
@@ -284,7 +284,7 @@ var update = function (...slotValuePairs) {
       return;
     }
     for (var cb of slot.onChangeCbs) {
-      cb.call(slot, value);
+      cb.call(slot, value, oldValue);
     }
   });
   var relatedSlots = {};
