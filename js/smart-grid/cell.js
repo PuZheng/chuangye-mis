@@ -69,7 +69,11 @@ class Cell {
     this.hook = new Hook(this);
     let cell = this;
     this.editorHook = new EditHook(function (val) {
-      let updates = [];
+      let updates = [
+        [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
+        mode: CellMode.SELECTED,
+      })]
+      ];
       if (cell.$$envSlot) {
         updates.push([cell.$$envSlot, val]);
       } else {
@@ -169,6 +173,8 @@ class Cell {
     }
     this.sg.$$focusedCell.val({
       tag: this.tag,
+      row: this.row + this.sg.$$topmostRow.val(),
+      col: this.col + this.sg.$$leftmostCol.val(),
       mode: CellMode.SELECTED,
     });
   }
@@ -180,6 +186,8 @@ class Cell {
     }
     this.sg.$$focusedCell.val({
       tag: this.tag,
+      row: this.row + this.sg.$$topmostRow.val(),
+      col: this.col + this.sg.$$leftmostCol.val(),
       mode: CellMode.EDIT,
     });
   }

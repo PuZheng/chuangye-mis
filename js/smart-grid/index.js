@@ -418,9 +418,14 @@ export class SmartGrid {
     var sg = this;
     var $$topTagCells = range(0, this.colNum).map(function (idx) {
       return $$.connect(
-        [sg.$$leftmostCol], 
-        function ([leftmostCol]) {
-          return h('.header', toColumnIdx(Number(leftmostCol) + idx));
+        [sg.$$leftmostCol, sg.$$focusedCell], 
+        function ([leftmostCol, focusedCell]) {
+          let classNames = '.header';
+          if (focusedCell && focusedCell.col === idx + leftmostCol) {
+            classNames += '.focused';
+          }
+          return h(classNames, 
+                   toColumnIdx(Number(leftmostCol) + idx));
         });
     });
     return $$.connect($$topTagCells, function (cells) {
@@ -487,8 +492,12 @@ export class SmartGrid {
     return $$.connect([this.$$leftmostCol, this.$$topmostRow, $$data], vf);
   }
   makeLeftTagHeaderSlot(row) {
-    return $$.connect([this.$$topmostRow], function ([topmostRow]) {
-      return h('.header', '' + (topmostRow + row + 1));
+    return $$.connect([this.$$topmostRow, this.$$focusedCell], function ([topmostRow, focusedCell]) {
+      let classNames = '.header';
+      if (focusedCell && row + topmostRow == focusedCell.row) {
+        classNames += '.focused';
+      }
+      return h(classNames, '' + (topmostRow + row + 1));
     });
   }
   getCellSlot(tag) {
