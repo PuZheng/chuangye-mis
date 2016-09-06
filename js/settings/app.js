@@ -148,6 +148,7 @@ $$settings.change(function (settings) {
   })
   .refresh();
   sg.setupLayout();
+  sg.registerShortcus();
 });
 
 export default {
@@ -155,7 +156,7 @@ export default {
     $$view,
     onUpdated() {
       sg.onUpdated();
-    }
+    },
   },
   $$loading,
   $$settings,

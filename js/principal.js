@@ -19,8 +19,6 @@ export var could = function could(policy, ...args) {
       },
     }).then(function (response) {
       cb(...response.data.data);
-    }).catch(function (error) {
-      console.error(error);
     });
   };
   return {

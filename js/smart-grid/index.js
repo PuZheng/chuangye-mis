@@ -286,9 +286,6 @@ export class SmartGrid {
   getCellVal(row, col) {
     return ((this.data || [])[row] || [])[col] || '';
   }
-  getCellDef(row, col) {
-    return ((((this.def.grids || [])[row] || [])[col]) || {});
-  }
   setupLayout() {
     let vHeader = this.gridContainerEl.querySelector('.row .header');
     let hHeader = this.gridContainerEl.querySelector('.top-tag-row .header');
@@ -721,7 +718,7 @@ export class SmartGrid {
   moveLeft() {
     var focusedCell = this.$$focusedCell.val();
     if (focusedCell) {
-      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+      if (focusedCell.mode === CellMode.SELECTED) {
         this.select(focusedCell.row, focusedCell.col - 1);
       }
     } else {
@@ -731,7 +728,7 @@ export class SmartGrid {
   moveUp() {
     var focusedCell = this.$$focusedCell.val();
     if (focusedCell) {
-      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+      if (focusedCell.mode === CellMode.SELECTED) {
         this.select(focusedCell.row - 1, focusedCell.col);
       }
     } else {
@@ -741,7 +738,7 @@ export class SmartGrid {
   moveRight() {
     var focusedCell = this.$$focusedCell.val();
     if (focusedCell) {
-      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+      if (focusedCell.mode === CellMode.SELECTED) {
         this.select(focusedCell.row, focusedCell.col + 1);
       }
     } else {
@@ -751,7 +748,7 @@ export class SmartGrid {
   moveDown() {
     var focusedCell = this.$$focusedCell.val();
     if (focusedCell) {
-      if (focusedCell.$$mode.val() === CellMode.SELECTED) {
+      if (focusedCell.mode === CellMode.SELECTED) {
         this.select(focusedCell.row + 1, focusedCell.col);
       }
     } else {
@@ -759,17 +756,44 @@ export class SmartGrid {
     }
   }
   select(row, col) {
-    if (row >= 0 && row < this.def.rows && col >= 0 && col < this.def.columns) {
-      var focusedCell = this.$$focusedCell.val();
-      let args = [
-        [this.$$focusedCell, this.cells[row][col]],
-        [this.cells[row][col].$$mode, CellMode.SELECTED],
-      ];
-      if (focusedCell)  {
-        args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-      }
-      $$.update(...args);
+    let updates = [
+      [this.$$focusedCell, {
+        row,
+        col,
+        tag: makeTag(row, col),
+        mode: CellMode.SELECTED,
+      }],
+    ];
+    if (row < 0 || col < 0) {
+      return;
     }
+    // make sure this focused cell in the viewport
+    let leftmostCol = this.$$leftmostCol.val();
+    let topmostRow = this.$$topmostRow.val();
+    let left = null;
+    let top = null;
+    // under the viewport, since the last row may cross the right 
+    // boundary of viewport, we test the second last row, same to 
+    // the last column
+    if (row >= topmostRow + this.rowNum - 3) {
+      top = (row - this.rowNum + 3) * this.cellHeight;
+    }
+    // above the viewport
+    if (row < topmostRow) {
+      top = row * this.cellHeight;
+    }
+    // on the right of viewport
+    if (col >= leftmostCol + this.colNum - 3) {
+      left = (col - this.colNum + 3) * this.cellWidth;
+    }
+    // on the left of viewport
+    if (col < leftmostCol) {
+      left = col * this.cellWidth;
+    }
+    
+    left != null && updates.push([this.$$left, left / this.$$actualWidth.val()]);
+    top != null && updates.push([this.$$top, top / this.$$actualHeight.val()]);
+    $$.update(...updates);
   }
   edit(row, col) {
     if (row === undefined || col === undefined) {
@@ -779,17 +803,18 @@ export class SmartGrid {
       }
       return false;
     }
-    if (this.getCellDef(row, col).readOnly) {
+    if (this.getCellDef(makeTag(row, col)).readOnly) {
       return false;
     }
+    console.log(row, col);
     let args = [
-      [this.$$focusedCell, this.cells[row][col]],
-      [this.cells[row][col].$$mode, CellMode.EDIT],
+      [this.$$focusedCell, {
+        row, 
+        col,
+        tag: makeTag(row, col),
+        mode: CellMode.EDIT,
+      }],
     ];
-    var focusedCell = this.$$focusedCell.val();
-    if (focusedCell && (focusedCell.row != row || focusedCell.col != col)) {
-      args.push(focusedCell.$$mode, CellMode.DEFAULT);
-    }
     $$.update(...args);
     return true;
   }
@@ -798,7 +823,7 @@ export class SmartGrid {
 SmartGrid.prototype.onUpdated = function () {
   let focusedCell = this.$$focusedCell.val();
   if (focusedCell && focusedCell.mode == CellMode.EDIT) {
-    let [row, col] = parseTag(focusedCell.tag);
+    let {row, col} = focusedCell;
     row -= this.$$topmostRow.val();
     if (row >= 0) {
       col -= this.$$leftmostCol.val();
@@ -806,6 +831,27 @@ SmartGrid.prototype.onUpdated = function () {
       focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
     }
   }
+};
+
+const LEFT = 37;
+const UP = 38;
+const RIGHT = 39;
+const DOWN = 40;
+
+SmartGrid.prototype.registerShortcus = function () {
+  let sg = this;
+  document.addEventListener('keydown', function (e) {
+    let m = sg[{
+      [LEFT]: 'moveLeft',
+      [UP]: 'moveUp',
+      [RIGHT]: 'moveRight',
+      [DOWN]: 'moveDown',
+    }[e.keyCode]];
+    m && m.apply(sg);
+    if (e.keyCode == 27 || e.keyCode == 13) {
+      sg.edit();
+    }
+  });
 };
 
 const range = function (start, end) {
