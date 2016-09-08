@@ -123,3 +123,94 @@ test('create', function (t) {
   t.is(mngr.create(0, 'B1').val(), '2');
   t.is(mngr.create(0, 'A2').val(), undefined);
 });
+
+test('update1', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let mngr = new DataSlotManager(analyzer);
+  analyzer.setCellDef(0, 'A1', {
+    val: '1',
+  });
+  mngr.reset();
+  let $$slot = mngr.get(0, 'A1');
+  t.is($$slot, undefined);
+});
+
+test('update2', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['1', '2']
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let mngr = new DataSlotManager(analyzer);
+  analyzer.setCellDef(0, 'C1', {
+    val: '=A1+B1',
+  });
+  mngr.reset();
+  let $$slot = mngr.get(0, 'C1');
+  t.is($$slot.val(), '3');
+});
+
+test('update3', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['1', '2', '3'],
+          ['=C1*2'],
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let mngr = new DataSlotManager(analyzer);
+  analyzer.setCellDef(0, 'C1', {
+    val: '=B1-A1',
+  });
+  mngr.reset();
+  let $$slot = mngr.get(0, 'C1');
+  t.is($$slot.val(), '1');
+  $$slot = mngr.get(0, 'A2');
+  t.is($$slot.val(), '2');
+});
+
+test('update4', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['1', '2', '3'],
+          ['=C1*2'],
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let mngr = new DataSlotManager(analyzer);
+  let $$slot = mngr.get(0, 'C1');
+  t.is($$slot.val(), '3');
+  analyzer.setCellDef(0, 'A2', {
+    val: '1',
+  });
+  mngr.reset();
+  $$slot = mngr.get(0, 'A2');
+  t.is($$slot, undefined);
+  $$slot = mngr.get(0, 'C1');
+  t.is($$slot, undefined);
+});

@@ -93,7 +93,7 @@ export class SmartGrid {
     this.cells = function (sg) {
       return range(0, sg.rowNum).map(function (row) {
         return range(0, sg.colNum).map(function (col) {
-          return new Cell(sg, row, col);
+          return new Cell(sg, 0, row, col);
         });
       });
     }(this);
@@ -148,17 +148,17 @@ export class SmartGrid {
       return h(classNames, '' + (topmostRow + row + 1));
     });
   }
-  getCellSlot(tag) {
-    return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
+  getCellSlot(sheetIdx, tag) {
+    return this.dataSlotManager.get(sheetIdx, tag);
   }
   createCellSlot(sheetIdx, tag) {
     return this.dataSlotManager.create(sheetIdx, tag);
   }
-  getCellDef(tag) {
-    return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
+  getCellDef(sheetIdx, tag) {
+    return this.analyzer.getCellDef(sheetIdx, tag);
   }
-  setCellDef(tag, def) {
-    return this.analyzer.setCellDef(this.$$activeSheetIdx.val(), tag, def);
+  setCellDef(sheetIdx, tag, def) {
+    return this.analyzer.setCellDef(sheetIdx, tag, def);
   }
   $$createCell(row, col) {
     let sg = this;

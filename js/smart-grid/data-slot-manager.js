@@ -7,6 +7,8 @@ class DataSlotManager {
   constructor(analyzer) {
     this._data = [];
     this.analyzer = analyzer;
+  }
+  reset() {
     for (var [idx, sheet] of this.analyzer.sheets.entries()) {
       // note, this._data[idx] may already created
       this._data[idx] = this._data[idx] || {};
@@ -38,11 +40,24 @@ class DataSlotManager {
     if (cell.primitive)  {
       return $$(cell.val, `cell-${cell.tag}`);
     } else {
+      let slot = this.get(currentSheetIdx, cell.tag);
+      if (!slot) {
+        slot = $$(null, `cell-${cell.tag}`);
+      }
+      return slot.connect(this.getDependentSlots(cell, currentSheetIdx), function (slots) {
+        let env = {};
+        for (var { val, tag } of slots) {
+          env[tag] = val;
+        }
+        let lexer = new Lexer(cell.script);
+        let parser = new Parser(lexer);
+        return new Interpreter(parser.expr, env).eval();
+      });
+    }
+  }
+  getDependentSlots(cellDef, currentSheetIdx) {
       let dependentSlots = [];
-      let variableNames = [];
-      for (let {sheetName, tag} of cell.dependencies) {
-        variableNames.push(sheetName? sheetName + ':' + tag: tag);
-        sheetName = sheetName;
+      for (let {sheetName, tag} of cellDef.dependencies) {
         let sheetIdx;
         if (sheetName) {
           sheetIdx = Number(sheetName.replace(/SHEET/i, '')) - 1;
@@ -59,18 +74,14 @@ class DataSlotManager {
             tag: tag,
           }, sheetIdx);
         }
-        dependentSlots.push(this._data[sheetIdx][tag]);
+        dependentSlots.push(this._data[sheetIdx][tag].map(function (val) {
+          return {
+            val,
+            tag,
+          };
+        }));
       }
-      return $$(null, 'cell-${cell.tag}').connect(dependentSlots, function (slots) {
-        let env = {};
-        for (var i = 0; i < variableNames.length; ++i) {
-          env[variableNames[i]] = slots[i];
-        }
-        let lexer = new Lexer(cell.script);
-        let parser = new Parser(lexer);
-        return new Interpreter(parser.expr, env).eval();
-      });
-    }
+      return dependentSlots;
   }
   get(sheetIdx, tag) {
     return (this._data[sheetIdx] || {})[tag];

@@ -62,8 +62,9 @@ class EditorHook {
 };
 
 class Cell {
-  constructor(sg, row, col) {
+  constructor(sg, sheetIdx, row, col) {
     this.sg = sg;
+    this.sheetIdx = sheetIdx;
     this.row = row;
     this.col = col;
     this.hook = new Hook(this);
@@ -74,23 +75,10 @@ class Cell {
             mode: CellMode.SELECTED,
           })]
         ];
-        cell.def = cell.sg.setCellDef(cell.tag, Object.assign(cell.def, {
+        cell.def = cell.sg.setCellDef(sheetIdx, cell.tag, Object.assign(cell.def, {
           val 
         }));
-        let envSlot = this.getCellSlot(tag);
-        if (envSlot) {
-          cell.sg.updateCellSlot(tag);
-          envSlot.refresh();
-        } else {
-          this.dataSlotManager.create(this.$$activeSheetIdx.val(), tag);
-        }
-        cell.$$envSlot = cell.sg.getCellSlot(cell.tag) ;
-        if (cell.$$envSlot) {
-          cell.sg.updateCellSlot(tag);
-          cell.$$val.connect([cell.$$envSlot], ([it]) => it);
-        } else {
-          cell.$$val.connect([], () => cell.def? cell.def.val: '');
-        }
+        cell.dataSlotManager.reset();
         $$.update(...updates);
         return false;
       };
@@ -106,11 +94,11 @@ class Cell {
     ) {
       if (initiators && initiators.length) {
         cell.tag = makeTag(cell.row + topmostRow, cell.col + leftmostCol);
-        cell.def = cell.sg.getCellDef(cell.tag);
+        cell.def = cell.sg.getCellDef(cell.sheetIdx, cell.tag);
         let leftChanged = ~initiators.indexOf(cell.sg.$$leftmostCol);
         let topChanged = ~initiators.indexOf(cell.sg.$$topmostRow);
         if (leftChanged || topChanged) {
-          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
+          cell.$$envSlot = cell.sg.getCellSlot(cell.sheetIdx, cell.tag);
           if (cell.$$envSlot) {
             cell.$$val.connect([cell.$$envSlot], ([it]) => it);
           } else {
@@ -145,13 +133,13 @@ class Cell {
       ]);
     };
     cell.tag = makeTag(this.row, this.col);
-    this.$$envSlot = this.sg.getCellSlot(cell.tag);
+    this.$$envSlot = this.sg.getCellSlot(this.sheetIdx, this.tag);
     if (this.$$envSlot) {
       this.$$val = $$.connect([this.$$envSlot], function ([it]) {
         return it;
       }, 'cell-val-${cell.tag}');
     } else {
-      cell.def = this.sg.getCellDef(cell.tag);
+      this.def = this.sg.getCellDef(this.sheetIdx, this.tag);
       this.$$val = $$(cell.def? cell.def.val: '', 'cell-val-${cell.tag}');
     }
     return this._$$view = pipeSlot(null, 'cell-${cell.tag}').connect(

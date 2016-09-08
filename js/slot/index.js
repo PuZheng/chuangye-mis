@@ -38,6 +38,9 @@ var Slot = function (initial, tag, changed) {
 Slot.prototype.isRoot = function () {
   return this.parents.length == 0;
 };
+Slot.prototype.hasChildren = function () {
+  return objectValues(this.children).length > 0;
+};
 
 Slot.prototype.change = function (proc) {
   this.onChangeCbs.push(proc);
@@ -54,19 +57,16 @@ Slot.prototype.val = function (newValue) {
     if (this.changed && !this.changed(this.value, newValue)) {
       return this.value;
     }
-    if (this.children.length == 0) {
-      return this.value;
-    }
-    if (this.children.lenght == 1) {
-      this.children[0].update();
-      return this.value;
-    }
     opt.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
     var oldValue = this.value;
     this.value = newValue; 
     this.onChangeCbs.forEach(function (cb) {
       cb.call(this, newValue, oldValue);
     });
+    if (objectValues(this.children).length == 1) {
+      objectValues(this.children)[0].update();
+      return oldValue;
+    }
     if (this.offspringsByLevels.length === 0) {
       this.calcOffsprings();
     }
@@ -96,6 +96,12 @@ Slot.prototype.val = function (newValue) {
 };
 
 Slot.prototype.update = function () {
+  if (this.valueFunc) {
+    this.value = this.valueFunc.apply(
+      this,
+      [this.parents.map(parent => parent.val())]
+    );
+  }
   this.val(this.value);
 };
 

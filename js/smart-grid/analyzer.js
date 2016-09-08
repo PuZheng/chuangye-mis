@@ -53,7 +53,9 @@ class Analyzer {
       let [cellDef, i, j] = skipUndefined(grids, 0, 0);
       while (cellDef != undefined) {
         let tag = makeTag(i, j);
-        cells[tag] = analyzer.analyze(cellDef);
+        cellDef = analyzer.analyze(cellDef);
+        cellDef.tag = tag;
+        cells[tag] = cellDef;
         j++;
         if (j == grids[i].length) {
           j = 0;
@@ -108,7 +110,9 @@ class Analyzer {
     if (sheet.cells == undefined) {
       sheet.cells = {};
     };
-    return sheet.cells[tag] = this.analyze(def);
+    return sheet.cells[tag] = Object.assign(this.analyze(def), {
+      tag,
+    });
   }
   getSheet(sheetIdx) {
     return this.sheets[sheetIdx];
