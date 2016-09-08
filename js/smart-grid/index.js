@@ -1,7 +1,4 @@
 import $$ from 'slot';
-import { Lexer, Token } from './script/lexer.js';
-import { Parser } from './script/parser.js';
-import { Interpreter } from './script/interpreter.js';
 import Analyzer from './analyzer';
 import DataSlotManager from './data-slot-manager';
 import Cell from './cell';
@@ -29,139 +26,6 @@ var toColumnIdx = function (idx) {
   }
   return idx.map(i => String.fromCharCode(i)).join('');
 };
-
-var fromColumnIdx = function (idx) {
-  var idx = idx.split('').map(c => c.charCodeAt(0) - 'A'.charCodeAt(0));
-  if (idx.length > 1) {
-    ++idx[0];
-  }
-  return idx.reverse().map((i, idx) => i * Math.pow(26, idx)).reduce((s, i) => s + i);
-};
-
-var parseTag = function () {
-  let re = /([A-Z]+)(\d+)/;
-  return function (tag) {
-    // note, tag is composed by col + row
-    var [col, row] = re.exec(tag).slice(1);
-    return [row - 1, fromColumnIdx(col)];
-  };
-}();
-
-export const CellMode = {
-  EDIT: 'EDIT',
-  SELECTED: 'SELECTED',
-  DEFAULT: 'DEFAULT',
-};
-
-// class Cell {
-//   constructor(row, col, def, $$val, $$focusedCell) {
-//     this.row = row;
-//     this.col = col;
-//     this.tag = makeTag(row, col);
-//     this.def = def;
-//     this.$$focusedCell = $$focusedCell;
-//     this.$$val = $$val;
-//     this.$$mode = $$(CellMode.DEFAULT, `cel-${this.tag}-mode`);
-//     this.$$view = this.makeView();
-//   }
-//   get onclick() {
-//     let cell = this;
-//     if (cell.$$mode.val() === CellMode.DEFAULT) {
-//       return function onclick() {
-//         let args = [
-//           [cell.$$mode, CellMode.SELECTED],
-//         ];
-//         let focusedCell = cell.$$focusedCell.val();
-//         if (focusedCell && (focusedCell.tag != cell.tag)) {
-//           args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-//         }
-//         args.push([cell.$$focusedCell, cell]);
-//         $$.update(...args);
-//       };
-//     }
-//   }
-//   get ondblclick() {
-//     let cell = this;
-//     if (!cell.def.readOnly && cell.$$mode.val() != CellMode.EDIT) {
-//       return function () {
-//         let args = [
-//           [cell.$$mode, CellMode.EDIT]
-//         ];
-//         let focusedCell = cell.$$focusedCell.val();
-//         if (focusedCell && (focusedCell.tag != cell.tag)) {
-//           args.push([focusedCell.$$mode, CellMode.DEFAULT]);
-//         };
-//         args.push([cell.$$focusedCell, cell]);
-//         $$.update(...args);
-//       };
-//     }
-//   }
-//   makeView() {
-//     let cell = this;
-//     return $$.connect([this.$$val, this.$$mode], function ([val, mode]) {
-//       let className = [cell.tag];
-//       if (cell.def.readOnly) {
-//         className.push('readonly');
-//       }
-//       let selected = mode == CellMode.SELECTED;
-//       if (selected) {
-//         className.push('-selected');
-//       }
-//       let editing = mode == CellMode.EDIT;
-//       if (editing) {
-//         className.push('-editing');
-//       }
-//       return h('td' + className.map( i => '.' + i ), {
-//         style: cell.def.style,
-//         onclick: cell.onclick,
-//         ondblclick: cell.ondblclick, 
-//       }, [
-//         cell.makeContentVnode(cell.def, val, editing),
-//         cell.makeEditor(cell.def, val, editing, function (val) {
-//           $$.update(
-//             [cell.$$val, val],
-//             [cell.$$mode, CellMode.SELECTED]
-//           );
-//           return false;
-//         }),
-//       ]);
-//     }, 'cell-' + this.tag);
-//   }
-//   makeEditor(def, val, editing, onChangeCb) {
-//     // it could be more sophisticated
-//     return h('input.editor', {
-//       type: 'text',
-//       value: val,
-//       style: editing? {
-//       }: {
-//         display: 'none',
-//       }, 
-//       onfocus: function moveCaretAtEnd (e) {
-//         var temp_value = e.target.value;
-//         e.target.value = '';
-//         e.target.value = temp_value;
-//       },
-//       onkeydown: function (e) {
-//         if (e.keyCode == 27 || e.keyCode == 13) {
-//           e.stopPropagation();
-//           onChangeCb(this.value);
-//           return true;
-//         }
-//       },
-//       onblur: function () {
-//         onChangeCb(this.value);
-//       },
-//     });
-//   }
-//   makeContentVnode(def, val, editing) {
-//     // it could be more sophisticated
-//     return h('.content', editing? {
-//       style: {
-//         display: 'none'
-//       }
-//     }: {}, String(val));
-//   }
-// }
 
 export class SmartGrid {
   constructor(def) {
@@ -207,84 +71,6 @@ export class SmartGrid {
       return Math.floor(top * actualWidth / sg.cellWidth); 
     }, 'leftmost', function (oldVal, newVal) { return oldVal != newVal; });
     this.$$focusedCell = $$(null, 'focused-cell');
-  }
-  isPrimitive(val) {
-    return val[0] != '=';
-  }
-  makeSlot(script, ...tags) {
-    for (var tag of tags) {
-      let [row, col] = parseTag(tag);
-      if (!this.env[row][col]) {
-        if (!this.dependencyMap[tag]) {
-          this.env[row][col] = $$(this.getCellVal(row, col), `cell-${tag}-val`);
-        } else {
-          this.env[row][col] = this.makeSlot.apply(this, this.dependencyMap[tag]);
-        }
-      }
-    }
-    let valSlots = tags.map(function (grid) {
-      return function (tag) {
-        let [row, col] = parseTag(tag);
-        return grid.env[row][col];
-      };
-    }(this));
-    return $$.connect(valSlots, function ([tags]) {
-      return function (...slots) {
-        let env = {};
-        for (var i = 0; i < tags.length; ++i) {
-          env[tags[i]] = slots[i];
-        }
-        let lexer = new Lexer(script);
-        let parser = new Parser(lexer);
-        return new Interpreter(parser.expr, env).eval();
-      };
-    }(tags));
-  }
-  get dependencyMap() {
-    if (!this._dependencyMap) {
-      this._dependencyMap = {};
-      for (var i = 0; i < this.def.rows; ++i) {
-        for (var j = 0; j < this.def.columns; ++j) {
-          let cellVal = this.getCellVal(i, j);
-          if (!this.isPrimitive(cellVal)) {
-            let lexer = new Lexer(cellVal.slice(1));
-            let tag = makeTag(i, j);
-            let tokens = [];
-            for (var token of lexer.tokens) {
-              if (token.type === Token.VARIABLE) {
-                tokens.push(token);
-              }
-            }
-            this._dependencyMap[tag] = tokens.map( t => t.value );
-          } 
-        }
-      }
-    }
-    return this._dependencyMap;
-  }
-  get env() {
-    if (!this._env) {
-      this._env = range(0, this.def.rows).map(() => Array(this.def.columns));
-      // first round, setup tag dependency map
-      // second round, create slots
-      for (var i = 0; i < this.def.rows; ++i) {
-        for (var j = 0; j < this.def.columns; ++j) {
-          let tag = makeTag(i, j);
-          let cellVal = this.getCellVal(i, j);
-          if (!this.dependencyMap[tag]) {
-            if (!this._env[i][j]) {
-              this._env[i][j] = $$(cellVal, `cell-${tag}-val`);
-            }
-          } else {
-            this._env[i][j] = this.makeSlot.apply(this, [cellVal.slice(1), ...this.dependencyMap[tag]]);
-          }
-        }
-      }
-    }
-    return this._env;
-  }
-  getCellVal(row, col) {
-    return ((this.data || [])[row] || [])[col] || '';
   }
   setupLayout() {
     let vHeader = this.gridContainerEl.querySelector('.row .header');
@@ -335,82 +121,6 @@ export class SmartGrid {
       ]);
     }).update();
   }
-  // get $$view() {
-  //   return this._$$view;
-  //   if (!this._$$view) {
-      // var grid = this;
-      // let $$topHeaderRowVn = $$.connect([grid.$$focusedCell], function (focusedCell) {
-      //   return h('tr.header', [
-      //     h('th', ''),
-      //     ...range(0, grid.def.columns).map(function (idx) { 
-      //       let classNames = [];
-      //       let focused = focusedCell && focusedCell.col === idx;
-      //       focused && classNames.push('-focused');
-      //       classNames = classNames.map( c => '.' + c ).join('');
-      //       return h('th' + classNames, toColumnIdx(idx));
-      //     }),
-      //   ]);
-      // }, 'top-header-row');
-      // let $$rows = range(0, grid.def.rows).map(function (row) {
-      //   let $$cols = grid.cells[row].map( c => c.$$view );
-      //   return $$.connect([grid.$$focusedCell, ...$$cols], function (focusedCell, ...cols) {
-      //     let classNames = [];
-      //     let focused = focusedCell && focusedCell.row === row;
-      //     focused && classNames.push('-focused');
-      //     classNames = classNames.map( c => '.' + c ).join('');
-      //     let leftHeaderCol = h('th' + classNames, String(row + 1));
-      //     return h('tr', [
-      //       leftHeaderCol
-      //     ].concat(cols));
-      //   }, 'row-' + row);
-      // });
-      // this._$$view = $$.connect([grid.$$focusedCell, $$topHeaderRowVn, ...$$rows], function (focusedCell, topHeaderRow, ...rows) {
-      //   return [
-      //     h('input', {
-      //       value: focusedCell && (grid.getCellVal(focusedCell.row, focusedCell.col) || focusedCell.$$val.val())
-      //     }),
-      //     h('table.sg.smart-grid', [
-      //       h('thead', topHeaderRow),
-      //       h('tbody', rows),
-      //     ])
-      //   ];
-      // }, 'smart-grid');
-      // var $$tabs = [];
-      // var tabNames = [];
-      // for (var [tabName, def] of this.def.grids) {
-      //   // $$tabs.push(this.makeTabSlot(tabName, def));
-      //   tabNames.push(tabName);
-      // }
-      // let $$activeTab = $$(0, 'active-tab');
-      // this._$$view = $$.connect([$$activeTab, this.$$vScrollbar, this.$$hScrollbar, this.$$table], function (activeTab, vScrollbar, hScrollbar, table) {
-      //   // let tab = tabs[activeTab];
-      //   return h('.smart-grid', [
-      //     table,
-      //     hScrollbar,
-      //     vScrollbar,
-      //     h('.tabs', tabNames.map(function (tn, idx) {
-      //       return h('a' + (idx == activeTab? '.active': ''), {
-      //         href: '#',
-      //         onclick() {
-      //           if (idx != activeTab) {
-      //             $$activeTab.val(idx);
-      //           }
-      //           return false;
-      //         }
-      //       }, tn);
-      //     }))
-      //   ]);
-      // });
-    // }
-    // return this._$$view;
-  // }
-  getVisibleCols() {
-    let start = Math.floor(this.$$left.val() * this.$$actualWidth.val() / this.cellWidth);
-    return range(
-      start,
-      start + Math.floor((this.$$viewportWidth.val() - 1) / this.cellWidth) + 1
-    );
-  }
   get $$topTagRow() {
     var sg = this;
     var $$topTagCells = range(0, this.colNum).map(function (idx) {
@@ -429,65 +139,6 @@ export class SmartGrid {
       return h('.top-tag-row', [h('.v-h-header')].concat(cells));      
     });
   }
-  get $$leftTagRow() {
-    var sg = this;
-    var $$leftTagCells = range(0, this.rowNum).map(function (idx) {
-     return $$.connect(
-       [sg.$$top, sg.$$actualHeight], 
-       function ([top, actualHeight]) {
-         let offset = Math.floor((top * actualHeight) / sg.cellHeight);
-         return h('.header', '' + (idx + offset + 1));
-       }); 
-    });
-    return $$.connect($$leftTagCells, function (cells) {
-      return h('.left-tag-row', cells);
-    });
-  }
-  makeContentVnode(def, val, editing) {
-    // it could be more sophisticated
-    return h('.content', editing? {
-      style: {
-        display: 'none'
-      }
-    }: {}, String(val));
-  }
-  makeCellSlot(row, col) {
-    let sg = this;
-    var $$data;
-    var vf = function ([leftmostCol, topmostRow, val], initiators) {
-
-      let tag = makeTag(row + topmostRow, col + leftmostCol);
-      let cellDef = sg.analyzer.getCellDef(sg.$$activeSheetIdx.val(), tag);
-      if (initiators) {
-        let leftChanged = ~initiators.indexOf(sg.$$leftmostCol);
-        let topChanged = ~initiators.indexOf(sg.$$topmostRow);
-        if (leftChanged || topChanged) {
-          let $$cellData = sg.dataSlotManager.get(sg.$$activeSheetIdx.val(), tag);
-          if ($$cellData) {
-            $$data.connect([$$cellData], ([it]) => it);
-          } else {
-            $$data.connect([], () => cellDef? cellDef.val: '');
-          }
-          val = $$data.val();
-        }
-      }
-      return h('.cell' + '.' + tag, {
-        style: cellDef && cellDef.style,
-      }, sg.makeContentVnode(cellDef, val));
-    };
-    let tag = makeTag(row, col);
-    let $$cellData = sg.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
-    if ($$cellData) {
-      $$data = $$.connect([$$cellData], function ([it]) {
-        return it;
-      }, 'cell-data-${tag}');
-    } else {
-      let cellDef = sg.analyzer.getCellDef(sg.$$activeSheetIdx.val(), tag);
-      $$data = $$(cellDef? cellDef.val: '', 'cell-data-${tag}');
-    }
-
-    return $$.connect([this.$$leftmostCol, this.$$topmostRow, $$data], vf);
-  }
   makeLeftTagHeaderSlot(row) {
     return $$.connect([this.$$topmostRow, this.$$focusedCell], function ([topmostRow, focusedCell]) {
       let classNames = '.header';
@@ -499,6 +150,9 @@ export class SmartGrid {
   }
   getCellSlot(tag) {
     return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
+  }
+  createCellSlot(sheetIdx, tag) {
+    return this.dataSlotManager.create(sheetIdx, tag);
   }
   getCellDef(tag) {
     return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
@@ -704,16 +358,6 @@ export class SmartGrid {
     return $$.connect(
       [this.$$viewportHeight, this.$$actualHeight, $$dragging, this.$$top], 
       vf);
-  }
-  makeTabSlot(tabName) {
-    tabName;
-    return $$.connect([], function () {
-      return h('.tab', [
-        h('table', [
-          // h('thead', topHeaderRow);
-        ])
-      ]);
-    });
   }
   moveLeft() {
     var focusedCell = this.$$focusedCell.val();

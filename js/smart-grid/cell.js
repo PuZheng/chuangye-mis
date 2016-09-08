@@ -28,7 +28,7 @@ class Hook {
   }
 };
 
-class EditHook {
+class EditorHook {
   constructor(onChangeCb) {
     this.moveCaretAtEnd = function moveCaretAtEnd(e) {
       var temp_value = e.target.value;
@@ -67,31 +67,46 @@ class Cell {
     this.row = row;
     this.col = col;
     this.hook = new Hook(this);
-    let cell = this;
-    this.editorHook = new EditHook(function (val) {
-      let updates = [
-        [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
-        mode: CellMode.SELECTED,
-      })]
-      ];
-      if (cell.$$envSlot) {
-        updates.push([cell.$$envSlot, val]);
-      } else {
-        cell.sg.setCellDef(cell.tag, Object.assign(cell.def, {
+    this.editorHook = new EditorHook(function (cell) {
+      return function (val) {
+        let updates = [
+          [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
+            mode: CellMode.SELECTED,
+          })]
+        ];
+        cell.def = cell.sg.setCellDef(cell.tag, Object.assign(cell.def, {
           val 
         }));
-        updates.push([cell.$$val, val]);
-      }
-      $$.update(...updates);
-      return false;
-    });
+        let envSlot = this.getCellSlot(tag);
+        if (envSlot) {
+          cell.sg.updateCellSlot(tag);
+          envSlot.refresh();
+        } else {
+          this.dataSlotManager.create(this.$$activeSheetIdx.val(), tag);
+        }
+        cell.$$envSlot = cell.sg.getCellSlot(cell.tag) ;
+        if (cell.$$envSlot) {
+          cell.sg.updateCellSlot(tag);
+          cell.$$val.connect([cell.$$envSlot], ([it]) => it);
+        } else {
+          cell.$$val.connect([], () => cell.def? cell.def.val: '');
+        }
+        $$.update(...updates);
+        return false;
+      };
+    }(this));
   }
   get $$view() {
+    if (this._$$view) {
+      return this._$$view;
+    }
     let cell = this;
-    let vf = function ([focusedCell, leftmostCol, topmostRow, val], initiators) {
-      cell.tag = makeTag(cell.row + topmostRow, cell.col + leftmostCol);
-      cell.def = cell.sg.getCellDef(cell.tag);
-      if (initiators) {
+    let vf = function (
+      [focusedCell, leftmostCol, topmostRow, val], initiators
+    ) {
+      if (initiators && initiators.length) {
+        cell.tag = makeTag(cell.row + topmostRow, cell.col + leftmostCol);
+        cell.def = cell.sg.getCellDef(cell.tag);
         let leftChanged = ~initiators.indexOf(cell.sg.$$leftmostCol);
         let topChanged = ~initiators.indexOf(cell.sg.$$topmostRow);
         if (leftChanged || topChanged) {
@@ -139,7 +154,7 @@ class Cell {
       cell.def = this.sg.getCellDef(cell.tag);
       this.$$val = $$(cell.def? cell.def.val: '', 'cell-val-${cell.tag}');
     }
-    return pipeSlot(null, 'cell-${cell.tag}').connect(
+    return this._$$view = pipeSlot(null, 'cell-${cell.tag}').connect(
       [this.sg.$$focusedCell, this.sg.$$leftmostCol, this.sg.$$topmostRow, this.$$val], 
       vf);
   }

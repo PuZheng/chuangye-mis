@@ -1,4 +1,4 @@
-import $$ from 'slot';
+import $$ from '../slot/';
 import { Lexer } from './script/lexer.js';
 import { Interpreter } from './script/interpreter.js';
 import { Parser } from './script/parser.js';
@@ -14,7 +14,7 @@ class DataSlotManager {
       for (let tag in sheet.cells) {
         let cell = sheet.cells[tag];
         if (!cell.primitive) {
-          slots[tag] = this.makeSlot(cell, sheet);
+          slots[tag] = this.makeSlot(cell, sheet.idx);
         }
       }
     }
@@ -34,7 +34,7 @@ class DataSlotManager {
       }
     }();
   }
-  makeSlot(cell, currentSheet) {
+  makeSlot(cell, currentSheetIdx) {
     if (cell.primitive)  {
       return $$(cell.val, `cell-${cell.tag}`);
     } else {
@@ -47,7 +47,7 @@ class DataSlotManager {
         if (sheetName) {
           sheetIdx = Number(sheetName.replace(/SHEET/i, '')) - 1;
         } else {
-          sheetIdx = currentSheet.idx;
+          sheetIdx = currentSheetIdx;
         }
         if (!this._data[sheetIdx]) {
           this._data[sheetIdx] = {};
@@ -57,7 +57,7 @@ class DataSlotManager {
             primitive: true,
             val: '',
             tag: tag,
-          }, this.analyzer.getSheet(sheetIdx));
+          }, sheetIdx);
         }
         dependentSlots.push(this._data[sheetIdx][tag]);
       }
@@ -74,6 +74,17 @@ class DataSlotManager {
   }
   get(sheetIdx, tag) {
     return (this._data[sheetIdx] || {})[tag];
+  }
+  create(sheetIdx, tag) {
+    let slot = this.get(sheetIdx, tag);
+    if (!slot) {
+      if (!this._data[sheetIdx])  {
+        this._data[sheetIdx] = {};
+      }
+      let cellDef = this.analyzer.getCellDef(sheetIdx, tag);
+      slot = this._data[sheetIdx][tag] = this.makeSlot(cellDef, sheetIdx);
+    }
+    return slot; 
   }
 };
 

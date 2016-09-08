@@ -28,19 +28,15 @@ test('analyzer', function (t) {
   let cells = sheets[0].cells;
   let cell = cells['A1'];
   t.is(cell.val, '1');
-  t.is(cell.tag, 'A1');
   t.true(cell.primitive);
   cell = cells['B1'];
   t.is(cell.val, '2');
-  t.is(cell.tag, 'B1');
   t.true(cell.primitive);
   cell = cells['C1'];
   t.is(cell.val, 'abc');
-  t.is(cell.tag, 'C1');
   t.true(cell.primitive);
   cell = cells['B2'];
   t.is(cell.val, '3');
-  t.is(cell.tag, 'B2');
   t.true(cell.primitive);
 
   t.true(R.isEmpty(sheets[1].cells));
@@ -98,5 +94,33 @@ test('dependencies', function (t) {
   t.deepEqual(dependencies[3], {
     sheetName: 'SHEET1',
     tag: 'A1'
+  });
+});
+
+test('setCellDef', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['a', 'b', 'c'],
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let cellDef = analyzer.setCellDef(0, 'A2', '=A1+B1+C1');
+  let dependencies = cellDef.dependencies;
+  t.deepEqual(dependencies[0], {
+    sheetName: '',
+    tag: 'A1'
+  });
+  t.deepEqual(dependencies[1], {
+    sheetName: '',
+    tag: 'B1'
+  });
+  t.deepEqual(dependencies[2], {
+    sheetName: '',
+    tag: 'C1'
   });
 });

@@ -47,35 +47,13 @@ export var skipUndefined = function skipUndefined(grids, i, j) {
 class Analyzer {
   constructor(def) {
     this.def = def;
+    let analyzer = this;
     this.sheets = def.sheets.map(function ({label, grids=[]}, idx) {
       var cells = {};
       let [cellDef, i, j] = skipUndefined(grids, 0, 0);
       while (cellDef != undefined) {
-        if (typeof cellDef === 'string') {
-          cellDef = {
-            val: cellDef,
-          };
-        }
-        let val = cellDef.val;
         let tag = makeTag(i, j);
-        let primitive = val[0] != '=';
-        let dependencies = [];
-        let script;
-        if (!primitive) {
-          let lexer = new Lexer(val.slice(1));
-          for (var token of lexer.tokens) {
-            if (token.type === Token.VARIABLE) {
-              dependencies.push(splitVarName(token.value));
-            }
-          }
-          script = val.slice(1);
-        }
-        cells[tag] = Object.assign(cellDef, {
-          tag,
-          primitive, 
-          dependencies,
-          script,
-        });
+        cells[tag] = analyzer.analyze(cellDef);
         j++;
         if (j == grids[i].length) {
           j = 0;
@@ -88,6 +66,31 @@ class Analyzer {
         label: label || ('SHEET' + (idx + 1)),
         cells,
       };
+    });
+  }
+  analyze(cellDef) {
+    if (typeof cellDef === 'string') {
+      cellDef = {
+        val: cellDef,
+      };
+    }
+    let val = cellDef.val;
+    let primitive = val[0] != '=';
+    let dependencies = [];
+    let script;
+    if (!primitive) {
+      let lexer = new Lexer(val.slice(1));
+      for (var token of lexer.tokens) {
+        if (token.type === Token.VARIABLE) {
+          dependencies.push(splitVarName(token.value));
+        }
+      }
+      script = val.slice(1);
+    }
+    return Object.assign(cellDef, {
+      primitive, 
+      dependencies,
+      script,
     });
   }
   getCellDef(sheetIdx, tag) {
@@ -105,9 +108,8 @@ class Analyzer {
     if (sheet.cells == undefined) {
       sheet.cells = {};
     };
-    sheet.cells[tag] = def;
+    return sheet.cells[tag] = this.analyze(def);
   }
-
   getSheet(sheetIdx) {
     return this.sheets[sheetIdx];
   }

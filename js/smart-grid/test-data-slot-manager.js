@@ -101,3 +101,25 @@ test('dependency3', function (t) {
   t.is(mngr.get(0, 'D2').val(), '10');
   t.is(mngr.get(0, 'D3').val(), '12');
 });
+
+test('create', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['1', '2', '3'],
+          [, , , '=A1*2'],
+          [, , , '=D2']
+        ]
+      }, {
+        label: 'B',
+        grids: [
+        ]
+      }
+    ]
+  };
+  let mngr = new DataSlotManager(new Analyzer(def));
+  t.is(mngr.create(0, 'B1').val(), '2');
+  t.is(mngr.create(0, 'A2').val(), undefined);
+});
