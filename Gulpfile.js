@@ -9,7 +9,6 @@ var rollup = require('rollup').rollup;
 var nodeResolve = require('rollup-plugin-node-resolve');
 var babel = require('rollup-plugin-babel');
 var commonjs = require('rollup-plugin-commonjs');
-var rollupUglify = require('rollup-plugin-uglify');
 var fse = require('fs-extra');
 var glob = require('glob');
 var path = require('path');
@@ -100,8 +99,11 @@ gulp.task('rollup', function () {
     }),
   ];
   if (process.env.ENV === 'production') {
-    plugins.push(rollupUglify());
     plugins.push(babel({
+      presets: [["es2015", { modules: false }]],
+      plugins: [
+        "external-helpers"
+      ],
       exclude: ['node_modules/**']
     }));
   }

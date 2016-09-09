@@ -89,19 +89,19 @@ class Cell {
             mode: CellMode.SELECTED,
           })]
         ];
-        if ((cell.def && cell.def.val) != val) {
-          cell.def = cell.sg.setCellDef(cell.tag, Object.assign(cell.def || {}, {
+        let def = cell.$$def.val();
+        if ((def && def.val) != val) {
+          cell.sg.setCellDef(cell.tag, Object.assign(cell.def || {}, {
             val 
           }));
           cell.sg.dataSlotManager.reset();
+          let $$envSlot = cell.sg.getCellSlot(cell.tag);
+          $$envSlot && $$envSlot.update();
           cell.sg.cells.forEach(function (row) {
             row.forEach(function (cell) {
               cell.$$def.update();
             });
           });
-          // updates.push([
-          //   cell.sg.$$activeSheetIdx, cell.sg.$$activeSheetIdx.val()
-          // ]);
         }
         $$.update(...updates);
         return false;
@@ -133,11 +133,11 @@ class Cell {
     }
     let vf = function (cell) {
       return function ([focusedCell, def, val]) {
-        let className = ['cell', def.tag];
+        let className = ['cell', cell.tag];
         if (def && def.readOnly) {
           className.push('readonly');
         }
-        let mode = (focusedCell && focusedCell.tag === def.tag)? focusedCell.mode: CellMode.DEFAULT;
+        let mode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
         let selected = mode == CellMode.SELECTED;
         if (selected) {
           className.push('selected');

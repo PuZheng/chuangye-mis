@@ -124,7 +124,7 @@ test('create', function (t) {
   t.is(mngr.create(0, 'A2').val(), undefined);
 });
 
-test('update1', function (t) {
+test('reset1', function (t) {
   let def = {
     sheets: [
       {
@@ -144,7 +144,7 @@ test('update1', function (t) {
   t.is($$slot, undefined);
 });
 
-test('update2', function (t) {
+test('reset2', function (t) {
   let def = {
     sheets: [
       {
@@ -165,7 +165,7 @@ test('update2', function (t) {
   t.is($$slot.val(), '3');
 });
 
-test('update3', function (t) {
+test('reset3', function (t) {
   let def = {
     sheets: [
       {
@@ -189,7 +189,7 @@ test('update3', function (t) {
   t.is($$slot.val(), '2');
 });
 
-test('update4', function (t) {
+test('reset4', function (t) {
   let def = {
     sheets: [
       {
@@ -213,4 +213,27 @@ test('update4', function (t) {
   t.is($$slot, undefined);
   $$slot = mngr.get(0, 'C1');
   t.is($$slot, undefined);
+});
+
+test('reset5', function (t) {
+  let def = {
+    sheets: [
+      {
+        label: 'A',
+        grids: [
+          ['1'],
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let mngr = new DataSlotManager(analyzer);
+  let $$slot = mngr.create(0, 'A1');
+  t.is($$slot.val(), '1');
+  analyzer.setCellDef(0, 'A1', {
+    val: '10',
+  });
+  mngr.reset();
+  $$slot = mngr.get(0, 'A1');
+  t.is($$slot.val(), '10');
 });

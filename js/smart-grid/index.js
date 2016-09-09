@@ -3,7 +3,6 @@ import Analyzer from './analyzer';
 import DataSlotManager from './data-slot-manager';
 import Cell from './cell';
 import virtualDom from 'virtual-dom';
-import pipeSlot from 'pipe-slot';
 import CellMode from './cell-mode';
 import makeTag from './make-tag';
 
@@ -85,7 +84,7 @@ export class SmartGrid {
         }
         return Math.floor(top * actualWidth / sg.cellWidth); 
       };
-    };
+    }(this.$$activeSheetIdx);
     this.$$leftmostCol = $$.connect(
       [this.$$left, this.$$actualWidth, this.$$activeSheetIdx], 
       leftmostColVf, 
@@ -185,47 +184,14 @@ export class SmartGrid {
   getCellSlot(tag) {
     return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
   }
-  createCellSlot(tag) {
-    return this.dataSlotManager.create(this.$$activeSheetIdx.val(), tag);
+  createCellSlot(sheetIdx, tag) {
+    return this.dataSlotManager.create(sheetIdx, tag);
   }
   getCellDef(tag) {
     return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
   }
   setCellDef(tag, def) {
     return this.analyzer.setCellDef(this.$$activeSheetIdx.val(), tag, def);
-  }
-  $$createCell(row, col) {
-    let sg = this;
-    let vf = function ([leftmostCol, topmostRow, data], initiators) {
-      let tag = makeTag(row + topmostRow, col + leftmostCol);
-      let cellDef = sg.analyzer.getCellDef(tag);
-      if (initiators) {
-        let leftChanged = ~initiators.indexOf(sg.$$leftmostCol);
-        let topChanged = ~initiators.indexOf(sg.$$topmostRow);
-        if (leftChanged || topChanged) {
-          let $$cellData = sg.dataSlotManager.get(sg.$$activeSheetIdx.val(), tag);
-          if ($$cellData) {
-            $$data.connect([$$cellData], ([it]) => it);
-          } else {
-            $$data.connect([], () => cellDef? cellDef.val: '');
-          }
-          data = $$data.val();
-        }
-      }
-      return h('.cell', data);
-    };
-    let $$data;
-    let tag = makeTag(row, col);
-    let $$cellData = this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
-    if ($$cellData) {
-      $$data = $$.connect([$$cellData], function ([it]) {
-        return it;
-      }, 'cell-data-${tag}');
-    } else {
-      let cellDef = this.analyzer.getCellDef(tag);
-      $$data = $$(cellDef? cellDef.val: '', 'cell-data-${tag}');
-    }
-    return pipeSlot(null, 'cell-{tag}').connect([this.$$leftmostCol, this.$$topmostRow, $$data], vf);
   }
   $$createRow(row) {
     let sg = this;

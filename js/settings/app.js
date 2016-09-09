@@ -86,6 +86,9 @@ $$settings.change(function (settings) {
   .refresh();
   sg.setupLayout();
   sg.registerShortcus();
+  sg.createCellSlot(0, 'A1').change(function (v) {
+    console.log(v);
+  });
 });
 
 export default {

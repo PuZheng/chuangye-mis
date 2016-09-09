@@ -7,17 +7,17 @@ class DataSlotManager {
   constructor(analyzer) {
     this._data = [];
     this.analyzer = analyzer;
+    this.stickyTags = new Set();
     this.reset();
   }
   reset() {
-    this._data = [];
     for (var [idx, sheet] of this.analyzer.sheets.entries()) {
       // note, this._data[idx] may already created
       this._data[idx] = this._data[idx] || {};
       var slots = this._data[idx];
       for (let tag in sheet.cells) {
         let cell = sheet.cells[tag];
-        if (!cell.primitive) {
+        if (!cell.primitive || this.stickyTags.has(tag)) {
           slots[tag] = this.makeSlot(cell, sheet.idx);
         }
       }
@@ -39,10 +39,14 @@ class DataSlotManager {
     }();
   }
   makeSlot(cell, currentSheetIdx) {
+    let slot = this.get(currentSheetIdx, cell.tag);
     if (cell.primitive)  {
-      return $$(cell.val, `cell-${cell.tag}`);
+      if (!slot) {
+        return $$(cell.val, `cell-${cell.tag}`);
+      } else {
+        return slot.connect([], () => cell.val);
+      }
     } else {
-      let slot = this.get(currentSheetIdx, cell.tag);
       if (!slot) {
         slot = $$(null, `cell-${cell.tag}`);
       }
@@ -90,6 +94,7 @@ class DataSlotManager {
     return (this._data[sheetIdx] || {})[tag];
   }
   create(sheetIdx, tag) {
+    this.stickyTags.add(tag);
     let slot = this.get(sheetIdx, tag);
     if (!slot) {
       if (!this._data[sheetIdx])  {
