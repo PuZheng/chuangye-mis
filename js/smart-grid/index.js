@@ -94,7 +94,12 @@ export class SmartGrid {
         return oldVal != newVal; 
       }
     );
-    this.$$focusedCell = $$(null, 'focused-cell');
+    this.$$focusedCell = $$.connect(
+      [this.$$activeSheetIdx], 
+      function () {
+        return null;
+      }, 'focused-cell'
+    );
   }
   setupLayout() {
     let vHeader = this.gridContainerEl.querySelector('.row .header');
@@ -149,15 +154,6 @@ export class SmartGrid {
       this.$$createVScrollbar(), this.$$createHScrollbar(),
       this.$$createGrid()
     ], vf).update();
-    this.$$activeSheetIdx.change(function (sg) {
-      return function () {
-        $$.update(
-          [sg.$$left, 0],
-          [sg.$$top, 0],
-          [sg.$$focusedCell, null]
-        );
-      }; 
-    }(this));
   }
   $$createTopTagRow() {
     var sg = this;
