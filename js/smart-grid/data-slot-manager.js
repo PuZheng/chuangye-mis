@@ -7,6 +7,7 @@ class DataSlotManager {
   constructor(analyzer) {
     this._data = [];
     this.analyzer = analyzer;
+    this.reset();
   }
   reset() {
     for (var [idx, sheet] of this.analyzer.sheets.entries()) {
@@ -46,8 +47,8 @@ class DataSlotManager {
       }
       return slot.connect(this.getDependentSlots(cell, currentSheetIdx), function (slots) {
         let env = {};
-        for (var { val, tag } of slots) {
-          env[tag] = val;
+        for (var { val, tag, sheetName } of slots) {
+          env[sheetName? sheetName + ':' + tag: tag] = val;
         }
         let lexer = new Lexer(cell.script);
         let parser = new Parser(lexer);
@@ -78,6 +79,7 @@ class DataSlotManager {
           return {
             val,
             tag,
+            sheetName,
           };
         }));
       }

@@ -90,38 +90,43 @@ export class SmartGrid {
       [this.$$actualHeight, 2 * viewportHeight]
     );
     this.$$activeSheetIdx = $$(0, 'active-tab');
-    this.cells = function (sg) {
-      return range(0, sg.rowNum).map(function (row) {
-        return range(0, sg.colNum).map(function (col) {
-          return new Cell(sg, 0, row, col);
-        });
-      });
-    }(this);
     let sheetNames = [];
-    for (var {name} of this.analyzer.sheets) {
-      sheetNames.push(name);
+    for (var {label} of this.analyzer.sheets) {
+      sheetNames.push(label);
     }
-    let sg = this;
-    this.$$view.connect([this.$$activeSheetIdx, this.$$vScrollbar, this.$$hScrollbar, this.$$grid], function ([activeSheetIdx, vScrollbar, hScrollbar, grid]) {
-      return h('.smart-grid', [
-        grid,
-        hScrollbar,
-        vScrollbar,
-        h('.tabs', sheetNames.map(function (tn, idx) {
-          return h('a' + (idx == activeSheetIdx? '.active': ''), {
-            href: '#',
-            onclick() {
-              if (idx != activeSheetIdx) {
-                sg.$$activeSheetIdx.val(idx);
-              }
-              return false;
-            }
-          }, tn);
-        }))
-      ]);
-    }).update();
+    this.$$activeSheetIdx.change(function (sg, sheetNames) {
+      return function (activeSheetIdx) {
+        sg.cells = range(0, sg.rowNum).map(function (row) {
+          return range(0, sg.colNum).map(function (col) {
+            return new Cell(sg, activeSheetIdx, row, col);
+          });
+        });
+        let vf = function ([vScrollbar, hScrollbar, grid]) {
+          return h('.smart-grid', [
+            grid,
+            hScrollbar,
+            vScrollbar,
+            h('.tabs', sheetNames.map(function (tn, idx) {
+              return h('a' + (idx == activeSheetIdx? '.active': ''), {
+                href: '#',
+                onclick() {
+                  if (idx != activeSheetIdx) {
+                    sg.$$activeSheetIdx.val(idx);
+                  }
+                  return false;
+                }
+              }, tn);
+            }))
+          ]);
+        };
+        sg.$$view.connect([
+          sg.$$createVScrollbar(), sg.$$createHScrollbar(),
+          sg.$$createGrid()
+        ], vf).update();
+      };
+    }(this, sheetNames)).update();
   }
-  get $$topTagRow() {
+  $$createTopTagRow() {
     var sg = this;
     var $$topTagCells = range(0, this.colNum).map(function (idx) {
       return $$.connect(
@@ -199,7 +204,7 @@ export class SmartGrid {
       return h('.row', [leftTagHeader].concat(cells));
     });
   }
-  get $$dataGrid() {
+  $$createDataGrid() {
     var sg = this;
     return $$.connect(range(0, sg.rowNum).map(function (row) {
       return sg.$$createRow(row);
@@ -207,7 +212,7 @@ export class SmartGrid {
       return [rows];
     });
   }
-  get $$grid() {
+  $$createGrid() {
     let smartGrid = this;
     let vf = function ([topTagRow, dataGrid]) {
       return h('.grid-container', [
@@ -234,10 +239,10 @@ export class SmartGrid {
       ]);
     };
     return $$.connect(
-      [this.$$topTagRow, this.$$dataGrid], 
+      [this.$$createTopTagRow(), this.$$createDataGrid()], 
       vf);
   }
-  get $$hScrollbar() {
+  $$createHScrollbar() {
     let $$dragging = $$(false, 'dragging');
     let railEl;
     let barEl;
@@ -297,7 +302,7 @@ export class SmartGrid {
       [this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left], 
       vf);
   }
-  get $$vScrollbar() {
+  $$createVScrollbar() {
     let $$dragging = $$(false, 'dragging');
     let railEl;
     let barEl;
@@ -450,7 +455,6 @@ export class SmartGrid {
     if (this.getCellDef(makeTag(row, col)).readOnly) {
       return false;
     }
-    console.log(row, col);
     let args = [
       [this.$$focusedCell, {
         row, 

@@ -14,7 +14,7 @@ var ThrottleSlot = function () {
           slot.refresh();
         }
       }
-      this.dirty = false;
+      that.dirty = false;
     }
     requestAnimationFrame(propagate);
   };
