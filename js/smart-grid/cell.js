@@ -11,37 +11,49 @@ var VText = virtualDom.VText;
 class Hook {
   constructor(cell) {
     this.cell = cell;
+    this.ondblclick = function (cell) {
+      return function () {
+        cell.ondblclick();
+      };
+    }(cell);
+    this.onclick = function (cell) {
+      return function () {
+        cell.onclick();
+      };
+    }(cell);
+  }
+  onclick(e) {
+    this.cell.onclick(e);
   }
   hook(el) {
-    let cell = this.cell;
-    el.addEventListener('dblclick', function (e) {
-      cell.ondblclick(e);
-    });
-    el.addEventListener('click', function (e) {
-      cell.onclick(e);
-    });
-    cell.el = el;
+    if (~Array.from(el.classList).indexOf('A1')) {
+    }
+    this.cell.el = el;
+    el.addEventListener('dblclick', this.ondblclick);
+    el.addEventListener('click', this.onclick);
   }
   unhook(el) {
-    el.removeEventListener('dblclick', this.cell.ondblclick);
-    el.removeEventListener('click', this.cell.click);
+    el.removeEventListener('dblclick', this.ondblclick);
+    el.removeEventListener('click', this.click);
+    el = null;
   }
 };
 
 class EditorHook {
-  constructor(onChangeCb) {
+  constructor(cell, onChangeCb) {
     this.moveCaretAtEnd = function moveCaretAtEnd(e) {
       var temp_value = e.target.value;
       e.target.value = '';
       e.target.value = temp_value;
     };
+    this.cell = cell;
     this.onChangeCb = onChangeCb;
     let editor = this;
     this.onkeydown = function onkeydown(e) {
       if (e.keyCode == 27 || e.keyCode == 13) {
         e.stopPropagation();
-        editor.onChangeCb(this.value);
-        return true;
+        e.currentTarget.blur();
+        return false;
       }
     };
     this.onblur = function onblur() {
@@ -49,6 +61,8 @@ class EditorHook {
     };
   }
   hook(el) {
+    this.cell.inputEl = el;
+    el.value = (this.cell.def && this.cell.def.val) || '';
     el.onfocus = this.moveCaretAtEnd;
     el.addEventListener('keydown', this.onkeydown);
     el.addEventListener('blur', this.onblur);
@@ -57,103 +71,110 @@ class EditorHook {
     el.onfocus = null;
     el.removeEventListener('keydown', this.onkeydown);
     el.removeEventListener('blur', this.onblur);
+    el = null;
   }
 
 };
 
 class Cell {
-  constructor(sg, sheetIdx, row, col) {
+  constructor(sg, row, col) {
     this.sg = sg;
-    this.sheetIdx = sheetIdx;
     this.row = row;
     this.col = col;
     this.hook = new Hook(this);
-    this.editorHook = new EditorHook(function (cell) {
+    this.editorHook = new EditorHook(this, function (cell) {
       return function (val) {
         let updates = [
           [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
             mode: CellMode.SELECTED,
           })]
         ];
-        cell.def = cell.sg.setCellDef(sheetIdx, cell.tag, Object.assign(cell.def, {
-          val 
-        }));
-        cell.dataSlotManager.reset();
+        if ((cell.def && cell.def.val) != val) {
+          cell.def = cell.sg.setCellDef(cell.tag, Object.assign(cell.def || {}, {
+            val 
+          }));
+          cell.sg.dataSlotManager.reset();
+          cell.sg.cells.forEach(function (row) {
+            row.forEach(function (cell) {
+              cell.$$def.update();
+            });
+          });
+          // updates.push([
+          //   cell.sg.$$activeSheetIdx, cell.sg.$$activeSheetIdx.val()
+          // ]);
+        }
         $$.update(...updates);
         return false;
       };
     }(this));
+    this.$$val = $$(null, `cell-${row}-${col}-val`);
+    this.$$def = $$.connect(
+      [this.sg.$$topmostRow, this.sg.$$leftmostCol, this.sg.$$activeSheetIdx], 
+      function (cell) {
+        return function ([topmostRow, leftmostCol]) {
+          cell.tag = makeTag(cell.row + topmostRow, 
+                            cell.col + leftmostCol);
+          let def = cell.sg.getCellDef(cell.tag);
+          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
+          if (cell.$$envSlot) {
+            cell.$$val.connect([cell.$$envSlot], ([it]) => it);
+          } else {
+            cell.$$val.connect([], () => (def && def.val) || '');
+          }
+          return def;
+        };
+      }(this),
+      `cell-${row}-${col}-def`
+    );
   }
   get $$view() {
     if (this._$$view) {
       return this._$$view;
     }
-    let cell = this;
-    let vf = function (
-      [focusedCell, leftmostCol, topmostRow, val], initiators
-    ) {
-      if (initiators && initiators.length) {
-        cell.tag = makeTag(cell.row + topmostRow, cell.col + leftmostCol);
-        cell.def = cell.sg.getCellDef(cell.sheetIdx, cell.tag);
-        let leftChanged = ~initiators.indexOf(cell.sg.$$leftmostCol);
-        let topChanged = ~initiators.indexOf(cell.sg.$$topmostRow);
-        if (leftChanged || topChanged) {
-          cell.$$envSlot = cell.sg.getCellSlot(cell.sheetIdx, cell.tag);
-          if (cell.$$envSlot) {
-            cell.$$val.connect([cell.$$envSlot], ([it]) => it);
-          } else {
-            cell.$$val.connect([], () => cell.def? cell.def.val: '');
-          }
-          val = cell.$$val.val();
+    let vf = function (cell) {
+      return function ([focusedCell, def, val]) {
+        let className = ['cell', def.tag];
+        if (def && def.readOnly) {
+          className.push('readonly');
         }
-      }
-      let className = ['cell', cell.tag];
-      if (cell.def && cell.def.readOnly) {
-        className.push('readonly');
-      }
-      let mode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
-      let selected = mode == CellMode.SELECTED;
-      if (selected) {
-        className.push('selected');
-      }
-      let editing = mode == CellMode.EDIT;
-      if (editing) {
-        className.push('editing');
-      }
-      let properties = {
-        attributes: {
-          class: className.join(' '),
-          style: cell.def && cell.def.style,
-        },
-        hook: cell.hook,
+        let mode = (focusedCell && focusedCell.tag === def.tag)? focusedCell.mode: CellMode.DEFAULT;
+        let selected = mode == CellMode.SELECTED;
+        if (selected) {
+          className.push('selected');
+        }
+        let editing = mode == CellMode.EDIT;
+        if (editing) {
+          className.push('editing');
+        }
+        let properties = {
+          attributes: {
+            class: className.join(' '),
+            style: def && def.style,
+          },
+          hook: cell.hook,
+        };
+        let ret = new VNode('div', properties, [
+          cell.makeContentVnode(def, val, editing),
+          cell.makeEditor(def, editing),
+        ]);
+        if (cell.inputEl) {
+          cell.inputEl.value = cell.inputEl.getAttribute('value');
+        }
+        return ret;
       };
-      return new VNode('div', properties, [
-        cell.makeContentVnode(cell.def, val, editing),
-        cell.makeEditor(cell.def, val, editing),
-      ]);
-    };
-    cell.tag = makeTag(this.row, this.col);
-    this.$$envSlot = this.sg.getCellSlot(this.sheetIdx, this.tag);
-    if (this.$$envSlot) {
-      this.$$val = $$.connect([this.$$envSlot], function ([it]) {
-        return it;
-      }, 'cell-val-${cell.tag}');
-    } else {
-      this.def = this.sg.getCellDef(this.sheetIdx, this.tag);
-      this.$$val = $$(cell.def? cell.def.val: '', 'cell-val-${cell.tag}');
-    }
-    return this._$$view = pipeSlot(null, 'cell-${cell.tag}').connect(
-      [this.sg.$$focusedCell, this.sg.$$leftmostCol, this.sg.$$topmostRow, this.$$val], 
+    }(this);
+    return this._$$view = pipeSlot(null, 'cell-${this.tag}').connect(
+      [this.sg.$$focusedCell, this.$$def, this.$$val], 
       vf);
   }
-  makeEditor(def, val, editing) {
+  makeEditor(def, editing) {
     // it could be more sophisticated
     let properties = {
       hook: this.editorHook,
       attributes: {
         class: 'editor',
         type: 'text',
-        value: val,
+        value: (def && def.val) || '',
         style: editing? '': 'display: none', 
       }
     };

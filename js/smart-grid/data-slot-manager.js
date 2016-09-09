@@ -10,6 +10,7 @@ class DataSlotManager {
     this.reset();
   }
   reset() {
+    this._data = [];
     for (var [idx, sheet] of this.analyzer.sheets.entries()) {
       // note, this._data[idx] may already created
       this._data[idx] = this._data[idx] || {};

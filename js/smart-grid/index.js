@@ -55,21 +55,45 @@ export class SmartGrid {
     this.$$viewportHeight = $$(0, 'viewport-height');
     this.$$left = $$(0, 'left');
     this.$$top = $$(0, 'top');
-    let topmostRowVf = function ([top, actualHeight]) {
-      if (!actualHeight) return 0;
-      return Math.floor(top * actualHeight / sg.cellHeight); 
-    };
+    this.$$activeSheetIdx = $$(0, 'active-tab');
+    let topmostRowVf = function ($$activeSheetIdx) {
+      return function ([top, actualHeight], initiators) {
+        if (!actualHeight) return 0;
+        if (initiators && initiators.length) {
+          if (~initiators.indexOf($$activeSheetIdx)) {
+            return 0;
+          }
+        }
+        return Math.floor(top * actualHeight / sg.cellHeight); 
+      };
+    }(this.$$activeSheetIdx);
     this.$$topmostRow = $$.connect(
-      [this.$$top, this.$$actualHeight], topmostRowVf, 
+      [this.$$top, this.$$actualHeight, this.$$activeSheetIdx], 
+      topmostRowVf, 
       'topmost', 
       function (oldVal, newVal) { 
         return oldVal != newVal; 
       }
     );
-    this.$$leftmostCol = $$.connect([this.$$left, this.$$actualWidth], function ([top, actualWidth]) {
-      if (!actualWidth) return 0;
-      return Math.floor(top * actualWidth / sg.cellWidth); 
-    }, 'leftmost', function (oldVal, newVal) { return oldVal != newVal; });
+    let leftmostColVf = function ($$activeSheetIdx) {
+      return function ([top, actualWidth], initiators) {
+        if (!actualWidth) return 0;
+        if (initiators && initiators.length) {
+          if (~initiators.indexOf($$activeSheetIdx)) {
+            return 0;
+          }
+        }
+        return Math.floor(top * actualWidth / sg.cellWidth); 
+      };
+    };
+    this.$$leftmostCol = $$.connect(
+      [this.$$left, this.$$actualWidth, this.$$activeSheetIdx], 
+      leftmostColVf, 
+      'leftmost', 
+      function (oldVal, newVal) { 
+        return oldVal != newVal; 
+      }
+    );
     this.$$focusedCell = $$(null, 'focused-cell');
   }
   setupLayout() {
@@ -89,42 +113,51 @@ export class SmartGrid {
       [this.$$actualWidth, 2 * viewportWidth],
       [this.$$actualHeight, 2 * viewportHeight]
     );
-    this.$$activeSheetIdx = $$(0, 'active-tab');
     let sheetNames = [];
     for (var {label} of this.analyzer.sheets) {
       sheetNames.push(label);
     }
-    this.$$activeSheetIdx.change(function (sg, sheetNames) {
-      return function (activeSheetIdx) {
-        sg.cells = range(0, sg.rowNum).map(function (row) {
-          return range(0, sg.colNum).map(function (col) {
-            return new Cell(sg, activeSheetIdx, row, col);
-          });
+    this.cells = function (sg) {
+      return range(0, sg.rowNum).map(function (row) {
+        return range(0, sg.colNum).map(function (col) {
+          return new Cell(sg, row, col);
         });
-        let vf = function ([vScrollbar, hScrollbar, grid]) {
-          return h('.smart-grid', [
-            grid,
-            hScrollbar,
-            vScrollbar,
-            h('.tabs', sheetNames.map(function (tn, idx) {
-              return h('a' + (idx == activeSheetIdx? '.active': ''), {
-                href: '#',
-                onclick() {
-                  if (idx != activeSheetIdx) {
-                    sg.$$activeSheetIdx.val(idx);
-                  }
-                  return false;
+      });
+    }(this);
+    let vf = function ($$activeSheetIdx) {
+      return function ([activeSheetIdx, vScrollbar, hScrollbar, grid]) {
+        return h('.smart-grid', [
+          grid,
+          hScrollbar,
+          vScrollbar,
+          h('.tabs', sheetNames.map(function (tn, idx) {
+            return h('a' + (idx == activeSheetIdx? '.active': ''), {
+              href: '#',
+              onclick() {
+                if (idx != activeSheetIdx) {
+                  $$activeSheetIdx.val(idx);
                 }
-              }, tn);
-            }))
-          ]);
-        };
-        sg.$$view.connect([
-          sg.$$createVScrollbar(), sg.$$createHScrollbar(),
-          sg.$$createGrid()
-        ], vf).update();
+                return false;
+              }
+            }, tn);
+          }))
+        ]);
       };
-    }(this, sheetNames)).update();
+    }(this.$$activeSheetIdx);
+    this.$$view.connect([
+      this.$$activeSheetIdx,
+      this.$$createVScrollbar(), this.$$createHScrollbar(),
+      this.$$createGrid()
+    ], vf).update();
+    this.$$activeSheetIdx.change(function (sg) {
+      return function () {
+        $$.update(
+          [sg.$$left, 0],
+          [sg.$$top, 0],
+          [sg.$$focusedCell, null]
+        );
+      }; 
+    }(this));
   }
   $$createTopTagRow() {
     var sg = this;
@@ -153,23 +186,23 @@ export class SmartGrid {
       return h(classNames, '' + (topmostRow + row + 1));
     });
   }
-  getCellSlot(sheetIdx, tag) {
-    return this.dataSlotManager.get(sheetIdx, tag);
+  getCellSlot(tag) {
+    return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
   }
-  createCellSlot(sheetIdx, tag) {
-    return this.dataSlotManager.create(sheetIdx, tag);
+  createCellSlot(tag) {
+    return this.dataSlotManager.create(this.$$activeSheetIdx.val(), tag);
   }
-  getCellDef(sheetIdx, tag) {
-    return this.analyzer.getCellDef(sheetIdx, tag);
+  getCellDef(tag) {
+    return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
   }
-  setCellDef(sheetIdx, tag, def) {
-    return this.analyzer.setCellDef(sheetIdx, tag, def);
+  setCellDef(tag, def) {
+    return this.analyzer.setCellDef(this.$$activeSheetIdx.val(), tag, def);
   }
   $$createCell(row, col) {
     let sg = this;
     let vf = function ([leftmostCol, topmostRow, data], initiators) {
       let tag = makeTag(row + topmostRow, col + leftmostCol);
-      let cellDef = sg.analyzer.getCellDef(sg.$$activeSheetIdx.val(), tag);
+      let cellDef = sg.analyzer.getCellDef(tag);
       if (initiators) {
         let leftChanged = ~initiators.indexOf(sg.$$leftmostCol);
         let topChanged = ~initiators.indexOf(sg.$$topmostRow);
@@ -193,7 +226,7 @@ export class SmartGrid {
         return it;
       }, 'cell-data-${tag}');
     } else {
-      let cellDef = this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
+      let cellDef = this.analyzer.getCellDef(tag);
       $$data = $$(cellDef? cellDef.val: '', 'cell-data-${tag}');
     }
     return pipeSlot(null, 'cell-{tag}').connect([this.$$leftmostCol, this.$$topmostRow, $$data], vf);
@@ -455,15 +488,12 @@ export class SmartGrid {
     if (this.getCellDef(makeTag(row, col)).readOnly) {
       return false;
     }
-    let args = [
-      [this.$$focusedCell, {
-        row, 
-        col,
-        tag: makeTag(row, col),
-        mode: CellMode.EDIT,
-      }],
-    ];
-    $$.update(...args);
+    this.$$focusedCell.val({
+      row, 
+      col,
+      tag: makeTag(row, col),
+      mode: CellMode.EDIT,
+    });
     return true;
   }
 };

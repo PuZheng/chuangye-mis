@@ -7,9 +7,8 @@ var rev = require("gulp-rev");
 var revReplace = require("gulp-rev-replace");
 var rollup = require('rollup').rollup;
 var nodeResolve = require('rollup-plugin-node-resolve');
-// var buble = require('rollup-plugin-buble');
+var babel = require('rollup-plugin-babel');
 var commonjs = require('rollup-plugin-commonjs');
-var string = require('rollup-plugin-string');
 var rollupUglify = require('rollup-plugin-uglify');
 var fse = require('fs-extra');
 var glob = require('glob');
@@ -95,22 +94,16 @@ gulp.task('rollup', function () {
         'pipe-slot': 'js/pipe-slot/index.js',
       }
     }),
-    string({
-      include: ['js/**/*.ejs'],
-    }),
     json({
       include: ['js/config.json'],
       exclude: ['node_modules/**/*', 'config.json', 'config.sample.json']
     }),
-    // buble({
-    //   transforms: {
-    //     arrow: true,
-    //     dangerousForOf: true
-    //   },
-    // }),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(rollupUglify());
+    plugins.push(babel({
+      exclude: ['node_modules/**']
+    }));
   }
   return rollup({
     entry: 'js/main.js',
@@ -124,7 +117,8 @@ gulp.task('rollup', function () {
       globals: {
         moment: 'moment',
         'virtual-dom': 'virtualDom',
-      }
+      },
+      moduleName: 'chuangye',
     });
   });
 });
