@@ -181,6 +181,9 @@ export class SmartGrid {
       return h(classNames, '' + (topmostRow + row + 1));
     });
   }
+  getCellDefs(test) {
+    return this.analyzer.getCellDefs(test);
+  }
   getCellSlot(tag) {
     return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
   }

@@ -6,5 +6,8 @@ export default {
     .then(function (res) {
       return res.data.data; 
     });
-  }
+  },
+  update(group, name, value) {
+    return request.put(`/settings/${group}/${name}`, { value });
+  },
 };

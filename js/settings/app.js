@@ -3,6 +3,9 @@ import throttleSlot from 'throttle-slot';
 import virtualDom from 'virtual-dom';
 import SmartGrid from 'smart-grid';
 import R from 'ramda';
+import settingsStore from '../store/settings-store';
+import overlay from '../overlay';
+import axiosError2Dom from '../axios-error-2-dom';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -48,12 +51,12 @@ $$settings.change(function (settings) {
         val: '说明',
       }, headerCellDef),
     ];
-      sheetDef.grids = [header].concat(group.map(function (setting) {
+    sheetDef.grids = [header].concat(group.map(function (setting) {
       return [{
         readOnly: true,
         val: setting.name,
       }, {
-        label: setting.name,
+        label: groupName + '-' + setting.name,
         val: setting.value,
       }, {
         readOnly: true,
@@ -62,22 +65,22 @@ $$settings.change(function (settings) {
     }));
     def.sheets.push(sheetDef);
   }
-  var def = {
-    sheets: [
-      {
-        label: 'A',
-        grids: [
-          ['1', '=A1+1']
-        ]
-      },
-      {
-        label: 'B',
-        grids: [
-          ['=SHEET1:A1+3']
-        ]
-      }
-    ]
-  };
+  // var def = {
+  //   sheets: [
+  //     {
+  //       label: 'A',
+  //       grids: [
+  //         ['1', '=A1+1']
+  //       ]
+  //     },
+  //     {
+  //       label: 'B',
+  //       grids: [
+  //         ['=SHEET1:A1+3']
+  //       ]
+  //     }
+  //   ]
+  // };
   sg = new SmartGrid(def);
   $$view
   .connect([sg.$$view], function ([sg]) {
@@ -86,9 +89,21 @@ $$settings.change(function (settings) {
   .refresh();
   sg.setupLayout();
   sg.registerShortcus();
-  sg.createCellSlot(0, 'A1').change(function (v) {
-    console.log(v);
-  });
+  for (var setting of settings) {
+    let [{sheetIdx, tag, def}] = sg.getCellDefs(cell => cell.label == setting.group + '-' + setting.name);
+    sg.createCellSlot(sheetIdx, tag).change(function (cellDef, setting) {
+      return function (v) {
+        settingsStore.update(setting.group, setting.name, v)
+        .catch(function (error) {
+          overlay.$$content.val({
+            type: 'error',
+            title: '很不幸, 出错了!',
+            message: axiosError2Dom(error),
+          });
+        });
+      };
+    }(def, setting));
+  };
 });
 
 export default {

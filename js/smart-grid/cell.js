@@ -146,10 +146,22 @@ class Cell {
         if (editing) {
           className.push('editing');
         }
+        let style = def && def.style;
+        if (typeof style === 'object') {
+          let s = '';
+          for (let k in style) {
+            let v = style[k];
+            k = k.replace(/[A-Z]/g, function (s) { 
+              return '-' + s.toLowerCase();
+            }).replace(/^_/, '');
+            s += `${k}: ${v};`;
+          }
+          style = s;
+        }
         let properties = {
           attributes: {
             class: className.join(' '),
-            style: def && def.style,
+            style: style,
           },
           hook: cell.hook,
         };
@@ -203,9 +215,8 @@ class Cell {
     });
   }
   ondblclick() {
-    let focusedCell = this.sg.$$focusedCell;
-    if ((this.def && this.def.readOnly) || 
-        (focusedCell && focusedCell.tag == this.tag && focusedCell.mode === CellMode.EDIT)) {
+    let def = this.$$def.val();
+    if ((def && def.readOnly)) {
       return;
     }
     this.sg.$$focusedCell.val({

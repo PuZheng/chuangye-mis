@@ -8,6 +8,7 @@ class DataSlotManager {
     this._data = [];
     this.analyzer = analyzer;
     this.stickyTags = new Set();
+    this._reservedTags = new Set();
     this.reset();
   }
   reset() {
@@ -22,6 +23,14 @@ class DataSlotManager {
         }
       }
     }
+    for (let slots of this._data) {
+      for (let tag in slots) {
+        if (!this._reservedTags.has(tag)) {
+          delete slots[tag];
+        }
+      }
+    }
+    this._reservedTags.clear();
   }
   get slots() {
     let dsm = this;
@@ -39,6 +48,7 @@ class DataSlotManager {
     }();
   }
   makeSlot(cell, currentSheetIdx) {
+    this._reservedTags.add(cell.tag);
     let slot = this.get(currentSheetIdx, cell.tag);
     if (cell.primitive)  {
       if (!slot) {

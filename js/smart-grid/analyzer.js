@@ -2,7 +2,10 @@ import makeTag from './make-tag';
 import { Lexer, Token } from './script/lexer.js';
 
 /**
- * split var name to sheetName and tag
+ * split var name to sheetName and tag, eg. "sheet1:A3" => { 
+ *  sheetName: 'sheet1',
+ *  tag: 'A3'
+ * }
  * */
 let splitVarName = function (varName) {
   let arr = varName.split(':');
@@ -20,7 +23,18 @@ let splitVarName = function (varName) {
   };
 };
 
-export var skipUndefined = function skipUndefined(grids, i, j) {
+/**
+ * get next cell definition from raw definitions.
+ *
+ * @param {Array} grids - raw cell definition
+ * @param {Number} i - row of start position
+ * @param {Number} j - column of start position
+ *
+ * @return {Array} - next cell definition and its position, eg. 
+ *  [nextCellDef, nextRow, nextCol], or [undefined] if there's no next cell 
+ *  definition
+ * */
+export var getNextCellDef = function getNextCellDef(grids, i, j) {
   let cellDef;
   while (i < grids.length) {
     let row = grids[i];
@@ -42,7 +56,7 @@ export var skipUndefined = function skipUndefined(grids, i, j) {
 
 
 /*
- * Analyzer of grid source file
+ * Analyzer of smart grid raw definitions. 
  * */
 class Analyzer {
   constructor(def) {
@@ -50,7 +64,7 @@ class Analyzer {
     let analyzer = this;
     this.sheets = def.sheets.map(function ({label, grids=[]}, idx) {
       var cells = {};
-      let [cellDef, i, j] = skipUndefined(grids, 0, 0);
+      let [cellDef, i, j] = getNextCellDef(grids, 0, 0);
       while (cellDef != undefined) {
         let tag = makeTag(i, j);
         cellDef = analyzer.analyze(cellDef);
@@ -61,7 +75,7 @@ class Analyzer {
           j = 0;
           i++;
         }
-        [cellDef, i, j] = skipUndefined(grids, i, j);
+        [cellDef, i, j] = getNextCellDef(grids, i, j);
       }
       return {
         idx: idx,
@@ -69,6 +83,23 @@ class Analyzer {
         cells,
       };
     });
+  }
+  getCellDefs(test) {
+    let ret = [];
+    for (let sheet of this.sheets) {
+      let {idx: sheetIdx, cells} = sheet;
+      for (let tag in cells) {
+        let cell = cells[tag];
+        if (!test || test(cell)) {
+          ret.push({
+            sheetIdx,
+            tag,
+            def: cell,
+          });
+        }
+      }
+    }
+    return ret;
   }
   analyze(cellDef) {
     if (typeof cellDef === 'string') {

@@ -17,7 +17,6 @@
         ]
     },
     "ava": {
-        "babel": "inherit",
         "files": [
             "js/smart-grid/test-*.js",
             "!**/not-this-file.js"
@@ -32,7 +31,8 @@
         "require": [
             "babel-register"
         ],
-        "verbose": true
+        "verbose": true,
+        "babel": "inherit"
     },
     "author": "Arvind Ravulavaru",
     "license": "MIT",
