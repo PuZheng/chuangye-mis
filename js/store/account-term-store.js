@@ -1,13 +1,9 @@
-import backendURL from '../backend-url';
-import accountStore from './account-store';
+import request from '../request';
 
 export default {
   get list() {
-    return axios.get(backendURL('/account-term/list'), {
-      headers: {
-        Authorization: 'Bearer ' + accountStore.user.token,
-      },
-    }).then(function (response) {
+    return request.get('/account-term/list')
+    .then(function (response) {
       return response.data.data;
     });
   }

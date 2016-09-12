@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import R from 'ramda';
 import { $$invoice } from './data-slots';
 import { $$dropdown } from '../widget/dropdown';
@@ -25,10 +25,10 @@ var validate = R.partialRight(validateObj, [rules]);
 
 var $$materialSubjectDropdown = $$dropdown({
   defaultText: '请选择物料类别',
-  $$options: $$.connect([$$materialSubjects], function (l) {
+  $$options: $$.connect([$$materialSubjects], function ([l]) {
     return l.map(ms => ({ value: ms.id, text: ms.name }));
   }),
-  $$value: $$.connect([$$materialNote], function (mn) {
+  $$value: $$.connect([$$materialNote], function ([mn]) {
     return mn.materialSubjectId;
   }),
   onchange(value) {
@@ -44,10 +44,10 @@ let wrapIf = function wrapId(s, left='(', right=')') {
   return s? left + s + right: '';
 };
 
-function materialsEditorValueFunc(
+function materialsEditorValueFunc([
   invoice, errors,
   materialNote, materialSubjectDropdown
-) {
+]) {
   return h('.border-box.border.rounded', [
     h('.form', [
       field('materialSubjectId', '物料类别', 

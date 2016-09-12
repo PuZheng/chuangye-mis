@@ -1,4 +1,4 @@
-import $$ from '../xx.js';
+import $$ from 'slot';
 import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import $$queryObj from '../query-obj';
 import $$searchBox from '../widget/search-box';
@@ -10,7 +10,7 @@ var h = virtualDom.h;
 
 
 var $$invoiceTypeFilter = $$dropdown({
-  $$options: $$.connect([$$invoiceTypes], function (list) {
+  $$options: $$.connect([$$invoiceTypes], function ([list]) {
     return [{
       value: '',
       text: '不限发票类型'
@@ -21,7 +21,7 @@ var $$invoiceTypeFilter = $$dropdown({
       };
     }));
   }),
-  $$value: $$.connect([$$queryObj], function (queryObj) {
+  $$value: $$.connect([$$queryObj], function ([queryObj]) {
     return queryObj.invoice_type_id;
   }),
   defaultText: '请选择发票类型',
@@ -38,7 +38,7 @@ var $$dateFilter = $$dropdown({
     { value: 'in_30_days', text: '30天内' },
     { value: '', text: '不限日期' },
   ]),
-  $$value: $$.connect([$$queryObj], function (queryObj) {
+  $$value: $$.connect([$$queryObj], function ([queryObj]) {
     return queryObj.date_span;
   }),
   defaultText: '请选择日期范围',
@@ -51,10 +51,10 @@ var $$dateFilter = $$dropdown({
 
 var $$accountTermFilter = $$searchDropdown({
   defaultText: '请选择账期',
-  $$value: $$.connect([$$queryObj], function (queryObj) {
+  $$value: $$.connect([$$queryObj], function ([queryObj]) {
     return queryObj.account_term_id;
   }),
-  $$options: $$.connect([$$accountTerms], function (list) {
+  $$options: $$.connect([$$accountTerms], function ([list]) {
     return [
       { value: '', text: '不限账期' }
     ].concat(list.map(function (at) {
@@ -73,10 +73,10 @@ var $$accountTermFilter = $$searchDropdown({
 
 var $$vendorFilter = $$searchDropdown({
   defaultText: '请选择销售方',
-  $$value: $$.connect([$$queryObj], function (q) {
+  $$value: $$.connect([$$queryObj], function ([q]) {
     return q.vendor_id;
   }),
-  $$options: $$.connect([$$entities], function (entities) {
+  $$options: $$.connect([$$entities], function ([entities]) {
     return [
       { value: '', text: '不限销售方' },
     ].concat(entities.map(function (e) {
@@ -96,10 +96,10 @@ var $$vendorFilter = $$searchDropdown({
 
 var $$purchaserFilter = $$searchDropdown({
   defaultText: '请选择购买方',
-  $$value: $$.connect([$$queryObj], function (q) {
+  $$value: $$.connect([$$queryObj], function ([q]) {
     return q.purchaser_id;
   }),
-  $$options: $$.connect([$$entities], function (entities) {
+  $$options: $$.connect([$$entities], function ([entities]) {
     return [
       { value: '', text: '不限销售方' },
     ].concat(entities.map(function (e) {
@@ -120,7 +120,7 @@ var $$purchaserFilter = $$searchDropdown({
 var $$numberFilter = $$searchBox({
   minLen: 2,
   defaultText: '搜索编号',
-  $$searchText: $$.connect([$$queryObj], function (qo) {
+  $$searchText: $$.connect([$$queryObj], function ([qo]) {
     return qo.number__like || ''; 
   }),
   onsearch(searchText) {
@@ -140,10 +140,10 @@ export var $$filters = $$.connect([
   $$vendorFilter,
   $$purchaserFilter,
   $$numberFilter,
-], function (
+], function ([
   invoiceTypeFilter, dateFilter, accountTermFilter, vendorFilter,
   purchaserFilter, numberFilter
-) {
+]) {
   return h('.filters', [
     numberFilter,
     invoiceTypeFilter,

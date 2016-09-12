@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import { $$loading, $$voucherTypes, $$voucherSubjects } from './data-slots';
 import classNames from '../class-names';
@@ -124,10 +124,10 @@ var $$recipientFilter = $$searchDropdown({
   }
 });
 
-var filtersVf = function (
+var filtersVf = function ([
   numberFilter, dateFilter, typeFilter, subjectFilter,
   payerFilter, recipientFilter
-) {
+]) {
   return h('.filters', [
     numberFilter,
     dateFilter,
@@ -144,7 +144,7 @@ var $$filters = $$.connect([
 filtersVf);
 
 var $$idOth = function () {
-  let vf = function (queryObj) {
+  let vf = function ([queryObj]) {
     return oth({
       label: '编号', 
       order: getColOrder('id', queryObj), 
@@ -159,7 +159,7 @@ var $$idOth = function () {
 }();
 
 var $$dateOth = function () {
-  let vf = function (queryObj) {
+  let vf = function ([queryObj]) {
     return oth({
       label: '日期',
       order: getColOrder('date', queryObj),
@@ -173,7 +173,7 @@ var $$dateOth = function () {
   return $$.connect([$$queryObj], vf);
 }();
 
-var tableVf = function (vouchers, idOth, dateOth) {
+var tableVf = function ([vouchers, idOth, dateOth]) {
   return h('table.table.striped.compact', [
     h('thead', [
       h('tr', [
@@ -216,8 +216,8 @@ var $$table = $$.connect([$$vouchers, $$idOth, $$dateOth], tableVf);
 var $$totalCnt = $$(0, 'totalCnt');
 
 
-var viewVf = function (loading, table, paginator, tableHints, 
-                      filters) {
+var viewVf = function ([loading, table, paginator, tableHints, 
+                      filters]) {
   return h(classNames('.list-app', loading && 'loading'), [
     h('.header', '资金类凭证列表'),
     filters,

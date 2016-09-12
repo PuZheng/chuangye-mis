@@ -7,15 +7,22 @@
     --table-border: 1px solid #eee;
     --table-striped-background-color: #f4f4f4;
     --focused-color: color(var(--red) l(+20%));
+    --scrollbar-width: 10px;
+    --tab-nav-height: 1.4rem;
+    --cell-height: 1.4rem;
+    --cell-width: 6rem;
+    --v-header-width: 3rem;
+    --cell-padding-x: .5rem;
+    --cell-padding-y: .2rem;
 }
 
-.sg, .smart-grid {
-	border-collapse: collapse;
-	border-spacing: 0px;
+.smart-grid {
+    position: relative;
 	max-width: 100%;
 	width: 100%;
-	empty-cells: show;
-    margin-top: -1px;
+    height: 100%;
+    overflow: hidden;
+
 
 	& td, & th {
 		border: var(--table-border);
@@ -30,11 +37,6 @@
 	}
 
     & .editor {
-        position: absolute;
-        left: 0px;
-        bottom: 0px;
-        width: calc(100% - 4px);
-        height: calc(100% - 4px);
     }
 
     & tr:nth-child(odd) td {
@@ -60,6 +62,146 @@
 
         & td.-selected {
             background: var(--focused-color);
+        }
+    }
+
+    & .grid-container {
+        position: absolute;
+        overflow: hidden;
+        width: calc(100% - var(--scrollbar-width));
+        height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
+    }
+
+    & .grid {
+        display: table;
+        table-layout: fixed;
+        user-select: none;
+
+        & * {
+            box-sizing: border-box;
+        }
+
+        & .header {
+            display: table-cell;
+            background: var(--color-gray-light);
+            line-height: calc(var(--cell-height) - 2 * var(--cell-padding-y));
+            padding: var(--cell-padding-y) var(--cell-padding-x);
+            &.focused {
+                background-color: var(--focused-color);
+            }
+        }
+
+        & .cell {
+            display: table-cell;
+            height: var(--cell-height);
+            min-height: var(--cell-height);
+            &.selected {
+                background: var(--focused-color);
+            }
+        }
+
+        & .v-h-header {
+            display: table-cell;
+            width: var(--v-header-width);
+            min-width: var(--v-header-width);
+            height: var(--cell-height);
+        }
+         
+        & .top-tag-row {
+            top: 0;
+            left: 3rem;
+            display: table-row;
+            border-bottom: 1px solid var(--color-gray);
+            
+            & .header {
+                min-width: var(--cell-width);
+                border-right: 1px solid var(--color-gray);
+            }
+        }
+
+        & .row {
+            display: table-row;
+            & .header {
+                width: var(--v-header-width);
+                text-align: center;
+                padding-left: 0;
+                padding-right: 0;
+                border-bottom: 1px solid var(--color-gray);
+            }
+            & .cell {
+                min-width: var(--cell-width);
+                border-right: 1px solid var(--color-gray-light);
+                border-bottom: 1px solid var(--color-gray-light);
+                vertical-align: text-bottom;
+                padding: var(--cell-padding-y) var(--cell-padding-x);
+                line-height: calc(var(--cell-height) - 2 * var(--cell-padding-y));
+
+                & .content {
+                    display: block;
+                    overflow: hidden;
+                    height: 100%;
+                }
+            }
+        }
+    }
+
+    & .scrollbar {
+        position: absolute;
+        background: var(--color-gray-light);
+        border-radius: var(--scrollbar-width);
+
+        & .bar {
+            position: absolute;
+            background: var(--color-gray-dark);
+            border-radius: var(--scrollbar-width);
+        }
+
+        &.dragging .bar {
+            background: var(--color-gray);
+        }
+
+        &.horizontal {
+            left: 0;
+            bottom: var(--tab-nav-height);
+            height: var(--scrollbar-width);
+            width: calc(100% - var(--scrollbar-width));
+
+            & .bar {
+                height: 100%;
+            }
+        }
+
+        &.vertical {
+            top: 0;
+            right: 0;
+            height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
+            width: var(--scrollbar-width);
+            & .bar {
+                width: 100%;
+            }
+        }
+    }
+
+    & > .tabs {
+        position: absolute;
+        bottom: 0;
+        height: var(--tab-nav-height);
+
+        & a {
+            -webkit-user-select: none;
+            outline: none;
+            float: left;
+            text-decoration: none;
+            height: 100%;
+            max-height: 100%;
+            box-sizing: border-box;
+            padding: 0 1rem;
+            border: 1px solid var(--color-gray-light);
+            color: var(--color-gray-dark);
+            &.active {
+                color: var(--color-primary);
+                border: 1px solid var(--color-primary);
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
 import { $$loading } from './data-slots.js';
-import x from '../xx.js';
-import SmartGrid from '../../smart-grid/smart-grid.js';
+import $$ from 'slot';
+import SmartGrid from '../smart-grid/';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
-const valueFunc = function (loading, smartGrid) {
+const valueFunc = function ([loading, smartGrid]) {
   return h('div', [
     h('h2.center', '2016-08电费单'),
     h('.relative.border-box.border.m1.p1' + (loading? '.-loading': ''), {
@@ -52,6 +52,6 @@ export var makePage = function (chargeBill) {
     onUpdated: function (rootNode) {
       SmartGrid.onUpdated(rootNode);
     },
-    $$view: x.connect(slots, valueFunc, 'page'),
+    $$view: $$.connect(slots, valueFunc, 'page'),
   };
 };

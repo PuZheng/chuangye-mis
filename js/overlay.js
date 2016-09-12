@@ -1,5 +1,5 @@
 import virtualDom from 'virtual-dom';
-import $$ from './xx';
+import $$ from 'slot';
 import R from 'ramda';
 import classNames from './class-names';
 

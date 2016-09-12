@@ -1,6 +1,6 @@
 import { $$voucher, $$payers } from './data-slots';
 import { $$searchDropdown } from '../widget/search-dropdown';
-import $$ from '../xx.js';
+import $$ from 'slot';
 
 export var $$payerDropdown = $$searchDropdown({
     defaultText: '请选择支付方',
@@ -9,7 +9,7 @@ export var $$payerDropdown = $$searchDropdown({
         payerId: parseInt(value),
       });
     },
-    $$options: $$.connect([$$payers], function (l) {
+    $$options: $$.connect([$$payers], function ([l]) {
       return l.map(p => (
         { 
           value: p.id,
@@ -18,7 +18,7 @@ export var $$payerDropdown = $$searchDropdown({
         }
       ));
     }),
-    $$value: $$.connect([$$voucher], function (o) {
+    $$value: $$.connect([$$voucher], function ([o]) {
       return o.payerId;
     })
 });

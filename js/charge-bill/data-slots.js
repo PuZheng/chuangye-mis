@@ -1,4 +1,4 @@
-import x from '../xx.js';
+import $$ from 'slot';
 
-export const $$loading = x(false, 'loading');
+export const $$loading = $$(false, 'loading');
 

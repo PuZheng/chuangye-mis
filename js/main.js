@@ -9,7 +9,7 @@ import dashboardApp from './dashboard/app';
 import chargeBillApp from './charge-bill/app';
 import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
-import $$ from './xx';
+import $$ from 'slot';
 import invoiceTypeStore from './store/invoice-type-store';
 import accountTermStore from './store/account-term-store';
 import invoiceStore from './store/invoice-store';
@@ -20,8 +20,10 @@ import chargeBillStore from './store/charge-bill-store';
 import accountStore from './store/account-store';
 import departmentStore from './store/department-store';
 import tenantStore from './store/tenant-store';
+import settingsStore from './store/settings-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
+import settingsApp from './settings/app.js';
 import R from 'ramda';
 import entityStore from './store/entity-store';
 import mount from './mount';
@@ -32,7 +34,7 @@ import { could } from './principal';
 import qs from 'query-string';
 import $$queryObj from './query-obj';
 
-$$.init({ debug: true });
+// $$.init({ debug: true });
 
 mount(navBar, '#nav-bar');
 mount(toast.page, '#toast');
@@ -247,6 +249,21 @@ page('/charge-bill/:id?', function (ctx) {
     app.$$loading.val(false);
   });
 });
+
+var settings = function () {
+  let app = settingsApp;
+  mount(app.page);
+  app.$$loading.toggle();
+  settingsStore.list.then(function (settings) {
+    $$.update(
+      [app.$$loading, false],
+      [app.$$settings, settings]
+    );
+  });
+};
+
+page ('/settings', loginRequired, _setupNavBar('settings'), 
+      _could('edit.settings'), settings);
 
 page('/', loginRequired, _setupNavBar('home'), function () {
   let app = dashboardApp;

@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 
 const UP = 38;
@@ -13,7 +13,7 @@ export var $$dropdown = function (
 ) {
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
-  let valueFunc = function (activated, options, value, selection) {
+  let valueFunc = function ([activated, options, value, selection]) {
     let classNames = ['dropdown'];
     if (activated) {
       classNames.push('activated');

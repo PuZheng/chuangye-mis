@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { $$invoice, $$loading } from './data-slots.js';
-import x from '../xx.js';
+import x from 'slot';
 import page from 'page';
 import invoiceStore from '../store/invoice-store.js';
 import { $$materialsEditor } from './materials-editor.js';
@@ -28,13 +28,13 @@ $$invoice.change(function () {
 }());
 
 
-var valueFunc = function valueFunc(
+var valueFunc = function valueFunc([
   errors, loading,  
   invoice, 
   invoiceTypeDropdown,
   accountTermDropdown, vendorDropdown, purchaserDropdown,
   materialsEditor
-) {
+]) {
   let classNames = ['form'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join();

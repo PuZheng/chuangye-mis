@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import field from '../field';
 import $$searchDropdown from '../widget/search-dropdown';
@@ -48,7 +48,7 @@ var $$departmentDropdown = $$searchDropdown({
   }
 });
 
-var formVf = function (errors, departmentDropdown, tenant) {
+var formVf = function ([errors, departmentDropdown, tenant]) {
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
@@ -160,7 +160,7 @@ var formVf = function (errors, departmentDropdown, tenant) {
 var $$form = $$.connect([$$errors, $$departmentDropdown, $$tenant], formVf);
 
 
-var vf = function (tenant, form, loading) {
+var vf = function ([tenant, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
     h('.header' + (diff(tenant, oldCopy)? '.dirty': ''), tenant.id? `编辑承包人-${tenant.entity.name}`: '创建承包人'),
     form,

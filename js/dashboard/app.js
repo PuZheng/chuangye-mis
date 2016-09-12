@@ -1,4 +1,4 @@
-import $$ from '../xx.js';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 

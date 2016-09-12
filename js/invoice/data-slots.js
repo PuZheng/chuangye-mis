@@ -1,4 +1,4 @@
-import x from '../xx.js';
+import x from 'slot';
 
 export const $$invoiceTypes = x([], 'invoice-types');
 export const $$loading = x(0, 'loading');

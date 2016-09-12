@@ -1,4 +1,4 @@
-import $$ from '../xx';
+import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import field from '../field';
 import page from 'page';
@@ -14,7 +14,7 @@ var $$errors = $$({}, 'errors');
 var $$department = $$({}, 'department');
 var $$loading = $$(false, 'loading');
 
-let vf = function (department, errors, loading) {
+let vf = function ([department, errors, loading]) {
   return h('.object-app', [
     h('.header', '创建车间'),
     h('form.form' + (loading? '.loading': ''), [

@@ -7,10 +7,8 @@ var rev = require("gulp-rev");
 var revReplace = require("gulp-rev-replace");
 var rollup = require('rollup').rollup;
 var nodeResolve = require('rollup-plugin-node-resolve');
-// var buble = require('rollup-plugin-buble');
+var babel = require('rollup-plugin-babel');
 var commonjs = require('rollup-plugin-commonjs');
-var string = require('rollup-plugin-string');
-var rollupUglify = require('rollup-plugin-uglify');
 var fse = require('fs-extra');
 var glob = require('glob');
 var path = require('path');
@@ -21,6 +19,7 @@ var postcss    = require('gulp-postcss');
 var sourcemaps = require('gulp-sourcemaps');
 var json = require('rollup-plugin-json');
 var eslint = require('gulp-eslint');
+var includePaths = require('rollup-plugin-includepaths');
 
 gulp.task('connect', function() {
   connect.server({
@@ -80,27 +79,33 @@ gulp.task('rollup', function () {
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot']
     }),
     commonjs({
       ignoreGlobal: true,
     }),
-    string({
-      include: ['js/**/*.ejs'],
+    includePaths({
+      paths: ['js'],
+      include: {
+        slot: 'js/slot/index.js',
+        'throttle-slot': 'js/throttle-slot/index.js',
+        'smart-grid': 'js/smart-grid/index.js',
+        'pipe-slot': 'js/pipe-slot/index.js',
+      }
     }),
     json({
       include: ['js/config.json'],
       exclude: ['node_modules/**/*', 'config.json', 'config.sample.json']
     }),
-    // buble({
-    //   transforms: {
-    //     arrow: true,
-    //     dangerousForOf: true
-    //   },
-    // }),
   ];
   if (process.env.ENV === 'production') {
-    plugins.push(rollupUglify());
+    plugins.push(babel({
+      presets: [["es2015", { modules: false }]],
+      plugins: [
+        "external-helpers"
+      ],
+      exclude: ['node_modules/**']
+    }));
   }
   return rollup({
     entry: 'js/main.js',
@@ -114,7 +119,8 @@ gulp.task('rollup', function () {
       globals: {
         moment: 'moment',
         'virtual-dom': 'virtualDom',
-      }
+      },
+      moduleName: 'chuangye',
     });
   });
 });

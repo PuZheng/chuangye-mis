@@ -1,5 +1,5 @@
-import $$ from '../xx';
-import { match, optionContent } from '../dropdown-utils';
+import $$ from 'slot';
+import * as dropdownUtils from '../dropdown-utils';
 import virtualDom from 'virtual-dom';
 
 var h = virtualDom.h;
@@ -9,12 +9,14 @@ const ENTER = 13;
 const ESC = 27;
 
 export var $$searchDropdown = function (
-  {defaultText, $$value, $$options, onchange, optionConten=optionConten}
+  {
+    defaultText, $$value, $$options, onchange, optionContent=dropdownUtils.optionContent,
+  }
 ) {
   let $$searchText = $$('', 'search-text');
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
-  let valueFunc = function (activated, searchText, options, value, selection) {
+  let valueFunc = function ([activated, searchText, options, value, selection]) {
     let classNames = ['dropdown', 'search'];
     if (activated) {
       classNames.push('activated');
@@ -30,7 +32,7 @@ export var $$searchDropdown = function (
       }
     }
     options = options.filter(function (o) {
-      return match(o, searchText);
+      return dropdownUtils.match(o, searchText);
     });
     let optionElms = options.map(function (o, idx) {
       let classNames = ['item'];
