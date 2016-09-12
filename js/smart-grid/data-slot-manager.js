@@ -3,7 +3,25 @@ import { Lexer } from './script/lexer.js';
 import { Interpreter } from './script/interpreter.js';
 import { Parser } from './script/parser.js';
 
+/**
+ * make a slot for a cell which:
+ * 1. either depends on other cells 
+ * 2. or is depended by other cells. 
+ * 3. is asked by client to have a slot
+ *
+ * for example, given 3 cells:
+ * [
+ *    ['1', '2'],
+ *    ['=B1*2']
+ * ]
+ * cell 'B1' has a slot, since 'A2' depends on it, but 'A1' doesn't have a 
+ * slot, since no cells depends on it, and it doesn't depend on any cells.
+ * */
 class DataSlotManager {
+  /**
+   * @constructor
+   * @param {Analyzer} analyzer
+   * */
   constructor(analyzer) {
     this._data = [];
     this.analyzer = analyzer;
@@ -11,6 +29,10 @@ class DataSlotManager {
     this._reservedTags = new Set();
     this.reset();
   }
+  /**
+   * reset all the slots for the cells, the old slots are reused if possible,
+   * those not needed are deleted 
+   * */
   reset() {
     for (var [idx, sheet] of this.analyzer.sheets.entries()) {
       // note, this._data[idx] may already created
@@ -32,6 +54,13 @@ class DataSlotManager {
     }
     this._reservedTags.clear();
   }
+  /**
+   * Get all the slots
+   * @return {array} - each element is an object with 3 fields:
+   *  * sheetIdx
+   *  * tag
+   *  * slot
+   * */
   get slots() {
     let dsm = this;
     return function *() {
@@ -47,6 +76,12 @@ class DataSlotManager {
       }
     }();
   }
+  /**
+   * make a slot for cell, if the cell depends on other cells, we will assure 
+   * each dependent cell does have a slot. 
+   * @param cell - cell definition
+   * @param currentSheetIdx - the sheet idx of the cell
+   * */
   makeSlot(cell, currentSheetIdx) {
     this._reservedTags.add(cell.tag);
     let slot = this.get(currentSheetIdx, cell.tag);
@@ -103,6 +138,9 @@ class DataSlotManager {
   get(sheetIdx, tag) {
     return (this._data[sheetIdx] || {})[tag];
   }
+  /**
+   * ask to create a slot for a given cell
+   * */
   create(sheetIdx, tag) {
     this.stickyTags.add(tag);
     let slot = this.get(sheetIdx, tag);

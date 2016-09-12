@@ -39,6 +39,21 @@ class Hook {
   }
 };
 
+let stringifyStyle = function (style) {
+  if (typeof style === 'object') {
+    let s = '';
+    for (let k in style) {
+      let v = style[k];
+      k = k.replace(/[A-Z]/g, function (s) { 
+        return '-' + s.toLowerCase();
+      }).replace(/^_/, '');
+      s += `${k}: ${v};`;
+    }
+    style = s;
+  }
+  return style;
+};
+
 class EditorHook {
   constructor(cell, onChangeCb) {
     this.moveCaretAtEnd = function moveCaretAtEnd(e) {
@@ -76,7 +91,18 @@ class EditorHook {
 
 };
 
+/**
+ * Cell actually represent a vnode slot, it may display as any cell (determined
+ * by leftmost column and topmost row) 
+ * */
 class Cell {
+  /**
+   * @constructor
+   *
+   * @param {SmartGrid} - sg
+   * @param {row} - the row of the cell in vnode grid
+   * @param {col} - the column of the cell in vnode grid
+   * */
   constructor(sg, row, col) {
     this.sg = sg;
     this.row = row;
@@ -94,6 +120,24 @@ class Cell {
           cell.sg.setCellDef(cell.tag, Object.assign(cell.def || {}, {
             val 
           }));
+          // why reset all the slots? since modify a value of a cell will affect
+          // many other cells, and we can't know the affection unless we reset 
+          // all the slots, for example, in a grid
+          // [
+          //  ['1', '=A1+2'],
+          //  ['2'], 
+          // ]
+          // if we change definition of 'B1' to '0', then the slot of 'A1' will be
+          // revoked, however in this grid
+          // [
+          //  ['1', '=A1+2'],
+          //  ['=A1*2']
+          // ]
+          // if we change definition of 'B1' to '0', slot of 'A1' will not be
+          // revoked, since 'B1' depends on 'A1'
+          //
+          // reset will reuse existing slots if possible, so we don't need to
+          // recreate the whole grid (which is a very expensive operation)
           cell.sg.dataSlotManager.reset();
           let $$envSlot = cell.sg.getCellSlot(cell.tag);
           $$envSlot && $$envSlot.update();
@@ -146,29 +190,19 @@ class Cell {
         if (editing) {
           className.push('editing');
         }
-        let style = def && def.style;
-        if (typeof style === 'object') {
-          let s = '';
-          for (let k in style) {
-            let v = style[k];
-            k = k.replace(/[A-Z]/g, function (s) { 
-              return '-' + s.toLowerCase();
-            }).replace(/^_/, '');
-            s += `${k}: ${v};`;
-          }
-          style = s;
-        }
         let properties = {
           attributes: {
             class: className.join(' '),
-            style: style,
+            style: stringifyStyle(def && def.style),
           },
           hook: cell.hook,
         };
         let ret = new VNode('div', properties, [
           cell.makeContentVnode(def, val, editing),
-          cell.makeEditor(def, editing),
+          cell.makeEditorVnode(def, editing),
         ]);
+        // reset the input element's value, since VNode won't reset value
+        // for you
         if (cell.inputEl) {
           cell.inputEl.value = cell.inputEl.getAttribute('value');
         }
@@ -179,7 +213,7 @@ class Cell {
       [this.sg.$$focusedCell, this.$$def, this.$$val], 
       vf);
   }
-  makeEditor(def, editing) {
+  makeEditorVnode(def, editing) {
     // it could be more sophisticated
     let properties = {
       hook: this.editorHook,

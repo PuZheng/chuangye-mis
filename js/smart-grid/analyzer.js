@@ -59,6 +59,35 @@ export var getNextCellDef = function getNextCellDef(grids, i, j) {
  * Analyzer of smart grid raw definitions. 
  * */
 class Analyzer {
+  /**
+   * @constructor
+   *
+   * @param {object} def - the raw definition of smart grid. it must has a field 
+   * named sheets which is an array of sheet object, each sheet object has 2 
+   * fields: label and grids. here's a sample definition:
+   *
+   * {
+   *  sheets: [ {
+   *    label: 'part1',
+   *    grids: [
+   *      ['1', { val: 2, style: {}, readOnly: true }, '3'],
+   *      ['=A1+SHEET2:A2'],
+   *    ],
+   *  }, {
+   *    label: 'part2',
+   *    grids: [
+   *      ['123'],
+   *    ]
+   *  }
+   *  ],
+   * }
+   *
+   * a grid/cell's definition could has the following fields:
+   *  * label
+   *  * readOnly
+   *  * style - could be an object or string
+   *  * val - value of the cell
+   * */
   constructor(def) {
     this.def = def;
     let analyzer = this;
@@ -84,6 +113,19 @@ class Analyzer {
       };
     });
   }
+  /**
+   * Get all the cell definitions that pass the given test 
+   *
+   * @param {function} [test] - a function that take a cell definition as 
+   * argument, return true if cell passes the test, otherwise false
+   *
+   * @return {array} - all the cell definitions if test is not provided, or
+   *  just those pass test if test is provided, each elements is and object with
+   *  fields:
+   *    * sheetIdx
+   *    * tag
+   *    * def
+   * */
   getCellDefs(test) {
     let ret = [];
     for (let sheet of this.sheets) {
@@ -101,6 +143,9 @@ class Analyzer {
     }
     return ret;
   }
+  /**
+   * analyze a cell's definition and normalize it
+   * */
   analyze(cellDef) {
     if (typeof cellDef === 'string') {
       cellDef = {

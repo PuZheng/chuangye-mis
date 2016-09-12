@@ -27,6 +27,20 @@ var toColumnIdx = function (idx) {
 };
 
 export class SmartGrid {
+  /**
+   * @constructor 
+   *
+   * to seperate css with js, smart grid use '2 way mount' to generate
+   * the vdom, for the first way, it only creates a top row header and a
+   * left column header to get their height and width (only after mounted to 
+   * the real dom tree), and computes how many
+   * cells should be used to occupy the whole available spaces, note, it won't
+   * create as many cells as the grid's definition required (which is actually
+   * unacceptable slow).
+   *
+   * then after it is mounted to dom tree, the client should call 'setupLayout'
+   * to generate the second way vdom
+   * */
   constructor(def) {
     this.def = def;
     this.analyzer = new Analyzer(def);
@@ -198,9 +212,11 @@ export class SmartGrid {
   }
   $$createRow(row) {
     let sg = this;
-    return $$.connect([sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)), function ([leftTagHeader, ...cells]) {
-      return h('.row', [leftTagHeader].concat(cells));
-    });
+    return $$.connect(
+      [sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)), 
+      function ([leftTagHeader, ...cells]) {
+        return h('.row', [leftTagHeader].concat(cells));
+      }, 'row-${row}');
   }
   $$createDataGrid() {
     var sg = this;
@@ -208,7 +224,7 @@ export class SmartGrid {
       return sg.$$createRow(row);
     }), function (rows) {
       return [rows];
-    });
+    }, 'data-grid');
   }
   $$createGrid() {
     let smartGrid = this;
@@ -238,7 +254,7 @@ export class SmartGrid {
     };
     return $$.connect(
       [this.$$createTopTagRow(), this.$$createDataGrid()], 
-      vf);
+      vf, 'grid');
   }
   $$createHScrollbar() {
     let $$dragging = $$(false, 'dragging');
@@ -298,7 +314,7 @@ export class SmartGrid {
     };
     return $$.connect(
       [this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left], 
-      vf);
+      vf, 'horizontal-scrollbar');
   }
   $$createVScrollbar() {
     let $$dragging = $$(false, 'dragging');
@@ -360,7 +376,7 @@ export class SmartGrid {
     };
     return $$.connect(
       [this.$$viewportHeight, this.$$actualHeight, $$dragging, this.$$top], 
-      vf);
+      vf, 'vertical-scrollbar');
   }
   moveLeft() {
     var focusedCell = this.$$focusedCell.val();
@@ -402,6 +418,9 @@ export class SmartGrid {
       this.select(0, 0);
     }
   }
+  /**
+   * focus in a given position
+   * */
   select(row, col) {
     let updates = [
       [this.$$focusedCell, {
@@ -442,6 +461,9 @@ export class SmartGrid {
     top != null && updates.push([this.$$top, top / this.$$actualHeight.val()]);
     $$.update(...updates);
   }
+  /**
+   * edit a given position
+   * */
   edit(row, col) {
     if (row === undefined || col === undefined) {
       var focusedCell = this.$$focusedCell.val();
@@ -481,6 +503,10 @@ const UP = 38;
 const RIGHT = 39;
 const DOWN = 40;
 
+
+/**
+ * invoke this method if you want support up/down/left/right keyboard shortcuts
+ * */
 SmartGrid.prototype.registerShortcus = function () {
   let sg = this;
   document.addEventListener('keydown', function (e) {
@@ -497,6 +523,9 @@ SmartGrid.prototype.registerShortcus = function () {
   });
 };
 
+/**
+ * a range function like the counterpart in python
+ * */
 const range = function (start, end) {
   var a = Array(end - start);
   for (var i = start; i < end; ++i) {

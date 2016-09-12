@@ -65,22 +65,6 @@ $$settings.change(function (settings) {
     }));
     def.sheets.push(sheetDef);
   }
-  // var def = {
-  //   sheets: [
-  //     {
-  //       label: 'A',
-  //       grids: [
-  //         ['1', '=A1+1']
-  //       ]
-  //     },
-  //     {
-  //       label: 'B',
-  //       grids: [
-  //         ['=SHEET1:A1+3']
-  //       ]
-  //     }
-  //   ]
-  // };
   sg = new SmartGrid(def);
   $$view
   .connect([sg.$$view], function ([sg]) {
