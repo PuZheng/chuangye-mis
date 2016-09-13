@@ -13,5 +13,11 @@ export default {
     .then(function (res) {
       return res.data;
     });
+  },
+  get statusList() {
+    return request.get('/electric-meter/status-list')
+    .then(function (res) {
+      return res.data.data;
+    });
   }
 };

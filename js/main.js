@@ -11,6 +11,7 @@ import chargeBillApp from './charge-bill/app';
 import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
 import electricMeterListApp from './electric-meter/list-app';
+import electricMeterObjectApp from './electric-meter/object-app';
 import invoiceTypeStore from './store/invoice-type-store';
 import accountTermStore from './store/account-term-store';
 import invoiceStore from './store/invoice-store';
@@ -281,8 +282,36 @@ var electricMeterList = function (ctx) {
   });
 };
 
-page('/electric-meter-list', loginRequired, _setupNavBar('electric_meter'),
-    _could('edit.electric_meter'), electricMeterList);
+page(
+  '/electric-meter-list', loginRequired, 
+  _setupNavBar('electric_meter'),
+  _could('edit.electric_meter'), electricMeterList
+);
+
+var electricMeter = function () {
+  let app = electricMeterObjectApp;
+  mount(app.page);
+  app.$$loading.toggle();
+  Promise.all([
+    electricMeterStore.statusList,
+    electricMeterStore.fetchList(),
+    departmentStore.list,
+  ])
+  .then(function ([statusList, { data: electricMeters }, departments]) {
+    $$.update(
+      [app.$$loading, false],
+      [app.$$statusList, statusList],
+      [app.$$electricMeters, electricMeters],
+      [app.$$departments, departments]
+    );
+  });
+};
+
+page(
+  '/electric-meter', loginRequired,
+  _setupNavBar('electric_meter'),
+  _could('edit.electric_meter'), electricMeter
+);
 
 page('/', loginRequired, _setupNavBar('home'), function () {
   let app = dashboardApp;

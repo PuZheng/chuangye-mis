@@ -56,7 +56,7 @@ const valueFunc = function valueFunc([
       h('input', {
         type: 'checkbox',
         checked: voucher.isPublic,
-        onchange: function () {
+        onchange() {
           $$voucher.patch({isPublic: this.checked});
         }
       }),
