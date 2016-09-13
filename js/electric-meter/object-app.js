@@ -3,6 +3,7 @@ import virtualDom from 'virtual-dom';
 import field from '../field';
 import { $$dropdown } from '../widget/dropdown';
 import { $$searchDropdown } from '../widget/search-dropdown';
+import R from 'ramda';
 
 var h = virtualDom.h;
 
@@ -52,8 +53,16 @@ var formVf = function ([obj, errors, statusDropdown,
         $$obj.patch({ times: this.value });
       }
     }), errors, true),
-    field('parentElectricMeterId', '线路', parentElectricMeterDropdown, errors, true),
-    field('departmentId', '部门', departmentDropdown, errors, true),
+    R.ifElse(
+      R.compose(R.not, R.propEq('isTotal', true)),
+      () => field('parentElectricMeterId', '线路', parentElectricMeterDropdown, errors, true),
+      () => ''
+    )(obj),
+    R.ifElse(
+      R.compose(R.not, R.propEq('isTotal', true)),
+      () => field('departmentId', '部门', departmentDropdown, errors, true),
+      () => ''
+    )(obj),
     h('hr'),
     h('button.primary', '提交'),
   ]);
