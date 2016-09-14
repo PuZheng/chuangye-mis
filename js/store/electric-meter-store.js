@@ -34,7 +34,10 @@ export default {
   },
   save(obj) {
     if (!obj.id) {
-      return request.post('/electric-meter/object/', obj);
+      return request.post('/electric-meter/object', obj)
+      .then(function (res) {
+        return res.data.id;
+      });
     }
   },
   validate,

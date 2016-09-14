@@ -5,6 +5,10 @@ import { $$dropdown } from '../widget/dropdown';
 import { $$searchDropdown } from '../widget/search-dropdown';
 import R from 'ramda';
 import electricMeterStore from '../store/electric-meter-store';
+import overlay from '../overlay';
+import axiosError2Dom from '../axios-error-2-dom';
+import { $$toast } from '../toast.js';
+import page from 'page';
 
 var h = virtualDom.h;
 
@@ -30,7 +34,29 @@ var formVf = function ([obj, errors, statusDropdown,
       electricMeterStore
       .validate(obj)
       .then(function (obj) {
-        electricMeterStore.save(obj);
+        $$loading.val(true);
+        electricMeterStore.save(obj)
+        .then(function (id) {
+          $$.update(
+            [$$loading, false],
+            [$$toast, {
+              type: 'success',
+              message: obj.id? '更新成功' :'创建成功',
+            }]
+          );
+          page('/electric-meter/' + id);
+        }, function (e) {
+          $$loading.val(false);
+          if (e.response.status == 403) {
+            $$errors.val(e.response.data.fields || {});
+            return;
+          }
+          overlay.$$content.val({
+            type: 'error',
+            title: '很不幸, 出错了!',
+            message: axiosError2Dom(e),
+          });
+        });
       }, function (e) {
         $$errors.val(e);
       });
