@@ -1,5 +1,17 @@
 import request from '../request';
 import R from 'ramda';
+import validateObj from 'validate-obj';
+import { notEmpty } from 'checkers';
+
+var validate = function (obj) {
+  return validateObj(obj, {
+    name: notEmpty(),
+    status: notEmpty(),
+    times: notEmpty(),
+    parentElectricMeterId: !obj.isTotal && notEmpty(),
+    departmentId: !obj.isTotal && notEmpty() ,
+  });
+};
 
 export default {
   getHints(text) {
@@ -19,5 +31,11 @@ export default {
     .then(function (res) {
       return res.data.data;
     });
-  }
+  },
+  save(obj) {
+    if (!obj.id) {
+      return request.post('/electric-meter/object/', obj);
+    }
+  },
+  validate,
 };

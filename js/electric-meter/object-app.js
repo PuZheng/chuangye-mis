@@ -4,6 +4,7 @@ import field from '../field';
 import { $$dropdown } from '../widget/dropdown';
 import { $$searchDropdown } from '../widget/search-dropdown';
 import R from 'ramda';
+import electricMeterStore from '../store/electric-meter-store';
 
 var h = virtualDom.h;
 
@@ -24,7 +25,17 @@ var vf = function ([obj, form, loading]) {
 var formVf = function ([obj, errors, statusDropdown, 
                        parentElectricMeterDropdown, departmentDropdown]) {
   return h('form.form', {
-
+    onsubmit() {
+      $$errors.val({});
+      electricMeterStore
+      .validate(obj)
+      .then(function (obj) {
+        electricMeterStore.save(obj);
+      }, function (e) {
+        $$errors.val(e);
+      });
+      return false;
+    }
   }, [
     field('name', '名称', h('input', {
       value: obj.name || '',
