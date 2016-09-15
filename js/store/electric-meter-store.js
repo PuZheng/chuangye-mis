@@ -38,7 +38,18 @@ export default {
       .then(function (res) {
         return res.data.id;
       });
+    } else {
+      return request.put('/electric-meter/object/' + obj.id, obj)
+      .then(function () {
+        return obj.id;
+      });
     }
+  },
+  get(id) {
+    return request.get('/electric-meter/object/' + id)
+    .then(function (res) {
+      return res.data;
+    });
   },
   validate,
 };

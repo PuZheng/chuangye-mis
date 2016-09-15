@@ -288,27 +288,14 @@ page(
   _could('edit.electric_meter'), electricMeterList
 );
 
-var electricMeter = function () {
+var electricMeter = function (ctx) {
   let app = electricMeterObjectApp;
   mount(app.page);
-  app.$$loading.toggle();
-  Promise.all([
-    electricMeterStore.statusList,
-    electricMeterStore.fetchList(),
-    departmentStore.list,
-  ])
-  .then(function ([statusList, { data: electricMeters }, departments]) {
-    $$.update(
-      [app.$$loading, false],
-      [app.$$statusList, statusList],
-      [app.$$electricMeters, electricMeters],
-      [app.$$departments, departments]
-    );
-  });
+  app.init(ctx.params.id);
 };
 
 page(
-  '/electric-meter', loginRequired,
+  '/electric-meter/:id?', loginRequired,
   _setupNavBar('electric_meter'),
   _could('edit.electric_meter'), electricMeter
 );

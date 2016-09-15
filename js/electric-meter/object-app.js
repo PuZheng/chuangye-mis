@@ -9,6 +9,7 @@ import overlay from '../overlay';
 import axiosError2Dom from '../axios-error-2-dom';
 import { $$toast } from '../toast.js';
 import page from 'page';
+import departmentStore from '../store/department-store';
 
 var h = virtualDom.h;
 
@@ -19,9 +20,16 @@ var $$loading = $$(false, 'loading');
 var $$electricMeters = $$([], 'electric-meters');
 var $$departments = $$([], 'departments');
 
+var copy = {};
+
+var dirty = function (obj) {
+  return !R.equals(copy, obj);
+};
+
 var vf = function ([obj, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
-    h('.header', obj.id? `编辑电表-${obj.name}`: '创建电表'),
+    h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑电表-${obj.name}`: 
+      '创建电表'),
     form,
   ]);
 };
@@ -34,9 +42,17 @@ var formVf = function ([obj, errors, statusDropdown,
       electricMeterStore
       .validate(obj)
       .then(function (obj) {
+        if (obj.id && !dirty(obj)) {
+          $$toast.val({
+            type: 'info',
+            message: '没有任何修改',
+          });
+          return;
+        }
         $$loading.val(true);
         electricMeterStore.save(obj)
         .then(function (id) {
+          copy = R.clone(obj);
           $$.update(
             [$$loading, false],
             [$$toast, {
@@ -44,7 +60,7 @@ var formVf = function ([obj, errors, statusDropdown,
               message: obj.id? '更新成功' :'创建成功',
             }]
           );
-          page('/electric-meter/' + id);
+          !obj.id && page('/electric-meter/' + id);
         }, function (e) {
           $$loading.val(false);
           if (e.response.status == 403) {
@@ -177,4 +193,23 @@ export default {
   $$loading,
   $$departments,
   $$electricMeters,
+  init(id) {
+    $$loading.toggle();
+    Promise.all([
+      electricMeterStore.statusList,
+      electricMeterStore.fetchList(),
+      departmentStore.list,
+      id? electricMeterStore.get(id): {}
+    ])
+    .then(function ([statusList, { data: electricMeters }, departments, obj]) {
+      copy = R.clone(obj);
+      $$.update(
+        [$$loading, false],
+        [$$statusList, statusList],
+        [$$electricMeters, electricMeters],
+        [$$departments, departments],
+        [$$obj, obj]
+      );
+    });
+  }
 };
