@@ -23,7 +23,6 @@ import accountStore from './store/account-store';
 import departmentStore from './store/department-store';
 import tenantStore from './store/tenant-store';
 import settingsStore from './store/settings-store';
-import meterStore from './store/meter-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
@@ -268,18 +267,10 @@ var settings = function () {
 page('/settings', loginRequired, _setupNavBar('settings'), 
       _could('edit.settings'), settings);
 
-var meterList = function (ctx) {
+var meterList = function () {
   let app = meterListApp;
   mount(app.page);
-  app.$$loading.toggle(); 
-  meterStore.fetchList(ctx.query)
-  .then(function ({totalCnt, data}) {
-    $$.update(
-      [app.$$loading, false],
-      [app.$$list, data],
-      [app.$$totalCnt, totalCnt]
-    );
-  });
+  app.init();
 };
 
 page(

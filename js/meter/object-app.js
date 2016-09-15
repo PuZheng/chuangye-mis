@@ -29,6 +29,7 @@ var dirty = function (obj) {
   return !R.equals(copy, obj);
 };
 
+
 var vf = function ([obj, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
     h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑表设备-${obj.name}`: 
@@ -209,14 +210,10 @@ export default {
   page: {
     $$view: $$.connect([$$obj, $$form, $$loading], vf),
   },
-  $$obj,
-  $$statusList,
-  $$loading,
-  $$departments,
   init(id) {
     $$loading.toggle();
     Promise.all([
-      constStore.get,
+      constStore.get(),
       meterStore.fetchList(),
       departmentStore.list,
       id? meterStore.get(id): {}

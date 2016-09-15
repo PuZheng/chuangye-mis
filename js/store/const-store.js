@@ -3,7 +3,7 @@ import R from 'ramda';
 
 let _const = {};
 export default {
-  get get() {
+  get() {
     if (!R.isEmpty(_const)) {
       return Promise.resolve(_const);
     }

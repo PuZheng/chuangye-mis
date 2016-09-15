@@ -9,7 +9,21 @@ const ESC = 27;
 var h = virtualDom.h;
 
 export var $$dropdown = function (
-  {$$options, $$value, defaultText, onchange}
+  {
+    $$options, $$value, defaultText, onchange, 
+    optionContent=function (o) {
+      if (typeof o === 'object') {
+        return o.text;
+      }
+      return o;
+    },
+    optionValue= function (o) {
+      if (typeof o === 'object') {
+        return o.value;
+      }
+      return o;
+    }
+  }
 ) {
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
@@ -22,7 +36,7 @@ export var $$dropdown = function (
     let selectedOption;
     if (value != 'undefined') {
       for (var option of options) {
-        if (option.value == value) {
+        if (optionValue(option) == value) {
           selectedOption = option;
           break;
         }
@@ -30,7 +44,7 @@ export var $$dropdown = function (
     }
     let optionClassNames = function (o, idx) {
       let cs = '.item';
-      if (o.value == value) {
+      if (optionValue(o) == value) {
         cs += '.current-value';
       }
       if (idx == selection) {
@@ -45,11 +59,11 @@ export var $$dropdown = function (
             [$$activated, !activated],
             [$$selection, -1]
           );
-          onchange(o.value, o);
+          onchange(optionValue(o), o);
           // we don't want the parent to handle onmousedown
           e.stopPropagation();
         },
-      }, o.text);
+      }, optionContent(o));
     });
     if (optionElms.length == 0) {
       optionElms = [h('.message', '没有可选项')];
@@ -86,7 +100,7 @@ export var $$dropdown = function (
         if (e.which === ENTER || e.keyCode === ENTER) {
           selection = options[selection];
           this.blur();
-          selection && onchange(selection.value, selection);
+          selection && onchange(optionValue(selection), selection);
           return false;
         }
         if (e.which === ESC || e.keyCode === ESC) {
@@ -96,7 +110,7 @@ export var $$dropdown = function (
       },
     }, [
       h('i.icon.fa.fa-caret-down'),
-      h('.text' + (selectedOption? '': '.default'), selectedOption? selectedOption.text: defaultText),
+      h('.text' + (selectedOption? '': '.default'), selectedOption? optionContent(selectedOption): defaultText),
       h('.menu', optionElms)
     ]);
   };

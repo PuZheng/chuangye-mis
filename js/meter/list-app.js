@@ -7,10 +7,14 @@ import meterStore from '../store/meter-store';
 import $$paginator from '../widget/paginator';
 import $$tableHints from '../widget/table-hints';
 import config from '../config';
+import constStore from '../store/const-store';
+import R from 'ramda';
+import { $$dropdown } from '../widget/dropdown';
 
 var $$list = $$([], 'list');
 var $$loading = $$(false, 'loading');
 var $$totalCnt = $$(0, 'total-cnt');
+var $$meterTypes = $$({}, 'type-list');
 
 var $$nameFilter = $$searchBox({
   defaultText: '输入表名称',
@@ -27,7 +31,7 @@ var $$nameFilter = $$searchBox({
 
 var h = virtualDom.h;
 
-let vf = function ([nameFilter, list, loading, tableHints, paginator]) {
+let vf = function ([nameFilter, typeFilter, list, loading, tableHints, paginator]) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '表设备列表'),
@@ -41,6 +45,7 @@ let vf = function ([nameFilter, list, loading, tableHints, paginator]) {
       ]),
       h('.search', nameFilter),
     ]),
+    h('.filters', typeFilter),
     h('table.table.compact.striped', [
       h('thead', [
         h('tr', [
@@ -70,10 +75,23 @@ let vf = function ([nameFilter, list, loading, tableHints, paginator]) {
   ]); 
 };
 
+var $$typeFilter = $$dropdown({
+  defaultText: '请选择设备分类',
+  $$value: $$queryObj.trans(qo => qo.type || $$meterTypes.val().ELECTRIC),
+  $$options: $$meterTypes.trans(function (meterTypes) {
+    return R.values(meterTypes);
+  }),
+  onchange(value) {
+    $$queryObj.patch({
+      type: value
+    });
+  }
+});
+
 export default {
   page: {
     $$view: $$.connect([
-      $$nameFilter, $$list, $$loading,
+      $$nameFilter, $$typeFilter, $$list, $$loading,
       $$tableHints({
         $$totalCnt,
         $$queryObj,
@@ -86,7 +104,19 @@ export default {
       })
     ], vf, 'list-app'), 
   },
-  $$list,
-  $$loading,
-  $$totalCnt,
+  init() {
+    $$loading.toggle(); 
+    Promise.all([
+      meterStore.fetchList($$queryObj.val()),
+      constStore.get(),
+    ])
+    .then(function ([{totalCnt, data}, { meterTypes }]) {
+      $$.update(
+        [$$loading, false],
+        [$$list, data],
+        [$$totalCnt, totalCnt],
+        [$$meterTypes, meterTypes]
+      );
+    });
+  }
 };
