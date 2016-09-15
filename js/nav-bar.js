@@ -65,7 +65,7 @@ var valueFunc = function valueFunc([currentMod, mods]) {
       onclick() {
         page('/meter-list');
       }
-    }, '电表信息'): '',
+    }, '表设备信息'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
