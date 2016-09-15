@@ -8,45 +8,40 @@ var validate = function (obj) {
     name: notEmpty(),
     status: notEmpty(),
     times: notEmpty(),
-    parentElectricMeterId: !obj.isTotal && notEmpty(),
-    departmentId: !obj.isTotal && notEmpty() ,
+    parentMeterId: !obj.isTotal && notEmpty(),
+    departmentId: !obj.isTotal && notEmpty(),
+    type: notEmpty(),
   });
 };
 
 export default {
   getHints(text) {
-    return request.get('/electric-meter/hints/' + text)
+    return request.get('/meter/hints/' + text)
     .then(function (res) {
       return res.data.data;
     });
   },
   fetchList(qo) {
-    return request.get('/electric-meter/list?' + R.toPairs(qo).map(p => p.join('=')).join('&'))
+    return request.get('/meter/list?' + R.toPairs(qo).map(p => p.join('=')).join('&'))
     .then(function (res) {
       return res.data;
     });
   },
-  get statusList() {
-    return request.get('/electric-meter/status-list')
-    .then(function (res) {
-      return res.data.data;
-    });
-  },
   save(obj) {
     if (!obj.id) {
-      return request.post('/electric-meter/object', obj)
+      return request.post('/meter/object', obj)
       .then(function (res) {
         return res.data.id;
       });
     } else {
-      return request.put('/electric-meter/object/' + obj.id, obj)
+      return request.put('/meter/object/' + obj.id, obj)
       .then(function () {
         return obj.id;
       });
     }
   },
   get(id) {
-    return request.get('/electric-meter/object/' + id)
+    return request.get('/meter/object/' + id)
     .then(function (res) {
       return res.data;
     });

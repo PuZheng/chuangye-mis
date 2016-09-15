@@ -10,8 +10,8 @@ import dashboardApp from './dashboard/app';
 import chargeBillApp from './charge-bill/app';
 import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
-import electricMeterListApp from './electric-meter/list-app';
-import electricMeterObjectApp from './electric-meter/object-app';
+import meterListApp from './meter/list-app';
+import meterObjectApp from './meter/object-app';
 import invoiceTypeStore from './store/invoice-type-store';
 import accountTermStore from './store/account-term-store';
 import invoiceStore from './store/invoice-store';
@@ -23,7 +23,7 @@ import accountStore from './store/account-store';
 import departmentStore from './store/department-store';
 import tenantStore from './store/tenant-store';
 import settingsStore from './store/settings-store';
-import electricMeterStore from './store/electric-meter-store';
+import meterStore from './store/meter-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
@@ -268,11 +268,11 @@ var settings = function () {
 page('/settings', loginRequired, _setupNavBar('settings'), 
       _could('edit.settings'), settings);
 
-var electricMeterList = function (ctx) {
-  let app = electricMeterListApp;
+var meterList = function (ctx) {
+  let app = meterListApp;
   mount(app.page);
   app.$$loading.toggle(); 
-  electricMeterStore.fetchList(ctx.query)
+  meterStore.fetchList(ctx.query)
   .then(function ({totalCnt, data}) {
     $$.update(
       [app.$$loading, false],
@@ -283,21 +283,21 @@ var electricMeterList = function (ctx) {
 };
 
 page(
-  '/electric-meter-list', loginRequired, 
-  _setupNavBar('electric_meter'),
-  _could('edit.electric_meter'), electricMeterList
+  '/meter-list', loginRequired, 
+  _setupNavBar('meter'),
+  _could('edit.meter'), meterList
 );
 
-var electricMeter = function (ctx) {
-  let app = electricMeterObjectApp;
+var meter = function (ctx) {
+  let app = meterObjectApp;
   mount(app.page);
   app.init(ctx.params.id);
 };
 
 page(
-  '/electric-meter/:id?', loginRequired,
-  _setupNavBar('electric_meter'),
-  _could('edit.electric_meter'), electricMeter
+  '/meter/:id?', loginRequired,
+  _setupNavBar('meter'),
+  _could('edit.meter'), meter
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

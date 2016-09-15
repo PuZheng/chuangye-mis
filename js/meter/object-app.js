@@ -4,7 +4,8 @@ import field from '../field';
 import { $$dropdown } from '../widget/dropdown';
 import { $$searchDropdown } from '../widget/search-dropdown';
 import R from 'ramda';
-import electricMeterStore from '../store/electric-meter-store';
+import meterStore from '../store/meter-store';
+import constStore from '../store/const-store';
 import overlay from '../overlay';
 import axiosError2Dom from '../axios-error-2-dom';
 import { $$toast } from '../toast.js';
@@ -17,8 +18,10 @@ var $$obj = $$({}, 'obj');
 var $$errors = $$({}, 'errors');
 var $$statusList = $$([], 'status-list');
 var $$loading = $$(false, 'loading');
-var $$electricMeters = $$([], 'electric-meters');
+var allMeters = [];
 var $$departments = $$([], 'departments');
+var $$typeList = $$([], 'meter-types');
+var $$parentMeters = $$([], 'parent-meters');
 
 var copy = {};
 
@@ -28,18 +31,18 @@ var dirty = function (obj) {
 
 var vf = function ([obj, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
-    h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑电表-${obj.name}`: 
-      '创建电表'),
+    h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑表设备-${obj.name}`: 
+      '创建表设备'),
     form,
   ]);
 };
 
 var formVf = function ([obj, errors, statusDropdown, 
-                       parentElectricMeterDropdown, departmentDropdown]) {
+                       parentMeterDropdown, departmentDropdown, typeDropdown]) {
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
-      electricMeterStore
+      meterStore
       .validate(obj)
       .then(function (obj) {
         if (obj.id && !dirty(obj)) {
@@ -50,7 +53,7 @@ var formVf = function ([obj, errors, statusDropdown,
           return;
         }
         $$loading.val(true);
-        electricMeterStore.save(obj)
+        meterStore.save(obj)
         .then(function (id) {
           copy = R.clone(obj);
           $$.update(
@@ -60,7 +63,7 @@ var formVf = function ([obj, errors, statusDropdown,
               message: obj.id? '更新成功' :'创建成功',
             }]
           );
-          !obj.id && page('/electric-meter/' + id);
+          !obj.id && page('/meter/' + id);
         }, function (e) {
           $$loading.val(false);
           if (e.response.status == 403) {
@@ -87,6 +90,7 @@ var formVf = function ([obj, errors, statusDropdown,
         });
       }
     }), errors, true),
+    field('type', '类型', typeDropdown, errors, true),
     h('.field.inline', [
       h('input', {
         type: 'checkbox',
@@ -108,7 +112,7 @@ var formVf = function ([obj, errors, statusDropdown,
     }), errors, true),
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
-      () => field('parentElectricMeterId', '线路', parentElectricMeterDropdown, errors, true),
+      () => field('parentMeterId', '线路', parentMeterDropdown, errors, true),
       () => ''
     )(obj),
     R.ifElse(
@@ -137,14 +141,14 @@ var $$statusDropdown = $$dropdown({
   $$value: $$obj.trans(o => o.status),
 });
 
-var $$parentElectricMeterDropdown = $$dropdown({
+var $$parentMeterDropdown = $$dropdown({
   defaultText: '请选择线路',
-  onchange: function (value) {
+  onchange(value) {
     $$obj.patch({
-      parentElectricMeterId: value,
+      parentMeterId: value,
     });
   },
-  $$options: $$electricMeters.trans(function (list) {
+  $$options: $$parentMeters.trans(function (list) {
     return list.filter(function (it) {
       return it.isTotal;
     })
@@ -155,7 +159,24 @@ var $$parentElectricMeterDropdown = $$dropdown({
       };
     });
   }),
-  $$value: $$obj.trans(o => o.parentElectricMeterId),
+  $$value: $$obj.trans(o => o.parentMeterId),
+});
+
+var $$typeDropdown = $$dropdown({
+  defaultText: '请选择类型',
+  onchange(value) {
+    $$obj.patch({
+      type: value
+    });
+    $$parentMeters.val(allMeters.filter(m => m.isTotal && m.type == value));
+  },
+  $$options: $$typeList.trans(function (list) {
+    return list.map(it => ({
+      value: it,
+      text: it,
+    }));
+  }),
+  $$value: $$obj.trans(o => o.type),
 });
 
 var $$departmentDropdown = $$searchDropdown({
@@ -178,8 +199,8 @@ var $$departmentDropdown = $$searchDropdown({
 });
 
 var $$form = $$.connect(
-  [$$obj, $$errors, $$statusDropdown, $$parentElectricMeterDropdown,
-    $$departmentDropdown], 
+  [$$obj, $$errors, $$statusDropdown, $$parentMeterDropdown,
+    $$departmentDropdown, $$typeDropdown], 
   formVf
 );
 
@@ -192,24 +213,25 @@ export default {
   $$statusList,
   $$loading,
   $$departments,
-  $$electricMeters,
   init(id) {
     $$loading.toggle();
     Promise.all([
-      electricMeterStore.statusList,
-      electricMeterStore.fetchList(),
+      constStore.get,
+      meterStore.fetchList(),
       departmentStore.list,
-      id? electricMeterStore.get(id): {}
+      id? meterStore.get(id): {}
     ])
-    .then(function ([statusList, { data: electricMeters }, departments, obj]) {
+    .then(function ([{ meterTypes, meterStatus }, { data: meters }, departments, obj]) {
       copy = R.clone(obj);
+      allMeters = meters;
       $$.update(
         [$$loading, false],
-        [$$statusList, statusList],
-        [$$electricMeters, electricMeters],
+        [$$statusList, R.values(meterStatus)],
+        [$$typeList, R.values(meterTypes)],
         [$$departments, departments],
         [$$obj, obj]
       );
+      obj.id && $$parentMeters.val(allMeters.filter(m => m.isTotal && m.type == obj.type));
     });
   }
 };
