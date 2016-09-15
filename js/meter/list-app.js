@@ -77,9 +77,12 @@ let vf = function ([nameFilter, typeFilter, list, loading, tableHints, paginator
 
 var $$typeFilter = $$dropdown({
   defaultText: '请选择设备分类',
-  $$value: $$queryObj.trans(qo => qo.type || $$meterTypes.val().ELECTRIC),
+  $$value: $$queryObj.trans(qo => qo.type),
   $$options: $$meterTypes.trans(function (meterTypes) {
-    return R.values(meterTypes);
+    return R.concat([{
+      value: '',
+      text: '不限分类'
+    }], R.values(meterTypes));
   }),
   onchange(value) {
     $$queryObj.patch({
