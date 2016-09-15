@@ -60,6 +60,12 @@ var valueFunc = function valueFunc([currentMod, mods]) {
         page('/settings');
       }
     }, '系统设置'): '',
+    mods.editElectricMeter? h('a' + _classNames(currentMod === 'electric_meter'), {
+      href: '/electric-meter-list',
+      onclick() {
+        page('/electric-meter-list');
+      }
+    }, '电表信息'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
@@ -97,7 +103,9 @@ export var setupNavBar = function (mod) {
     .could('edit.department')
     .could('view.tenant.list')
     .could('edit.settings')
-    .then(function (viewInvoiceList, viewVoucherList, editDepartment, viewTenantList, editSettings) {
+    .could('edit.electric_meter')
+    .then(function (viewInvoiceList, viewVoucherList, editDepartment,
+                    viewTenantList, editSettings, editElectricMeter) {
       $$.update(
         [$$mods, {
           viewInvoiceList,
@@ -105,6 +113,7 @@ export var setupNavBar = function (mod) {
           editDepartment,
           viewTenantList,
           editSettings,
+          editElectricMeter,
         }],
         [$$currentMod, mod]
       );

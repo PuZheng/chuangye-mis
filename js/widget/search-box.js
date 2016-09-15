@@ -55,6 +55,7 @@ export var $$searchBox = function (
     },
   }
 ) {
+  let inputEl;
   let $$selection = $$(-1, 'selection');
   let $$options = $$([], 'options');
   let $$loading = $$(false, 'loading');
@@ -64,6 +65,11 @@ export var $$searchBox = function (
       h('i.icon.fa.fa-search'),
       h('input.search', {
         tabIndex: 0,
+        hook: new class Hook {
+          hook(node) {
+            inputEl = node;
+          }
+        },
         onfocus() {
           $$active.val(true);
           if (searchText && searchText.length >= minLen) {
@@ -127,6 +133,7 @@ export var $$searchBox = function (
             );
 
             onsearch(getText(selection) || searchText);
+            inputEl.blur();
             return false;
           }
           if (e.which == ESC || e.keyCode == ESC) {
@@ -160,6 +167,7 @@ export var $$searchBox = function (
                   [$$searchText, -1]
                 );
                 onsearch(getText(o), o);
+                inputEl.blur();
                 return false;
               }
             }, optionContent(o, searchText));
@@ -169,7 +177,8 @@ export var $$searchBox = function (
       }(),
     ]);
   };
-  return $$.connect([$$searchText, $$loading, $$options, $$selection, $$active], valueFunc);
+  return $$.connect([$$searchText, $$loading, $$options, $$selection, 
+                    $$active], valueFunc);
 };
 
 export default $$searchBox;

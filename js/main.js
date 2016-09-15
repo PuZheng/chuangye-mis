@@ -1,3 +1,4 @@
+import $$ from 'slot';
 import moment from 'moment';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app';
@@ -9,7 +10,8 @@ import dashboardApp from './dashboard/app';
 import chargeBillApp from './charge-bill/app';
 import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
-import $$ from 'slot';
+import electricMeterListApp from './electric-meter/list-app';
+import electricMeterObjectApp from './electric-meter/object-app';
 import invoiceTypeStore from './store/invoice-type-store';
 import accountTermStore from './store/account-term-store';
 import invoiceStore from './store/invoice-store';
@@ -21,6 +23,7 @@ import accountStore from './store/account-store';
 import departmentStore from './store/department-store';
 import tenantStore from './store/tenant-store';
 import settingsStore from './store/settings-store';
+import electricMeterStore from './store/electric-meter-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
@@ -262,8 +265,40 @@ var settings = function () {
   });
 };
 
-page ('/settings', loginRequired, _setupNavBar('settings'), 
+page('/settings', loginRequired, _setupNavBar('settings'), 
       _could('edit.settings'), settings);
+
+var electricMeterList = function (ctx) {
+  let app = electricMeterListApp;
+  mount(app.page);
+  app.$$loading.toggle(); 
+  electricMeterStore.fetchList(ctx.query)
+  .then(function ({totalCnt, data}) {
+    $$.update(
+      [app.$$loading, false],
+      [app.$$list, data],
+      [app.$$totalCnt, totalCnt]
+    );
+  });
+};
+
+page(
+  '/electric-meter-list', loginRequired, 
+  _setupNavBar('electric_meter'),
+  _could('edit.electric_meter'), electricMeterList
+);
+
+var electricMeter = function (ctx) {
+  let app = electricMeterObjectApp;
+  mount(app.page);
+  app.init(ctx.params.id);
+};
+
+page(
+  '/electric-meter/:id?', loginRequired,
+  _setupNavBar('electric_meter'),
+  _could('edit.electric_meter'), electricMeter
+);
 
 page('/', loginRequired, _setupNavBar('home'), function () {
   let app = dashboardApp;
