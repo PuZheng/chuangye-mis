@@ -9,7 +9,7 @@ import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
 import meterListApp from './meter/list-app';
 import meterObjectApp from './meter/object-app';
-import accountStore from './store/account-store';
+import accountStore from 'store/account-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
@@ -23,6 +23,7 @@ import qs from 'query-string';
 import $$queryObj from './query-obj';
 import unauthorizedApp from './unauthorized-app/index.jsx';
 import notFoundApp from './not-found-app/index.jsx';
+import accountTermApp from './account-term-app/index.js';
 
 var currentApp;
 
@@ -200,6 +201,18 @@ page(
   '/meter-list', loginRequired, 
   _setupNavBar('meter'),
   _could('edit.meter'), meterList
+);
+
+var accountTerms = function () {
+  currentApp = accountTermApp;
+  mount(currentApp.page);
+  currentApp.init();
+};
+
+page(
+  '/account-term-list', loginRequired,
+  _setupNavBar('account_term'),
+  _could('edit.account_term'), accountTerms
 );
 
 var meter = function (ctx) {

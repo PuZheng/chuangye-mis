@@ -77,10 +77,14 @@ gulp.task('default', ['css', 'rollup', 'connect', 'watch']);
 
 gulp.task('rollup', function () {
   var plugins = [
+    jsx({
+      factory: 'virtualDom.h', 
+      include: ['js/**/*.jsx']
+    }),
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers', 'store']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers', 'store', 'toast']
     }),
     commonjs({
       ignoreGlobal: true,
@@ -95,13 +99,13 @@ gulp.task('rollup', function () {
         'validate-obj': 'js/validate-obj.js',
         checkers: 'js/checkers.js',
         store: 'js/store/',
+        toast: 'js/toast.js',
       }
     }),
     json({
       include: ['js/config.json'],
       exclude: ['node_modules/**/*', 'config.json', 'config.sample.json']
     }),
-    jsx({factory: 'virtualDom.h', include: ['js/**/*.jsx']}),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(babel({
