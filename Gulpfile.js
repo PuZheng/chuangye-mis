@@ -20,6 +20,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var json = require('rollup-plugin-json');
 var eslint = require('gulp-eslint');
 var includePaths = require('rollup-plugin-includepaths');
+var jsx = require('rollup-plugin-jsx');
 
 gulp.task('connect', function() {
   connect.server({
@@ -35,7 +36,7 @@ gulp.task('reload', function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch(['smart-grid/**/*', 'js/**/*.js', 'js/**/*.ejs', '!js/bundle.js'], ['rollup']);
+  gulp.watch(['smart-grid/**/*', 'js/**/*.js', 'js/**/*.jsx', '!js/bundle.js'], ['rollup']);
   gulp.watch(['./*.html', 'js/bundle.js', 'js/plugins.js'], ['reload']);
   gulp.watch(['./postcss/**/*.css'], ['css']) ;
 });
@@ -99,6 +100,7 @@ gulp.task('rollup', function () {
       include: ['js/config.json'],
       exclude: ['node_modules/**/*', 'config.json', 'config.sample.json']
     }),
+    jsx({factory: 'virtualDom.h', include: ['js/**/*.jsx']}),
   ];
   if (process.env.ENV === 'production') {
     plugins.push(babel({
