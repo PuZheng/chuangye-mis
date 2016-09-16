@@ -66,6 +66,12 @@ var valueFunc = function valueFunc([currentMod, mods]) {
         page('/meter-list');
       }
     }, '表设备信息'): '',
+    mods.editAccountTerm? h('a' + _classNames(currentMod === 'account_term'), {
+      href: '/account-term-list',
+      onclick() {
+        page('/account-term-list');
+      }
+    }, '会计期管理'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
@@ -104,8 +110,12 @@ export var setupNavBar = function (mod) {
     .could('view.tenant.list')
     .could('edit.settings')
     .could('edit.meter')
-    .then(function (viewInvoiceList, viewVoucherList, editDepartment,
-                    viewTenantList, editSettings, editElectricMeter) {
+    .could('edit.account_term')
+    .then(function (
+      viewInvoiceList, viewVoucherList, editDepartment,
+      viewTenantList, editSettings, editElectricMeter,
+      editAccountTerm
+    ) {
       $$.update(
         [$$mods, {
           viewInvoiceList,
@@ -114,6 +124,7 @@ export var setupNavBar = function (mod) {
           viewTenantList,
           editSettings,
           editElectricMeter,
+          editAccountTerm
         }],
         [$$currentMod, mod]
       );
