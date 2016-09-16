@@ -12,7 +12,10 @@ import $$paginator from '../widget/paginator';
 import $$searchBox from '../widget/search-box';
 import $$dropdown from '../widget/dropdown';
 import $$searchDropdown from '../widget/search-dropdown';
-import voucherStore from '../store/voucher-store';
+import voucherStore from 'store/voucher-store';
+import voucherTypeStore from 'store/voucher-type-store';
+import voucherSubjectStore from 'store/voucher-subject-store';
+import entityStore from 'store/entity-store';
 
 var h = virtualDom.h;
 
@@ -240,10 +243,22 @@ export default {
       pageSize: config.getPageSize('voucher'),
     }), $$filters], viewVf)
   },
-  $$vouchers,
-  $$loading,
-  $$totalCnt,
-  $$voucherTypes,
-  $$voucherSubjects,
-  $$entities,
+  init() {
+    $$loading.toggle();
+    Promise.all([
+      voucherStore.fetchList($$queryObj.val()),
+      voucherTypeStore.list,
+      voucherSubjectStore.list,
+      entityStore.fetchList(),
+    ]).then(function ([data, voucherTypes, voucherSubjects, entities]) {
+      $$.update(
+        [$$vouchers, data.data],
+        [$$totalCnt, data.totalCnt],
+        [$$voucherTypes, voucherTypes],
+        [$$voucherSubjects, voucherSubjects],
+        [$$entities, entities],
+        [$$loading, false]
+      );
+    });
+  }
 };

@@ -123,6 +123,13 @@ var formVf = function ([obj, errors, statusDropdown,
     )(obj),
     h('hr'),
     h('button.primary', '提交'),
+    h('button', {
+      onclick(e) {
+        page('/meter-list');
+        e.preventDefault();
+        return false;
+      }
+    }, '返回'),
   ]);
 };
 
@@ -230,5 +237,8 @@ export default {
       );
       obj.id && $$parentMeters.val(allMeters.filter(m => m.isTotal && m.type == obj.type));
     });
+  },
+  get dirty() {
+    return !R.equals($$obj.val(), copy);
   }
 };

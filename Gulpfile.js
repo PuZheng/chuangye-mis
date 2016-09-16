@@ -80,7 +80,7 @@ gulp.task('rollup', function () {
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers', 'store']
     }),
     commonjs({
       ignoreGlobal: true,
@@ -93,7 +93,8 @@ gulp.task('rollup', function () {
         'smart-grid': 'js/smart-grid/index.js',
         'pipe-slot': 'js/pipe-slot/index.js',
         'validate-obj': 'js/validate-obj.js',
-        'checkers': 'js/checkers.js',
+        checkers: 'js/checkers.js',
+        store: 'js/store/',
       }
     }),
     json({

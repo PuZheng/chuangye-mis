@@ -38,10 +38,10 @@ export default {
       return res.data;
     });
   },
-  save(obj, id) {
+  save(obj) {
     return (function () {
-      if (id) {
-        return request.put('/tenant/object/' + id, obj);
+      if (obj.id) {
+        return request.put('/tenant/object/' + obj.id, obj);
       } else {
         return request.post('/tenant/object', obj);
       }

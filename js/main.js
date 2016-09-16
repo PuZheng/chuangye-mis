@@ -1,5 +1,3 @@
-import $$ from 'slot';
-import moment from 'moment';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app';
 import invoiceListApp from './invoice/list-app';
@@ -7,27 +5,15 @@ import voucherListApp from './voucher/list-app';
 import voucherObjectApp from './voucher/object-app';
 import loginApp from './login/app';
 import dashboardApp from './dashboard/app';
-import chargeBillApp from './charge-bill/app';
 import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
 import meterListApp from './meter/list-app';
 import meterObjectApp from './meter/object-app';
-import invoiceTypeStore from './store/invoice-type-store';
-import accountTermStore from './store/account-term-store';
-import invoiceStore from './store/invoice-store';
-import voucherTypeStore from './store/voucher-type-store';
-import voucherSubjectStore from './store/voucher-subject-store';
-import voucherStore from './store/voucher-store';
-import chargeBillStore from './store/charge-bill-store';
 import accountStore from './store/account-store';
-import departmentStore from './store/department-store';
-import tenantStore from './store/tenant-store';
-import settingsStore from './store/settings-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
 import R from 'ramda';
-import entityStore from './store/entity-store';
 import mount from './mount';
 import { navBar, setupNavBar } from './nav-bar';
 import toast from './toast';
@@ -37,6 +23,16 @@ import qs from 'query-string';
 import $$queryObj from './query-obj';
 import unauthorizedApp from './unauthorized-app/index.jsx';
 import notFoundApp from './not-found-app/index.jsx';
+
+var currentApp;
+
+window.onbeforeunload = function (e) {
+  if (currentApp && currentApp.dirty) {
+    var dialogText = '你已经作出了修改，加载页面将丢失数据, 是否重新加载页面?';
+    e.returnValue = dialogText;
+    return dialogText;
+  }
+};
 
 // $$.init({ debug: true });
 
@@ -87,6 +83,17 @@ page(function parseQuery(ctx, next) {
   next();
 });
 
+page.exit(function (ctx, next) {
+  if (currentApp && currentApp.dirty) {
+    if (confirm('你已经作出了修改，退出页面将丢失数据, 是否确认退出?')) {
+      next();
+    }
+    ctx.handled = false;
+    return;
+  }
+  next();
+});
+
 page('/login', function () {
   if (!accountStore.user) {
     mount(loginApp.page);
@@ -96,67 +103,21 @@ page('/login', function () {
 });
 
 page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar('invoice'), function (ctx) {
-  let app = invoiceObjectApp;
-  mount(invoiceObjectApp.page);
-  let promises = [
-    invoiceTypeStore.list, 
-    accountTermStore.list,
-    ctx.params.id? invoiceStore.get(ctx.params.id): {
-      date: moment().format('YYYY-MM-DD')
-    },
-  ];
-  app.$$loading.inc();
-  Promise.all(promises).then(function ([invoiceTypes, accountTerms, invoice]) {
-    let args = [
-      [app.$$invoiceTypes, invoiceTypes],
-      [app.$$accountTerms, accountTerms],
-      [app.$$loading, 0],
-      [app.$$invoice, invoice]
-    ];
-    $$.update(...args);
-  });
+  currentApp = invoiceObjectApp;
+  mount(currentApp.page);
+  currentApp.init(ctx.params.id);
 });
 
-page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function (ctx) {
-  let app = invoiceListApp;
-  mount(app.page);
-  app.$$loading.toggle();
-  Promise.all([
-    invoiceStore.fetchList(ctx.query),
-    invoiceTypeStore.list,
-    accountTermStore.list,
-    entityStore.fetchList(),
-  ]).then(function ([data, invoiceTypes, accountTerms, entities]) {
-    $$.update(
-      [app.$$loading, false],
-      [app.$$list, data.data],
-      [app.$$totalCnt, data.totalCnt],
-      [app.$$invoiceTypes, invoiceTypes],
-      [app.$$accountTerms, accountTerms],
-      [app.$$entities, entities]
-    );
-  });
+page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function () {
+  currentApp = invoiceListApp;
+  mount(currentApp.page);
+  currentApp.init();
 });
 
-var voucherList = function voucherList(ctx) {
-  var app = voucherListApp;
-  mount(app.page);
-  app.$$loading.toggle();
-  Promise.all([
-    voucherStore.fetchList(ctx.query),
-    voucherTypeStore.list,
-    voucherSubjectStore.list,
-    entityStore.fetchList(),
-  ]).then(function ([data, voucherTypes, voucherSubjects, entities]) {
-    $$.update(
-      [app.$$vouchers, data.data],
-      [app.$$totalCnt, data.totalCnt],
-      [app.$$voucherTypes, voucherTypes],
-      [app.$$voucherSubjects, voucherSubjects],
-      [app.$$entities, entities],
-      [app.$$loading, false]
-    );
-  });
+var voucherList = function voucherList() {
+  currentApp = voucherListApp;
+  mount(currentApp.page);
+  currentApp.init();
 };
 
 page('/voucher-list', loginRequired, 
@@ -164,15 +125,9 @@ page('/voucher-list', loginRequired,
      voucherList);
 
 var departmentList = function () {
-  var app = departmentListApp;
-  mount(app.page);
-  app.$$loading.val(true);
-  departmentStore.list.then(function (departments) {
-    $$.update(
-      [app.$$departments, departments],
-      [app.$$loading, false]
-    );
-  });
+  currentApp = departmentListApp;
+  mount(currentApp.page);
+  currentApp.init();
 };
 
 page(
@@ -181,8 +136,8 @@ page(
 );
 
 var department = function () {
-  var app = departmentApp;  
-  mount(app.page);
+  currentApp = departmentApp;  
+  mount(currentApp.page);
 };
 
 page('/department', loginRequired, 
@@ -190,37 +145,15 @@ page('/department', loginRequired,
     department);
 
 page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx) {
-  let app = voucherObjectApp;
-  mount(voucherObjectApp.page);
-  app.$$loading.val(true);
-  let promises = [
-    voucherTypeStore.list,
-    voucherSubjectStore.list,
-    ctx.params.id? voucherStore.get(ctx.params.id): {
-      date: moment().format('YYYY-MM-DD')
-    }
-  ];
-  Promise.all(promises).then(function ([voucherTypes, voucherSubjects, voucher]) {
-    $$.update(
-      [app.$$voucherTypes, voucherTypes],
-      [app.$$loading, false],
-      [app.$$voucherSubjects, voucherSubjects],
-      [app.$$voucher, voucher]
-    );
-  });
+  currentApp = voucherObjectApp;
+  mount(currentApp.page);
+  currentApp.init(ctx.params.id);
 });
 
-let tenantList = function (ctx) {
-  var app = tenantListApp;
-  mount(app.page);
-  app.$$loading.toggle();
-  tenantStore.fetchList(ctx.query).then(function ({data: tenants, totalCnt}) {
-    $$.update(
-      [app.$$tenants, tenants],
-      [app.$$totalCnt, totalCnt],
-      [app.$$loading, false]
-    );
-  });
+let tenantList = function () {
+  currentApp = tenantListApp;
+  mount(currentApp.page);
+  currentApp.init();
 };
 
 page('/tenant-list', 
@@ -229,55 +162,38 @@ page('/tenant-list',
      _setupNavBar('tenant'), tenantList);
 
 let tenantObject = function (ctx) {
-  var app = tenantObjectApp;
-  mount(app.page);
-  app.$$loading.toggle();
-  Promise.all([
-    departmentStore.list,
-    ctx.params.id? tenantStore.get(ctx.params.id): {}
-  ])
-  .then(function ([departments, tenant]) {
-    $$.update(
-      [app.$$loading, false],
-      [app.$$departments, departments],
-      [app.$$tenant, tenant]
-    );
-  });
+  currentApp = tenantObjectApp;
+  mount(currentApp.page);
+  currentApp.init(ctx.params.id);
 };
 
 page('/tenant/:id?', loginRequired,
     _could('edit.tenant.object'),
     _setupNavBar('tenant'), tenantObject);
 
-page('/charge-bill/:id?', function (ctx) {
-  let app = chargeBillApp;
-  mount(chargeBillApp.makePage());
-  app.$$loading.val(true);
-  chargeBillStore.get(ctx.params.id).then(function (chargeBill) {
-    mount(chargeBillApp.makePage(chargeBill));
-    app.$$loading.val(false);
-  });
-});
+// page('/charge-bill/:id?', function (ctx) {
+//   currentApp = chargeBillApp;
+//   mount(chargeBillApp.makePage());
+//   app.$$loading.val(true);
+//   chargeBillStore.get(ctx.params.id).then(function (chargeBill) {
+//     mount(chargeBillApp.makePage(chargeBill));
+//     app.$$loading.val(false);
+//   });
+// });
 
 var settings = function () {
-  let app = settingsApp;
-  mount(app.page);
-  app.$$loading.toggle();
-  settingsStore.list.then(function (settings) {
-    $$.update(
-      [app.$$loading, false],
-      [app.$$settings, settings]
-    );
-  });
+  currentApp = settingsApp;
+  mount(currentApp.page);
+  currentApp.init();
 };
 
 page('/settings', loginRequired, _setupNavBar('settings'), 
       _could('edit.settings'), settings);
 
 var meterList = function () {
-  let app = meterListApp;
-  mount(app.page);
-  app.init();
+  currentApp = meterListApp;
+  mount(currentApp.page);
+  currentApp.init();
 };
 
 page(
@@ -287,9 +203,9 @@ page(
 );
 
 var meter = function (ctx) {
-  let app = meterObjectApp;
-  mount(app.page);
-  app.init(ctx.params.id);
+  currentApp = meterObjectApp;
+  mount(currentApp.page);
+  currentApp.init(ctx.params.id);
 };
 
 page(
@@ -299,8 +215,8 @@ page(
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {
-  let app = dashboardApp;
-  mount(app.page);
+  currentApp = dashboardApp;
+  mount(currentApp.page);
 });
 
 page(function () {
