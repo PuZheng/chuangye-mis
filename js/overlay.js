@@ -6,9 +6,6 @@ import classNames from './class-names';
 var h = virtualDom.h;
 var $$content = $$({}, 'content'); 
 let vf = function (content) {
-  if (R.isEmpty(content)) {
-
-  }
   return h(classNames('overlay', !R.isEmpty(content) && 'open', content.type || '', content.className || ''), [
     h('button.close-btn', {
       onclick() {

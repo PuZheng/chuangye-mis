@@ -71,7 +71,7 @@ var valueFunc = function valueFunc([currentMod, mods]) {
       onclick() {
         page('/account-term-list');
       }
-    }, '会计期管理'): '',
+    }, '帐期管理'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {

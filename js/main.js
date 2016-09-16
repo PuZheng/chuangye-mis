@@ -23,7 +23,7 @@ import qs from 'query-string';
 import $$queryObj from './query-obj';
 import unauthorizedApp from './unauthorized-app/index.jsx';
 import notFoundApp from './not-found-app/index.jsx';
-import accountTermApp from './account-term-app/index.jsx';
+import accountTermApp from './account-term-app/index.js';
 
 var currentApp;
 

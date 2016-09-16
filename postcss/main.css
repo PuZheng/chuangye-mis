@@ -9,6 +9,7 @@
 @import 'component/oth';
 @import 'component/search-box';
 @import 'component/overlay';
+@import 'component/segment';
 
 @import "generic.css";
 @import "atomic.css";
