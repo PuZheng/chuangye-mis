@@ -10,6 +10,10 @@ import { $$filters } from './list-filters';
 import getColOrder from '../get-col-order';
 import $$tableHints from '../widget/table-hints';
 import $$paginator from '../widget/paginator';
+import invoiceStore from 'store/invoice-store';
+import invoiceTypeStore from 'store/invoice-type-store';
+import accountTermStore from 'store/account-term-store';
+import entityStore from 'store/entity-store';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -124,10 +128,22 @@ var $$view = $$.connect([
 
 export default {
   page: { $$view },
-  $$list,
-  $$loading,
-  $$totalCnt,
-  $$invoiceTypes,
-  $$accountTerms,
-  $$entities
+  init() {
+    $$loading.toggle();
+    Promise.all([
+      invoiceStore.fetchList($$queryObj.val()),
+      invoiceTypeStore.list,
+      accountTermStore.list,
+      entityStore.fetchList(),
+    ]).then(function ([data, invoiceTypes, accountTerms, entities]) {
+      $$.update(
+        [$$loading, false],
+        [$$list, data.data],
+        [$$totalCnt, data.totalCnt],
+        [$$invoiceTypes, invoiceTypes],
+        [$$accountTerms, accountTerms],
+        [$$entities, entities]
+      );
+    });
+  }
 };

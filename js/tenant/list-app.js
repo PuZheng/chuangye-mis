@@ -82,7 +82,16 @@ export default {
       pageSize: config.getPageSize('voucher'),
     })], vf)
   },
-  $$tenants,
-  $$loading,
-  $$totalCnt,
+  init() {
+    $$loading.toggle();
+    tenantStore
+    .fetchList($$queryObj.val())
+    .then(function ({data: tenants, totalCnt}) {
+      $$.update(
+        [$$tenants, tenants],
+        [$$totalCnt, totalCnt],
+        [$$loading, false]
+      );
+    });
+  }
 };

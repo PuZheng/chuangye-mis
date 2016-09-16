@@ -9,25 +9,18 @@ import { $$toast } from '../toast.js';
 import page from 'page';
 import pinyin from 'pinyin';
 import R from 'ramda';
-import diff from '../diff';
+import departmentStore from '../store/department-store';
 
 var h = virtualDom.h;
 var $$tenant = $$({}, 'tenant');
 var $$errors = $$({}, 'errors');
 var $$departments = $$([], 'departments');
 var $$loading = $$(false, 'loading');
-var oldCopy = {};
+var copy = {};
 
-var onTenantChange = function () {
-  return function (tenant) {
-    if (tenant && tenant.id) {
-      oldCopy = R.clone(tenant);
-      $$tenant.offChange(onTenantChange);
-    }
-  };
-}();
-
-$$tenant.change(onTenantChange);
+var dirty = function (obj) {
+  return !R.equals(copy, obj);
+};
 
 var $$departmentDropdown = $$searchDropdown({
   defaultText: '请选择车间',
@@ -56,13 +49,12 @@ var formVf = function ([errors, departmentDropdown, tenant]) {
       .validate(tenant)
       .then(function (obj) {
         $$loading.toggle();
-        let data = obj.id? diff(obj, oldCopy): obj;
-        if (!data) {
+        if (!dirty(obj)) {
           throw {
             code: 'unchanged',
           };
         }
-        return tenantStore.save(data, obj.id);
+        return tenantStore.save(obj);
       }, function (e) {
         throw {
           error: e,
@@ -71,7 +63,7 @@ var formVf = function ([errors, departmentDropdown, tenant]) {
       })
       .then(function ({id=tenant.id}) {
         $$loading.val(false); 
-        oldCopy = R.clone(tenant);
+        copy = R.clone(tenant);
         $$toast.val({
           type: 'success',
           message: tenant.id? '更新成功': '承包人创建成功',
@@ -154,6 +146,13 @@ var formVf = function ([errors, departmentDropdown, tenant]) {
     field('departmentId', '车间', departmentDropdown, errors, true),
     h('hr'),
     h('button.primary', '提交'),
+    h('button', {
+      onclick(e) {
+        page('/tenant-list');
+        e.preventDefault();
+        return false;
+      }
+    }, '返回'),
   ]);
 };
 
@@ -162,7 +161,7 @@ var $$form = $$.connect([$$errors, $$departmentDropdown, $$tenant], formVf);
 
 var vf = function ([tenant, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
-    h('.header' + (diff(tenant, oldCopy)? '.dirty': ''), tenant.id? `编辑承包人-${tenant.entity.name}`: '创建承包人'),
+    h('.header' + (dirty(tenant)? '.dirty': ''), tenant.id? `编辑承包人-${tenant.entity.name}`: '创建承包人'),
     form,
   ]);
 };
@@ -172,7 +171,22 @@ export default {
   page: {
     $$view: $$.connect([$$tenant, $$form, $$loading], vf),
   },
-  $$tenant,
-  $$departments,
-  $$loading,
+  get dirty() {
+    return !R.equals($$tenant.val(), copy);
+  },
+  init(id) {
+    $$loading.toggle();
+    Promise.all([
+      departmentStore.list,
+      id? tenantStore.get(id): {}
+    ])
+    .then(function ([departments, tenant]) {
+      copy = R.clone(tenant);
+      $$.update(
+        [$$loading, false],
+        [$$departments, departments],
+        [$$tenant, tenant]
+      );
+    });
+  }
 };

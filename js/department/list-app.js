@@ -2,6 +2,7 @@ import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import page from 'page';
 import overlay from '../overlay';
+import departmentStore from 'store/department-store';
 
 var $$departments = $$([], 'departments');
 var $$loading = $$(false, 'loading');
@@ -72,6 +73,13 @@ export default {
     $$view: $$.connect([$$loading, $$departments, $$searchText], vf, 
                        'departments-app'),
   },
-  $$departments,
-  $$loading,
+  init() {
+    $$loading.val(true);
+    departmentStore.list.then(function (departments) {
+      $$.update(
+        [$$departments, departments],
+        [$$loading, false]
+      );
+    });
+  }
 };

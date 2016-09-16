@@ -97,6 +97,13 @@ export default {
       sg.onUpdated();
     },
   },
-  $$loading,
-  $$settings,
+  init() {
+    $$loading.toggle();
+    settingsStore.list.then(function (settings) {
+      $$.update(
+        [$$loading, false],
+        [$$settings, settings]
+      );
+    });
+  }
 };

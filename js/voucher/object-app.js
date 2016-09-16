@@ -1,9 +1,12 @@
-import x from 'slot';
-import { $$voucher } from './data-slots.js';
-import * as $$datas from './data-slots.js';
+import $$ from 'slot';
+import { $$voucher, $$voucherTypes, $$loading, $$voucherSubjects } from './data-slots.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 import { $$form } from './form.js';
+import voucherTypeStore from 'store/voucher-type-store';
+import voucherSubjectStore from 'store/voucher-subject-store';
+import moment from 'moment';
+import voucherStore from 'store/voucher-store';
 
 const valueFunc = function ([voucher, form]) {
   return h('.object-app', [
@@ -12,13 +15,31 @@ const valueFunc = function ([voucher, form]) {
   ]);
 };
 
-const $$view = x.connect(
+const $$view = $$.connect(
   [$$voucher, $$form], 
   valueFunc, 
   'voucher-object-app');
 
-export default Object.assign({}, {
+export default {
   page: {
     $$view,
   },
-}, $$datas);;
+  init(id) {
+    $$loading.val(true);
+    let promises = [
+      voucherTypeStore.list,
+      voucherSubjectStore.list,
+      id? voucherStore.get(id): {
+        date: moment().format('YYYY-MM-DD')
+      }
+    ];
+    Promise.all(promises).then(function ([voucherTypes, voucherSubjects, voucher]) {
+      $$.update(
+        [$$voucherTypes, voucherTypes],
+        [$$loading, false],
+        [$$voucherSubjects, voucherSubjects],
+        [$$voucher, voucher]
+      );
+    });
+  }
+};
