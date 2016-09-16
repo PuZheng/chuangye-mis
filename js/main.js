@@ -35,6 +35,8 @@ import overlay from './overlay';
 import { could } from './principal';
 import qs from 'query-string';
 import $$queryObj from './query-obj';
+import unauthorizedApp from './unauthorized-app/index.jsx';
+import notFoundApp from './not-found-app/index.jsx';
 
 // $$.init({ debug: true });
 
@@ -59,13 +61,18 @@ var _could = function (request) {
   return function (ctx, next) {
     could(request).then(function (ok) {
       if (!ok) {
-        page('/unauthorized.html');
+        page('/unauthorized');
         return;
       }
       next();
     });
   };
 };
+
+page('/unauthorized', function () {
+  mount(unauthorizedApp.page);
+});
+
 var goto = function (queryObj) {
   page(location.pathname + '?' + 
        R.toPairs(queryObj).filter(p => p[1]).map(p => p.join('=')).join('&'));
@@ -294,6 +301,10 @@ page(
 page('/', loginRequired, _setupNavBar('home'), function () {
   let app = dashboardApp;
   mount(app.page);
+});
+
+page(function () {
+  mount(notFoundApp.page);
 });
 
 page();
