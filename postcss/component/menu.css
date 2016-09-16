@@ -32,6 +32,7 @@
         transition: background .1s ease,box-shadow .1s ease,color .1s ease;
         padding: .6rem 1.14285714em;
         color: var(--color-tertiary);
+        outline: none;
 
         &.celled {
             border-right: 1px solid var(--color-gray-light);
