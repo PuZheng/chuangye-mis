@@ -222,7 +222,14 @@ var $$totalCnt = $$(0, 'totalCnt');
 var viewVf = function ([loading, table, paginator, tableHints, 
                       filters]) {
   return h(classNames('.list-app', loading && 'loading'), [
-    h('.header', '资金类凭证列表'),
+    h('.header', [
+      h('.title', '资金类凭证列表'),
+      h('button.new-btn', {
+        onclick() {
+          page('/voucher');
+        }
+      }, h('i.fa.fa-plus')),
+    ]),
     filters,
     table,
     tableHints,

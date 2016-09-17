@@ -23,7 +23,8 @@ import qs from 'query-string';
 import $$queryObj from './query-obj';
 import unauthorizedApp from './unauthorized-app/index.jsx';
 import notFoundApp from './not-found-app/index.jsx';
-import accountTermApp from './account-term-app/index.js';
+import accountTermApp from './account-term-app/index';
+import invoiceTypeListApp from './invoice-type/list-app';
 
 var currentApp;
 
@@ -225,6 +226,18 @@ page(
   '/meter/:id?', loginRequired,
   _setupNavBar('meter'),
   _could('edit.meter'), meter
+);
+
+var invoiceTypeList = function () {
+  currentApp = invoiceTypeListApp;
+  mount(currentApp.page);
+  currentApp.init();
+};
+
+page(
+  '/invoice-type-list', loginRequired, 
+  _setupNavBar('invoice_type'),
+  _could('edit.invoice_type'), invoiceTypeList
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

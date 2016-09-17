@@ -109,7 +109,14 @@ var valueFunc = function valueFunc([
         });
         return false;
       }
-    }, '提交')
+    }, '提交'),
+    h('button', {
+      onclick(e) {
+        e.preventDefault();
+        page('/invoice-list');
+        return false;
+      }
+    }, '返回'),
   ]);
 };
 

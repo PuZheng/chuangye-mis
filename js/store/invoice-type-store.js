@@ -1,16 +1,23 @@
-import backendURL from '../backend-url';
-import accountStore from './account-store';
+import request from '../request';
+import R from 'ramda';
 
 export default {
   get list() {
-    return axios.get(backendURL('/invoice-type/list'), {
-      headers: {
-        Authorization: 'Bearer ' + accountStore.user.token,
-      },
-    }).then(function (response) {
+    return request.get('/invoice-type/list')
+    .then(function (response) {
       return response.data.data;
-    }).catch(function (e) {
-      console.error(e);
+    });
+  },
+  fetchList(qo) {
+    return request.get('/invoice-type/list?' + R.toPairs(qo).map(it => it.join('=')).join('&'))
+    .then(function (response) {
+      return response.data.data;
+    });
+  },
+  getHints(kw) {
+    return request.get('/invoice-type/hints/' + kw)
+    .then(function (resp) {
+      return resp.data.data;
     });
   }
 };
