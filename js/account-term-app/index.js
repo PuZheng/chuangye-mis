@@ -14,19 +14,22 @@ var $$loading = $$(false, 'loading');
 var $$uninitialized = $$([], 'uninitialized');
 
 var calcUninitialized = function (initialized) {
-  let latestAt = initialized && initialized[0];
-  if (!latestAt) {
+  let earliestAt = initialized && R.last(initialized);
+  if (!earliestAt) {
     return [moment().format('YYYY-MM')];
   }
-  let m = moment(latestAt.name, 'YYYY-MM');
-  let latestYear = m.year();
-  let latestMonth = m.month();
+  let m = moment(earliestAt.name, 'YYYY-MM');
+  initialized = initialized.map(function (at) {
+    return at.name;
+  });
+  let earliestYear = m.year();
+  let earliestMonth = m.month();
   let year = moment().year();
   let month = moment().month();
   return Array.from({
     [Symbol.iterator]() { return this; },
     next() {
-      if (year > latestYear || (year === latestYear && month > latestMonth)) {
+      if (year > earliestYear || (year === earliestYear && month > earliestMonth)) {
         let value = moment({
           year,
           month,
@@ -34,6 +37,9 @@ var calcUninitialized = function (initialized) {
         if (--month === 0) {
           month = 11;
           --year;
+        }
+        if (~initialized.indexOf(value)) {
+          return this.next();
         }
         return {
           value,
@@ -46,7 +52,6 @@ var calcUninitialized = function (initialized) {
 
 var create = function (at) {
   return function () {
-    debugger;
     accountTermStore.save(at)
     .then(function () {
       init();
