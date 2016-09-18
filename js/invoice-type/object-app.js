@@ -8,7 +8,8 @@ import constStore from 'store/const-store';
 import page from 'page';
 import overlay from '../overlay';
 import axiosError2Dom from '../axios-error-2-dom';
-import { $$toast } from '../toast.js';
+import { $$toast } from '../toast';
+import classNames from '../class-names';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -16,6 +17,12 @@ var $$loading = $$(false, 'loading');
 var $$errors = $$({}, 'errors');
 var $$entityTypes = $$({}, 'entity-types');
 var $$materialTypes = $$({}, 'material-types');
+
+var copy = {};
+
+var dirty = function (obj) {
+  return !R.equals(copy, obj);
+};
 
 var formVf = function (
   [obj, errors, vendorDropdown, purchaserDropdown, materialTypeDropdown]
@@ -26,17 +33,28 @@ var formVf = function (
       .validate(obj)
       .then(function (obj) {
         $$loading.val(true);
+        if (obj.id && !dirty(obj)) {
+          $$.update(
+            [$$toast, {
+              type: 'info',
+              message: '没有做出任何修改',
+            }],
+            [$$loading, false]
+          );
+          return;
+        }
         invoiceTypeStore.save(obj)
         .then(function ({ id }) {
+          copy = R.clone(obj);
           $$loading.val(false);
           $$toast.val({
             type: 'success',
             message: '创建成功',
           });
-          page('/invoice-type/' + id);
+          !obj.id && page('/invoice-type/' + id);
         }, function (e) {
           $$loading.val(false);
-          if (e.response.status == 403) {
+          if ((e.response || {}).status == 403) {
             $$errors.val(e.response.data.fields || {});
             return;
           }
@@ -120,16 +138,17 @@ var $$form = $$.connect(
   formVf
 );
 
-var vf = function ([form]) {
-  return h('.object-app', [
-    h('.header', '创建发票类型'),
+var vf = function ([obj, loading, form]) {
+  return h(classNames('object-app', loading && 'loading'), [
+    h(classNames('header', dirty(obj) && 'dirty'),
+      obj.id? '编辑发票类型-' + obj.name: '创建发票类型'),
     form,
   ]);
 };
 
 export default {
   page: {
-    $$view: $$.connect([$$form], vf),
+    $$view: $$.connect([$$obj, $$loading, $$form], vf),
   },
   init(ctx) {
     $$loading.val(true);
@@ -138,6 +157,7 @@ export default {
       constStore.get()
     ])
     .then(function ([obj, { materialTypes, entityTypes }]) {
+      copy = R.clone(obj);
       $$.update(
         [$$loading, false],
         [$$obj, obj],
@@ -145,5 +165,8 @@ export default {
         [$$entityTypes, entityTypes]
       );
     });
+  },
+  get dirty() {
+    return dirty($$obj.val());
   }
 };

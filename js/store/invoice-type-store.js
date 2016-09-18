@@ -34,7 +34,11 @@ export default {
     });
   },
   save(obj) {
-    return request.post('/invoice-type/object', obj)
+    return R.ifElse(
+      obj => !!obj.id,
+      R.always(request.put('/invoice-type/object/' + obj.id, obj)),
+      R.always(request.post('/invoice-type/object', obj))
+    )(obj)
     .then(function (resp) {
       return resp.data;
     });

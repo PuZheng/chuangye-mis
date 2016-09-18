@@ -67,7 +67,7 @@ var formVf = function ([obj, errors, statusDropdown,
           !obj.id && page('/meter/' + id);
         }, function (e) {
           $$loading.val(false);
-          if (e.response.status == 403) {
+          if ((e.response || {}).status == 403) {
             $$errors.val(e.response.data.fields || {});
             return;
           }
