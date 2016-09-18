@@ -19,6 +19,12 @@ var $$errors = $$({}, 'errors');
 var $$entityTypes = $$({}, 'entity-types');
 var $$loading = $$(false, 'loading');
 
+var copy;
+
+var dirty = function (obj) {
+  return !R.equals(obj, copy);
+};
+
 var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) {
   return h('form.form', {
     onsubmit() {
@@ -26,15 +32,26 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
       .validate(obj)
       .then(function (obj) {
         $$loading.val(true);
+        if (obj.id && !dirty(obj)) {
+          $$.update(
+            [$$toast, {
+              type: 'info',
+              message: '没有做出任何修改',
+            }],
+            [$$loading, false]
+          );
+          return;
+        }
         voucherSubjectStore
         .save(obj)
         .then(function ({ id }) {
+          copy = R.clone(obj);
           $$loading.val(false);
           $$toast.val({
             type: 'success',
-            message: '创建成功',
+            message: '提交成功',
           });
-          page('/voucher-subject/' + id);
+          id && page('/voucher-subject/' + id);
         }, function (e) {
           $$loading.val(false);
           if ((e.response || {}).status == 403) {
@@ -127,16 +144,20 @@ var $$form = $$.connect(
   [$$obj, $$errors, $$payerTypeDropdown, $$recipientTypeDropdown], formVf
 );
 
-var vf = function ([form]) {
-  return h(classNames('object-app'), [
-    h(classNames('header'), '创建凭证项目'),
+var vf = function ([loading, obj, form]) {
+  return h(classNames('object-app', loading && 'loading'), [
+    h(classNames('header', dirty(obj) && 'dirty'), R.ifElse(
+      R.prop('id'),
+      R.always(`编辑凭证项目-${obj.name}`),
+      R.always(`创建凭证项目`)
+    )(obj)),
     form,
   ]);
 };
 
 export default {
   page: {
-    $$view: $$.connect([$$form], vf),
+    $$view: $$.connect([$$loading, $$obj, $$form], vf),
   },
   init(ctx) {
     let id = ctx.params.id;
@@ -146,11 +167,15 @@ export default {
       constStore.get(),
     ])
     .then(function ([obj, { entityTypes }]) {
+      copy = R.clone(obj);
       $$.update(
         [$$loading, false],
         [$$entityTypes, entityTypes],
         [$$obj, obj]
       );
     });
+  },
+  get dirty() {
+    return dirty($$obj.val());
   }
 };

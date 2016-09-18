@@ -10,28 +10,28 @@ export default {
   }]),
   get list() {
     return request.get('/voucher-subject/list')
-    .then(function (response) {
-      return response.data.data; 
-    });
+    .then(R.path(['data', 'data']));
   },
   fetchList(qo) {
     qo = R.toPairs(qo).map(R.join('=')).join('&');
     return request.get('/voucher-subject/list?' + qo)
-    .then(function (response) {
-      return response.data.data; 
-    });
+    .then(R.path(['data', 'data']));
   },
   getHints(kw) {
     return request.get('/voucher-subject/hints/' + kw)
-    .then(function (resp) {
-      return resp.data.data;
-    });
+    .then(R.path(['data', 'data']));
   },
   save(obj) {
-    return request.post('/voucher-subject/object', obj)
-    .then(function (resp) {
-      return resp.data;
-    });
+    return R.ifElse(
+      R.prop('id'),
+      R.always(request.put('/voucher-subject/object/' + obj.id, obj)),
+      R.always(request.post('/voucher-subject/object', obj))
+    )(obj)
+    .then(R.prop('data'));
+  },
+  get(id) {
+    return request.get('/voucher-subject/object/' + id)
+    .then(R.prop('data'));
   }
 };
 

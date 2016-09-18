@@ -49,7 +49,7 @@ var formVf = function (
           $$loading.val(false);
           $$toast.val({
             type: 'success',
-            message: '创建成功',
+            message: obj.id? '修改成功': '创建成功',
           });
           !obj.id && page('/invoice-type/' + id);
         }, function (e) {
