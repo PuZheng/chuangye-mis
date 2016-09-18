@@ -186,7 +186,7 @@ Slot.prototype.refresh = function (initiators) {
 };
 
 Slot.prototype.patch = function (obj) {
-  console.info(`slot: slot ${this.tag} is about to be patched`, obj);
+  opt.debug && console.info(`slot: slot ${this.tag} is about to be patched`, obj);
   this.val(Object.assign(this.val(), obj));
 };
 

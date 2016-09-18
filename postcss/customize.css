@@ -43,6 +43,7 @@ a {
             -webkit-appearance: none;
             background-color: transparent;
             border-color: var(--color-gray);
+            color: var(--color-gray-dark);
             &.primary {
                 color: var(--color-primary);
                 border-color: var(--color-primary);
