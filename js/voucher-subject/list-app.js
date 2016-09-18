@@ -57,7 +57,13 @@ var tableVf = function ([list]) {
     ]),
     h('tbody', list.map(function (obj) {
       return h('tr', [
-        h('td', '' + obj.id),
+        h('td', h('a', {
+          href: '/voucher-subject/' + obj.id,
+          onclick(e) {
+            e.preventDefault();
+            page('/voucher-subject/' + obj.id);
+          }
+        }, '' + obj.id)),
         h('td', obj.name),
         h('td', R.ifElse(
           o => o.isPublic, 
@@ -86,7 +92,7 @@ var $$payerTypeDropdown = $$dropdown({
 });
 
 var $$recipientTypeDropdown = $$dropdown({
-  defaultText: '选择收入房类型',
+  defaultText: '选择收入方类型',
   onchange(value) {
     $$queryObj.patch({ recipient_type: value });
   },

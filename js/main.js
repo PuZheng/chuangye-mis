@@ -28,6 +28,7 @@ import accountTermApp from './account-term-app/index';
 import invoiceTypeListApp from './invoice-type/list-app';
 import invoiceTypeObjectApp from './invoice-type/object-app';
 import voucherSubjectListApp from './voucher-subject/list-app';
+import voucherSubjectObjectApp from './voucher-subject/object-app';
 
 var currentApp;
 
@@ -267,6 +268,12 @@ page(
   '/voucher-subject-list', loginRequired,
   _setupNavBar('voucher_subject'),
   _could('edit.voucher_subject'), useWith(voucherSubjectListApp)
+);
+
+page(
+  '/voucher-subject/:id?', loginRequired,
+  _setupNavBar('voucher_subject'),
+  _could('edit.voucher_subject'), useWith(voucherSubjectObjectApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {
