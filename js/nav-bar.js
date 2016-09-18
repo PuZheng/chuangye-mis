@@ -68,10 +68,18 @@ var valueFunc = function valueFunc([currentMod, mods]) {
     }, '表设备信息'): '',
     mods.editAccountTerm? h('a' + _classNames(currentMod === 'account_term'), {
       href: '/account-term-list',
-      onclick() {
+      onclick(e) {
+        e.preventDefault();
         page('/account-term-list');
       }
     }, '帐期管理'): '',
+    mods.editInvoiceType? h('a' + _classNames(currentMod === 'invoice_type'), {
+      href: '/invoice-type-list',
+      onclick(e) {
+        e.preventDefault();
+        page('/invoice-type-list');
+      }
+    }, '发票类型'): '',
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
@@ -111,10 +119,11 @@ export var setupNavBar = function (mod) {
     .could('edit.settings')
     .could('edit.meter')
     .could('edit.account_term')
+    .could('edit.invoice_type')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editElectricMeter,
-      editAccountTerm
+      editAccountTerm, editInvoiceType
     ) {
       $$.update(
         [$$mods, {
@@ -124,7 +133,8 @@ export var setupNavBar = function (mod) {
           viewTenantList,
           editSettings,
           editElectricMeter,
-          editAccountTerm
+          editAccountTerm,
+          editInvoiceType,
         }],
         [$$currentMod, mod]
       );

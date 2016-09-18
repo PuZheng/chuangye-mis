@@ -23,7 +23,10 @@ import qs from 'query-string';
 import $$queryObj from './query-obj';
 import unauthorizedApp from './unauthorized-app/index.jsx';
 import notFoundApp from './not-found-app/index.jsx';
-import accountTermApp from './account-term-app/index.js';
+import accountTermApp from './account-term-app/index';
+import invoiceTypeListApp from './invoice-type/list-app';
+import invoiceTypeObjectApp from './invoice-type/object-app';
+import $$ from 'slot';
 
 var currentApp;
 
@@ -34,8 +37,6 @@ window.onbeforeunload = function (e) {
     return dialogText;
   }
 };
-
-// $$.init({ debug: true });
 
 mount(navBar, '#nav-bar');
 mount(toast.page, '#toast');
@@ -225,6 +226,37 @@ page(
   '/meter/:id?', loginRequired,
   _setupNavBar('meter'),
   _could('edit.meter'), meter
+);
+
+var invoiceTypeList = function () {
+  currentApp = invoiceTypeListApp;
+  mount(currentApp.page);
+  currentApp.init();
+};
+
+page(
+  '/invoice-type-list', loginRequired, 
+  _setupNavBar('invoice_type'),
+  _could('edit.invoice_type'), invoiceTypeList
+);
+
+var userWith = function (app) {
+  return function (ctx) {
+    currentApp = app;
+    mount(app.page);
+    app.init(ctx);
+  };
+};
+
+var enableSlotDebug = function (ctx, next) {
+  $$.init({ debug: true });
+  next();
+};
+
+page(
+  '/invoice-type/:id?', loginRequired,
+  _setupNavBar('invoice_type'),
+  _could('edit.invoice_type'), enableSlotDebug, userWith(invoiceTypeObjectApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

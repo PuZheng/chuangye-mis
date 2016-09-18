@@ -65,7 +65,14 @@ var valueFunc = function valueFunc([
   accountTermOth
 ]) {
   return h('.list-app', [
-    h('.header', '发票列表'),
+    h('.header', [
+      h('.title', '发票列表'),
+      h('button.new-btn', {
+        onclick() {
+          page('/invoice');
+        }
+      }, h('i.fa.fa-plus')),
+    ]),
     filters,
     h('table#invoice-list' + classNames('striped', 'compact', 'relative', 'color-gray-dark', loading && 'loading'), [
       h('thead', [

@@ -84,6 +84,13 @@ const valueFunc = function valueFunc([
         });
       }
     }, '提交'),
+    h('button', {
+      onclick(e) {
+        e.preventDefault();
+        page('/voucher-list');
+        return false;
+      }
+    }, '返回'),
   ]);
 };
 
