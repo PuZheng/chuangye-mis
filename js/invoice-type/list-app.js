@@ -40,7 +40,13 @@ var tableVf = function ([list]) {
     ]),
     h('tbody', list.map(function (obj) {
       return h('tr', [
-        h('td', '' + obj.id),
+        h('td', h('a', {
+          href: '/invoice-type/' + obj.id,
+          onclick(e) {
+            e.preventDefault();
+            page('/invoice-type/' + obj.id);
+          }
+        }, '' + obj.id)),
         h('td', obj.name),
         h('td', obj.vendorType || '--'),
         h('td', obj.purchaserType || '--'),
