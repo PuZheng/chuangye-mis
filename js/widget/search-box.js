@@ -75,6 +75,7 @@ export var $$searchBox = function (
           if (searchText && searchText.length >= minLen) {
             $$loading.val(true);
             getHints(searchText).then(function (hints) {
+              console.log(hints);
               $$.update(
                 [$$selection, -1],
                 [$$options, hints],

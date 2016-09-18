@@ -1,3 +1,4 @@
+import $$ from 'slot';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app';
 import invoiceListApp from './invoice/list-app';
@@ -26,7 +27,7 @@ import notFoundApp from './not-found-app/index.jsx';
 import accountTermApp from './account-term-app/index';
 import invoiceTypeListApp from './invoice-type/list-app';
 import invoiceTypeObjectApp from './invoice-type/object-app';
-import $$ from 'slot';
+import voucherSubjectListApp from './voucher-subject/list-app';
 
 var currentApp;
 
@@ -93,6 +94,9 @@ page.exit(function (ctx, next) {
     ctx.handled = false;
     return;
   }
+  $$.init({
+    debug: false
+  });
   next();
 });
 
@@ -240,7 +244,7 @@ page(
   _could('edit.invoice_type'), invoiceTypeList
 );
 
-var userWith = function (app) {
+var useWith = function (app) {
   return function (ctx) {
     currentApp = app;
     mount(app.page);
@@ -256,13 +260,20 @@ var enableSlotDebug = function (ctx, next) {
 page(
   '/invoice-type/:id?', loginRequired,
   _setupNavBar('invoice_type'),
-  _could('edit.invoice_type'), enableSlotDebug, userWith(invoiceTypeObjectApp)
+  _could('edit.invoice_type'), enableSlotDebug, useWith(invoiceTypeObjectApp)
+);
+
+page(
+  '/voucher-subject-list', loginRequired,
+  _setupNavBar('voucher_subject'),
+  _could('edit.voucher_subject'), useWith(voucherSubjectListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {
   currentApp = dashboardApp;
   mount(currentApp.page);
 });
+
 
 page(function () {
   mount(notFoundApp.page);
