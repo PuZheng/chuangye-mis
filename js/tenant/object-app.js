@@ -87,7 +87,7 @@ var formVf = function ([errors, departmentDropdown, tenant]) {
           }
           case 'server': {
             e = e.error;
-            if (e.response.status == 403)  {
+            if (e.response.status == 400)  {
               $$errors.val(e.response.data.fields || {});
               return;
             }

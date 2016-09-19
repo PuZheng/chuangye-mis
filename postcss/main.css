@@ -11,6 +11,7 @@
 @import 'component/overlay';
 @import 'component/segment';
 @import 'component/checkbox';
+@import 'component/toggle';
 
 @import "generic.css";
 @import "atomic.css";

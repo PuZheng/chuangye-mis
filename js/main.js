@@ -29,6 +29,7 @@ import invoiceTypeListApp from './invoice-type/list-app';
 import invoiceTypeObjectApp from './invoice-type/object-app';
 import voucherSubjectListApp from './voucher-subject/list-app';
 import voucherSubjectObjectApp from './voucher-subject/object-app';
+import userListApp from './user/list-app';
 
 var currentApp;
 
@@ -274,6 +275,12 @@ page(
   '/voucher-subject/:id?', loginRequired,
   _setupNavBar('voucher_subject'),
   _could('edit.voucher_subject'), useWith(voucherSubjectObjectApp)
+);
+
+page(
+  '/user-list', loginRequired,
+  _setupNavBar('user'),
+  _could('edit.user'), useWith(userListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

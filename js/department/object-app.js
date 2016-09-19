@@ -53,7 +53,7 @@ let vf = function ([department, errors, loading]) {
               page('/department-list');
             })
             .catch(function (error) {
-              if (error.response && error.response.status === 403) {
+              if (error.response && error.response.status == 400) {
                 $$errors.val(error.response.data);
                 return;
               }

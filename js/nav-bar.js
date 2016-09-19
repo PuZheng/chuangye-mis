@@ -87,6 +87,17 @@ var valueFunc = function valueFunc([currentMod, mods]) {
         page('/voucher-subject-list');
       }
     }, '凭证项目'): '',
+    R.ifElse(
+      R.prop('editUser'),
+      R.always(h('a' + _classNames(currentMod === 'user'), {
+        href: '/user-list',
+        onclick(e) {
+          e.preventDefault();
+          page('/user-list');
+        }
+      }, '账户管理')),
+      R.always('')
+    )(mods),
     h('.right.color-gray', [
       '欢迎',
       h('a.item.c1.username', {
@@ -128,10 +139,12 @@ export var setupNavBar = function (mod) {
     .could('edit.account_term')
     .could('edit.invoice_type')
     .could('edit.voucher_subject')
+    .could('edit.user')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editElectricMeter,
-      editAccountTerm, editInvoiceType, editVoucherSubject
+      editAccountTerm, editInvoiceType, editVoucherSubject,
+      editUser
     ) {
       $$.update(
         [$$mods, {
@@ -144,6 +157,7 @@ export var setupNavBar = function (mod) {
           editAccountTerm,
           editInvoiceType,
           editVoucherSubject,
+          editUser
         }],
         [$$currentMod, mod]
       );

@@ -211,3 +211,19 @@ a {
         display: inline-block;
     }
 }
+
+.user-list {
+    & .username, & .role {
+        display: inline-block;
+    }
+    & .username {
+        color: var(--color-primary);
+        font-weight: 700;
+    }
+    & .role:before {
+        content: '(';
+    }
+    & .role:after {
+        content: ')';
+    }
+}

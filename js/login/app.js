@@ -44,7 +44,7 @@ var $$page = x.connect(
             }).then(function () {
               page('/');
             }).catch(function (error) {
-              if (error.response && error.response.status === 403) {
+              if (error.response && error.response.status === 400) {
                 $$errors.val({
                   username: error.response.data.message,
                 });
