@@ -32,29 +32,30 @@ var $$page = x.connect(
             let p = accountStore.validate({
               username, 
               password
-            }).then(function () {
+            })
+            .then(function () {
               $$loading.val('loading');
-            }).catch(function (errors) {
-              $$errors.val(errors);
-            }).then(function () {
-              return accountStore.login({
+              accountStore.login({
                 username,
                 password
-              });
-            }).then(function () {
-              page('/');
-            }).catch(function (error) {
-              if (error.response && error.response.status === 400) {
-                $$errors.val({
-                  username: error.response.data.message,
+              })
+              .then(function () {
+                page('/');
+              }, function (error) {
+                if (error.response && error.response.status == 400) {
+                  $$errors.val({
+                    username: error.response.data.message,
+                  });
+                  return;
+                }
+                overlay.$$content.val({
+                  type: 'error',
+                  title: '很不幸, 出错了!',
+                  message: axiosError2Dom(error),
                 });
-                return;
-              } 
-              overlay.$$content.val({
-                type: 'error',
-                title: '很不幸, 出错了!',
-                message: axiosError2Dom(error),
               });
+            }, function (errors) {
+              $$errors.val(errors);
             });
             promiseFinally(p, function () {
               $$loading.val('');

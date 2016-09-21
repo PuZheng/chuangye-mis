@@ -16,7 +16,11 @@ var vf = function ([loading, listVNode]) {
   return h(classNames('list-app', 'user-list', loading && 'loading'), [
     h('.header', [
       h('.title', '账户列表'),
-      h('button.new-btn', [
+      h('button.new-btn', {
+        onclick() {
+          page('/user');
+        }
+      }, [
         h('i.fa.fa-plus'),
       ]),
     ]),

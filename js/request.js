@@ -19,17 +19,20 @@ var request = new Proxy(axios,  {
           let [url, options={}] = args;
           return target.get(
             backendURL(url), 
-            setAuthorization(options));
+            setAuthorization(options)
+          );
         }
         case 'post':
         case 'put': {
           let [url, data={}, options={}] = args;
-          return target[name].apply(target,
+          return target[name].apply(
+            target,
             [
               backendURL(url), 
               data,
               setAuthorization(options)
-            ]);
+            ]
+          );
         }
       }
     };
