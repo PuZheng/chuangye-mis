@@ -19,6 +19,11 @@
         position: absolute;
         left: 0;
     }
+    &.disabled {
+        &.checked:before {
+            background-color: color(var(--color-primary) s(-30%) l(+30%));
+        }
+    }
 
     &:before {
         display: block;
@@ -35,6 +40,7 @@
     }
     &.checked:before {
         background-color: var(--color-primary);
+        
     }
     &:after {
         background: linear-gradient(transparent,rgba(0,0,0,.05)) #FFF;

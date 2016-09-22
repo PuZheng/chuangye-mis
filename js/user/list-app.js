@@ -39,8 +39,12 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
         R.ifElse(R.prop('enabled'), R.always(''), R.always(h('.label', '未激活')))(obj),
         h('.username', obj.username),
         h('.role', obj.role),
-        h(classNames('toggle', 'ml4', 'align-middle', obj.enabled && 'checked'), {
-          onclick() {
+        h(classNames('toggle', 'ml4', 'align-middle', obj.enabled && 'checked', obj.username == 'admin' && 'disabled'), {
+          onclick(e) {
+            e.stopPropagation();
+            if (obj.username == 'admin') {
+              return false;
+            }
             obj.enabled = !obj.enabled;
             $$list.val(list);
             userStore.save(obj)
@@ -56,6 +60,7 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
                 message: axiosError2Dom(e),
               });
             });
+            return false;
           }
         }, [h('input', {
           type: 'checkbox',

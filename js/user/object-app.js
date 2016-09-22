@@ -25,7 +25,9 @@ var dirty = function (obj) {
 
 var vf = function ([loading, form, obj]) {
   return h(classNames('object-app', loading && 'loading'), [
-    h(classNames('header', dirty(obj) && 'dirty'), '创建用户'),
+    h(classNames('header', dirty(obj) && 'dirty'), 
+      R.ifElse(R.prop('id'), R.always(`编辑用户-${obj.username}`), 
+               R.always('创建用户'))(obj)),
     form,
   ]);    
 };
@@ -82,24 +84,38 @@ var formVf = function ([errors, obj, roleDropdown]) {
         $$obj.patch({ username: this.value });
       }
     }), errors, true),
-    field('password', '密码', h('input', {
-      type: 'password',
-      value: obj.password,
-      onchange() {
-        $$obj.patch({ password: this.value });
-      }
-    }), errors, true),
-    field('passwordAg', '再次输入密码', h('input', {
-      type: 'password',
-      value: obj.passwordAg,
-      onchange() {
-        $$obj.patch({ passwordAg: this.value });
-      }
-    }), errors, true),
+    // 不能直接编辑密码字段，要放到单独的功能
+    R.ifElse(
+      R.prop('id'),
+      () => '',
+      () => field('password', '密码', h('input', {
+        type: 'password',
+        value: obj.password,
+        onchange() {
+          $$obj.patch({ password: this.value });
+        }
+      }), errors, true)
+    )(obj),
+    R.ifElse(
+      R.prop('id'),
+      () => '',
+      () => field('passwordAg', '再次输入密码', h('input', {
+        type: 'password',
+        value: obj.passwordAg,
+        onchange() {
+          $$obj.patch({ passwordAg: this.value });
+        }
+      }), errors, true)
+    )(obj),
     field('role', '角色', roleDropdown, errors, true),
     h('hr'),
     h('button.primary', '提交'),
-    h('button', '返回'),
+    h('button', {
+      onclick() {
+        page('/user-list');
+        return false;
+      }
+    }, '返回'),
   ]);
 };
 
