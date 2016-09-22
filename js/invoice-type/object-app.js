@@ -54,7 +54,7 @@ var formVf = function (
           !obj.id && page('/invoice-type/' + id);
         }, function (e) {
           $$loading.val(false);
-          if ((e.response || {}).status == 403) {
+          if ((e.response || {}).status == 400) {
             $$errors.val(e.response.data.fields || {});
             return;
           }

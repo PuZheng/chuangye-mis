@@ -12,11 +12,11 @@ var validate = function (obj) {
 };
 
 var login = function ({ username, password }) {
-  return axios.post(backendURL('/auth/login'), {
-    username, password
-  }).then(function (response) {
-    sessionStorage.setItem('user', JSON.stringify(response.data));
-  });
+    return axios.post(backendURL('/auth/login'), {
+      username, password
+    }).then(function (response) {
+      sessionStorage.setItem('user', JSON.stringify(response.data));
+    });
 };
 
 var logout = function () {

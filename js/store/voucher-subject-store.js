@@ -24,8 +24,8 @@ export default {
   save(obj) {
     return R.ifElse(
       R.prop('id'),
-      R.always(request.put('/voucher-subject/object/' + obj.id, obj)),
-      R.always(request.post('/voucher-subject/object', obj))
+      (obj) => request.put('/voucher-subject/object/' + obj.id, obj),
+      (obj) => request.post('/voucher-subject/object', obj)
     )(obj)
     .then(R.prop('data'));
   },
