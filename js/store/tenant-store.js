@@ -39,13 +39,11 @@ export default {
     });
   },
   save(obj) {
-    return (function () {
-      if (obj.id) {
-        return request.put('/tenant/object/' + obj.id, obj);
-      } else {
-        return request.post('/tenant/object', obj);
-      }
-    })()
+    R.ifElse(
+      R.prop('id'),
+      (obj) => request.put('/tenant/object/' + obj.id, obj),
+      (obj) => request.post('/tenant/object', obj)
+    )(obj)
     .then(function (res) {
       return res.data;
     });

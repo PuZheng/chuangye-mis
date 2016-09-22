@@ -35,9 +35,9 @@ export default {
   },
   save(obj) {
     return R.ifElse(
-      obj => !!obj.id,
-      R.always(request.put('/invoice-type/object/' + obj.id, obj)),
-      R.always(request.post('/invoice-type/object', obj))
+      R.prop('id'),
+      () => request.put('/invoice-type/object/' + obj.id, obj),
+      () => request.post('/invoice-type/object', obj)
     )(obj)
     .then(function (resp) {
       return resp.data;

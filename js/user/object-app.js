@@ -37,10 +37,18 @@ var formVf = function ([errors, obj, roleDropdown]) {
       userStore
       .validate(obj)
       .then(function (obj) {
+        if (!dirty(obj)) {
+          $$toast.val({
+            type: 'info',
+            message: '数据没有变动',
+          });
+          return;
+        }
         $$loading.val(true);
         userStore.save(obj) 
         .then(function ({ id }) {
           copy = R.clone(obj);
+          $$errors.val({});
           $$.update(
             [$$loading, false],
             [$$toast, {
@@ -48,7 +56,7 @@ var formVf = function ([errors, obj, roleDropdown]) {
               message: obj.id? '更新成功' :'创建成功',
             }]
           );
-          page('/user/' + id);
+          !obj.id && page('/user/' + id);
         }, function (e) {
           $$loading.val(false);
           let userDefined = (e.response || {}) == 400;

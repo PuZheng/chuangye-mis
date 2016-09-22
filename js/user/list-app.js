@@ -31,7 +31,11 @@ var vf = function ([loading, listVNode]) {
 var $$listVNode = $$.connect([$$list], function ([list]) {
   return h('.segment', list.map(function (obj, idx) {
     return [
-      h('.item', [
+      h('.item', {
+        onclick() {
+          page('/user/' + obj.id);
+        }
+      }, [
         R.ifElse(R.prop('enabled'), R.always(''), R.always(h('.label', '未激活')))(obj),
         h('.username', obj.username),
         h('.role', obj.role),

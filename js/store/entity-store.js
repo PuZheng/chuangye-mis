@@ -1,5 +1,5 @@
-import backendURL from '../backend-url';
-import accountStore from './account-store';
+import request from '../request';
+import R from 'ramda';
 
 export default {
   fetchList: function (opts={}) {
@@ -7,12 +7,6 @@ export default {
     if (opts.type) {
       url += '?type=' + opts.type;
     }
-    return axios.get(backendURL(url), {
-      headers: {
-        Authorization: 'Bearer ' + accountStore.user.token,
-      },
-    }).then(function (response) {
-      return response.data.data;
-    });
+    return request.get(url).then(R.path(['data', 'data']));
   }
 };

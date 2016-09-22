@@ -23,13 +23,13 @@ export default {
     .then(R.path(['data', 'data']));
   },
   save(obj) {
-    return function (obj) {
-      if (obj.id) {
-        return request.put('/user/object/' + obj.id, obj);
-      } else {
-        return request.post('/user/object', obj);
-      }
-    }(obj)
+    return R.ifElse(
+      R.prop('id'),
+      // don't use R.always!!!, promise will be evaluated
+      // at once
+      (obj) => request.put('/user/object/' + obj.id, obj),
+      (obj) => request.post('/user/object', obj)
+    )(obj)
     .then(R.prop('data'));
   }
 };
