@@ -39,7 +39,7 @@ export default {
   },
   save: function (data) {
     return request.post('/invoice/object', data)
-    .then(R.path(['data', 'id']));
+    .then(R.prop('data'));
   },
   fetchList,
   validate,

@@ -8,7 +8,8 @@ import invoiceStore from 'store/invoice-store';
 
 export default {
   page,
-  init(id) {
+  init(ctx) {
+    let { id } = ctx.params;
     let promises = [
       invoiceTypeStore.list, 
       accountTermStore.list,

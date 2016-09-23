@@ -8,9 +8,8 @@ import constStore from 'store/const-store';
 import voucherSubjectStore from 'store/voucher-subject-store';
 import R from 'ramda';
 import page from 'page';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 import { $$toast } from '../toast';
+import co from 'co';
 
 var h = virtualDom.h;
 
@@ -28,11 +27,14 @@ var dirty = function (obj) {
 var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) {
   return h('form.form', {
     onsubmit() {
-      voucherSubjectStore
-      .validate(obj)
-      .then(function (obj) {
-        $$loading.val(true);
-        if (obj.id && !dirty(obj)) {
+      co(function *() {
+        try {
+          yield voucherSubjectStore.validate(obj);
+        } catch (e) {
+          $$errors.val(e);
+          return;
+        }
+        if (!dirty(obj)) {
           $$.update(
             [$$toast, {
               type: 'info',
@@ -42,30 +44,24 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
           );
           return;
         }
-        voucherSubjectStore
-        .save(obj)
-        .then(function ({ id }) {
+        try {
+          $$loading.val(true);
+          let { id } = yield voucherSubjectStore.save(obj);
           copy = R.clone(obj);
-          $$loading.val(false);
           $$toast.val({
             type: 'success',
             message: '提交成功',
           });
           id && page('/voucher-subject/' + id);
-        }, function (e) {
-          $$loading.val(false);
+        } catch (e) {
+          console.error(e);;
           if ((e.response || {}).status == 400) {
             $$errors.val(e.response.data.fields || {});
-            return;
           }
-          overlay.$$content.val({
-            type: 'error',
-            title: '很不幸, 出错了!',
-            message: axiosError2Dom(e),
-          });
-        });
-      }, function (errors) {
-        $$errors.val(errors);
+        } finally {
+          $$loading.val(false);
+        }
+
       });
       return false;
     }

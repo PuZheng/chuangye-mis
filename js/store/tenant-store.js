@@ -20,32 +20,24 @@ export default {
   validate,
   getHints(text) {
     return request.get('/tenant/hints/' + text)
-    .then(function (res) {
-      return res.data.data;
-    });
+    .then(R.path(['data', 'data']));
   },
   fetchList(queryObj) {
     queryObj.page = queryObj.page || 1;
     queryObj.page_size = queryObj.page_size || config.getPageSize('tenant');
     return request.get('/tenant/list?' + R.toPairs(queryObj).map(p => p.join('=')).join('&'))
-    .then(function (res) {
-      return res.data;
-    });
+    .then(R.prop('data'));
   },
   get(id) {
     return request.get('/tenant/object/' + id)
-    .then(function (res) {
-      return res.data;
-    });
+    .then(R.prop('data'));
   },
   save(obj) {
-    R.ifElse(
+    return R.ifElse(
       R.prop('id'),
       (obj) => request.put('/tenant/object/' + obj.id, obj),
       (obj) => request.post('/tenant/object', obj)
     )(obj)
-    .then(function (res) {
-      return res.data;
-    });
+    .then(R.prop('data'));
   }
 };

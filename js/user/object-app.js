@@ -7,9 +7,8 @@ import R from 'ramda';
 import constStore from 'store/const-store';
 import userStore from 'store/user-store';
 import { $$toast } from '../toast';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 import page from 'page';
+import co from 'co';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -36,9 +35,13 @@ var vf = function ([loading, form, obj]) {
 var formVf = function ([errors, obj, roleDropdown]) {
   return h('form.form', {
     onsubmit() {
-      userStore
-      .validate(obj)
-      .then(function (obj) {
+      co(function *() {
+        try {
+          yield userStore.validate(obj);
+        } catch (e) {
+          $$errors.val(e);
+          return;
+        }
         if (!dirty(obj)) {
           $$toast.val({
             type: 'info',
@@ -46,34 +49,25 @@ var formVf = function ([errors, obj, roleDropdown]) {
           });
           return;
         }
-        $$loading.val(true);
-        userStore.save(obj) 
-        .then(function ({ id }) {
+        try {
+          $$loading.val(true);
+          let { id=obj.id } = yield userStore.save(obj);
           copy = R.clone(obj);
           $$errors.val({});
-          $$.update(
-            [$$loading, false],
-            [$$toast, {
-              type: 'success',
-              message: obj.id? '更新成功' :'创建成功',
-            }]
-          );
+          $$.toast.val({
+            type: 'success',
+            message: obj.id? '更新成功' :'创建成功',
+          });
           !obj.id && page('/user/' + id);
-        }, function (e) {
-          $$loading.val(false);
+        } catch (e) {
+          console.error(e);
           let userDefined = (e.response || {}) == 400;
           if (userDefined) {
             $$errors.val(e.response.data.fields || {});
-            return;
           }
-          overlay.$$content.val({
-            type: 'error',
-            title: '很不幸, 出错了!',
-            message: axiosError2Dom(e),
-          });
-        });
-      }, function (e) {
-        $$errors.val(e);
+        } finally {
+          $$loading.val(false);
+        }
       });
       return false;
     }

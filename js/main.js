@@ -32,6 +32,14 @@ import voucherSubjectObjectApp from './voucher-subject/object-app';
 import userListApp from './user/list-app';
 import userObjectApp from './user/object-app';
 
+var useWith = function useWith(app) {
+  return function (ctx) {
+    currentApp = app;
+    mount(app.page);
+    app.init && app.init(ctx);
+  };
+};
+
 var currentApp;
 
 window.onbeforeunload = function (e) {
@@ -111,74 +119,42 @@ page('/login', function () {
   }
 });
 
-page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), _setupNavBar('invoice'), function (ctx) {
-  currentApp = invoiceObjectApp;
-  mount(currentApp.page);
-  currentApp.init(ctx.params.id);
-});
+page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), 
+     _setupNavBar('invoice'), useWith(invoiceObjectApp));
 
-page('/invoice-list', loginRequired, _could('view.invoice.list'), _setupNavBar('invoice'), function () {
-  currentApp = invoiceListApp;
-  mount(currentApp.page);
-  currentApp.init();
-});
+page('/invoice-list', loginRequired, _could('view.invoice.list'), 
+     _setupNavBar('invoice'), useWith(invoiceListApp));
 
-var voucherList = function voucherList() {
-  currentApp = voucherListApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
-
-page('/voucher-list', loginRequired, 
-     _could('view.voucher.list'), _setupNavBar('voucher'),
-     voucherList);
-
-var departmentList = function () {
-  currentApp = departmentListApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
+page(
+  '/voucher-list', loginRequired, 
+  _could('view.voucher.list'), _setupNavBar('voucher'),
+  useWith(voucherListApp)
+);
 
 page(
   '/department-list', loginRequired, _could('edit.department'),
-  _setupNavBar('department'), departmentList
+  _setupNavBar('department'), useWith(departmentListApp)
 );
 
-var department = function () {
-  currentApp = departmentApp;  
-  mount(currentApp.page);
-};
-
-page('/department', loginRequired, 
+page(
+  '/department', loginRequired, 
     _could('edit.department'), _setupNavBar('department'),
-    department);
+    useWith(departmentApp)
+);
 
-page('/voucher/:id?', loginRequired, _could('edit.voucher.object'), _setupNavBar('voucher'), function (ctx) {
-  currentApp = voucherObjectApp;
-  mount(currentApp.page);
-  currentApp.init(ctx.params.id);
-});
-
-let tenantList = function () {
-  currentApp = tenantListApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
+page(
+  '/voucher/:id?', loginRequired, _could('edit.voucher.object'), 
+     _setupNavBar('voucher'), useWith(voucherObjectApp)
+);
 
 page('/tenant-list', 
      loginRequired, 
      _could('view.tenant.list'), 
-     _setupNavBar('tenant'), tenantList);
-
-let tenantObject = function (ctx) {
-  currentApp = tenantObjectApp;
-  mount(currentApp.page);
-  currentApp.init(ctx.params.id);
-};
+     _setupNavBar('tenant'), useWith(tenantListApp));
 
 page('/tenant/:id?', loginRequired,
     _could('edit.tenant.object'),
-    _setupNavBar('tenant'), tenantObject);
+    _setupNavBar('tenant'), useWith(tenantObjectApp));
 
 // page('/charge-bill/:id?', function (ctx) {
 //   currentApp = chargeBillApp;
@@ -211,16 +187,11 @@ page(
   _could('edit.meter'), meterList
 );
 
-var accountTerms = function () {
-  currentApp = accountTermApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
 
 page(
   '/account-term-list', loginRequired,
   _setupNavBar('account_term'),
-  _could('edit.account_term'), accountTerms
+  _could('edit.account_term'), useWith(accountTermApp)
 );
 
 var meter = function (ctx) {
@@ -235,25 +206,12 @@ page(
   _could('edit.meter'), meter
 );
 
-var invoiceTypeList = function () {
-  currentApp = invoiceTypeListApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
-
 page(
   '/invoice-type-list', loginRequired, 
   _setupNavBar('invoice_type'),
-  _could('edit.invoice_type'), invoiceTypeList
+  _could('edit.invoice_type'), useWith(invoiceTypeListApp)
 );
 
-var useWith = function (app) {
-  return function (ctx) {
-    currentApp = app;
-    mount(app.page);
-    app.init(ctx);
-  };
-};
 
 var enableSlotDebug = function (ctx, next) {
   $$.init({ debug: true });

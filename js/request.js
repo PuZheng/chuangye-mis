@@ -1,5 +1,7 @@
 import accountStore from './store/account-store';
 import { backendURL } from './backend-url.js';
+import overlay from './overlay';
+import axiosError2Dom from './axios-error-2-dom';
 
 var setAuthorization = function (options) {
   if (accountStore.user) {
@@ -20,7 +22,16 @@ var request = new Proxy(axios,  {
           return target.get(
             backendURL(url), 
             setAuthorization(options)
-          );
+          ).catch(function (error) {
+            if (!error.response || error.response.status == 500) {
+              overlay.$$content.val({
+                type: 'error',
+                title: '很不幸, 出错了!',
+                message: axiosError2Dom(error),
+              });
+            }
+            throw error;
+          });
         }
         case 'post':
         case 'put': {
@@ -32,7 +43,17 @@ var request = new Proxy(axios,  {
               data,
               setAuthorization(options)
             ]
-          );
+          ).catch(function (error) {
+            if (!error.response || error.response.status == 500) {
+              overlay.$$content.val({
+                type: 'error',
+                title: '很不幸, 出错了!',
+                message: axiosError2Dom(error),
+              });
+            }
+            throw error;
+
+          });
         }
       }
     };

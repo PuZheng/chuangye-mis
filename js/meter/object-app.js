@@ -6,11 +6,10 @@ import { $$searchDropdown } from '../widget/search-dropdown';
 import R from 'ramda';
 import meterStore from '../store/meter-store';
 import constStore from '../store/const-store';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 import { $$toast } from '../toast.js';
 import page from 'page';
 import departmentStore from '../store/department-store';
+import co from 'co';
 
 var h = virtualDom.h;
 
@@ -43,9 +42,13 @@ var formVf = function ([obj, errors, statusDropdown,
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
-      meterStore
-      .validate(obj)
-      .then(function (obj) {
+      co(function *() {
+        try {
+          yield meterStore.validate(obj);
+        } catch (e) {
+          $$errors.val(e);
+          return;
+        } 
         if (obj.id && !dirty(obj)) {
           $$toast.val({
             type: 'info',
@@ -53,9 +56,9 @@ var formVf = function ([obj, errors, statusDropdown,
           });
           return;
         }
-        $$loading.val(true);
-        meterStore.save(obj)
-        .then(function (id) {
+        try {
+          $$loading.val(true);
+          let id = yield meterStore.save(obj);
           copy = R.clone(obj);
           $$.update(
             [$$loading, false],
@@ -65,20 +68,13 @@ var formVf = function ([obj, errors, statusDropdown,
             }]
           );
           !obj.id && page('/meter/' + id);
-        }, function (e) {
-          $$loading.val(false);
+        } catch (e) {
           if ((e.response || {}).status == 400) {
             $$errors.val(e.response.data.fields || {});
-            return;
           }
-          overlay.$$content.val({
-            type: 'error',
-            title: '很不幸, 出错了!',
-            message: axiosError2Dom(e),
-          });
-        });
-      }, function (e) {
-        $$errors.val(e);
+        } finally {
+          $$loading.val(false);
+        }
       });
       return false;
     }
@@ -114,12 +110,12 @@ var formVf = function ([obj, errors, statusDropdown,
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
       () => field('parentMeterId', '线路', parentMeterDropdown, errors, true),
-      () => ''
+        () => ''
     )(obj),
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
       () => field('departmentId', '部门', departmentDropdown, errors, true),
-      () => ''
+        () => ''
     )(obj),
     h('hr'),
     h('button.primary', '提交'),

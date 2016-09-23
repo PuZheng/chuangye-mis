@@ -6,10 +6,9 @@ import $$dropdown from 'widget/dropdown';
 import R from 'ramda';
 import constStore from 'store/const-store';
 import page from 'page';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 import { $$toast } from '../toast';
 import classNames from '../class-names';
+import co from 'co';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -29,10 +28,13 @@ var formVf = function (
 ) {
   return h('form.form', {
     onsubmit() {
-      invoiceTypeStore
-      .validate(obj)
-      .then(function (obj) {
-        $$loading.val(true);
+      co(function *() {
+        try {
+          yield invoiceTypeStore.validate(obj);
+        } catch (e) {
+          $$errors.val(e);
+          return false;
+        }
         if (obj.id && !dirty(obj)) {
           $$.update(
             [$$toast, {
@@ -41,31 +43,25 @@ var formVf = function (
             }],
             [$$loading, false]
           );
-          return;
+          return false;
         }
-        invoiceTypeStore.save(obj)
-        .then(function ({ id }) {
+        try {
+          $$loading.val(true);
+          let {id} = yield invoiceTypeStore.save(obj);
           copy = R.clone(obj);
-          $$loading.val(false);
           $$toast.val({
             type: 'success',
             message: obj.id? '修改成功': '创建成功',
           });
           !obj.id && page('/invoice-type/' + id);
-        }, function (e) {
-          $$loading.val(false);
+        } catch (e) {
+          console.error(e);
           if ((e.response || {}).status == 400) {
             $$errors.val(e.response.data.fields || {});
-            return;
           }
-          overlay.$$content.val({
-            type: 'error',
-            title: '很不幸, 出错了!',
-            message: axiosError2Dom(e),
-          });
-        });
-      }, function (errors) {
-        $$errors.val(errors);
+        } finally {
+          $$loading.val(false);
+        }
       });
       return false;
     }
@@ -151,7 +147,10 @@ export default {
     $$view: $$.connect([$$obj, $$loading, $$form], vf),
   },
   init(ctx) {
-    $$loading.val(true);
+    $$.update(
+      [$$loading, true],
+      [$$errors, {}]
+    );
     Promise.all([
       ctx.params.id? invoiceTypeStore.get(ctx.params.id): {},
       constStore.get()

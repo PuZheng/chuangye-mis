@@ -19,7 +19,7 @@ export default {
   validate,
   save: function (data) {
     return request.post('/voucher/object', data)
-    .then(R.path(['data', 'id']));
+    .then(R.prop('data'));
   },
   get: function (id) {
     return request.get('/voucher/object/' + id)

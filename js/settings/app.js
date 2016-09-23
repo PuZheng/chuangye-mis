@@ -4,8 +4,6 @@ import virtualDom from 'virtual-dom';
 import SmartGrid from 'smart-grid';
 import R from 'ramda';
 import settingsStore from '../store/settings-store';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -77,14 +75,7 @@ $$settings.change(function (settings) {
     let [{sheetIdx, tag, def}] = sg.getCellDefs(cell => cell.label == setting.group + '-' + setting.name);
     sg.createCellSlot(sheetIdx, tag).change(function (cellDef, setting) {
       return function (v) {
-        settingsStore.update(setting.group, setting.name, v)
-        .catch(function (error) {
-          overlay.$$content.val({
-            type: 'error',
-            title: '很不幸, 出错了!',
-            message: axiosError2Dom(error),
-          });
-        });
+        settingsStore.update(setting.group, setting.name, v);
       };
     }(def, setting));
   };

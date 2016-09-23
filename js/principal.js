@@ -1,5 +1,4 @@
-import backendURL from './backend-url';
-import accountStore from './store/account-store';
+import request from './request';
 
 export var could = function could(policy, ...args) {
   let tests = [[policy, ...args]];
@@ -11,13 +10,10 @@ export var could = function could(policy, ...args) {
     };
   };
   let then = function then(cb) {
-    return axios.post(backendURL('/auth/could'), {
+    return request.post('/auth/could', {
       tests,
-    }, {
-      headers: {
-        Authorization: 'Bearer ' + accountStore.user.token,
-      },
-    }).then(function (response) {
+    })
+    .then(function (response) {
       cb(...response.data.data);
     });
   };

@@ -10,18 +10,21 @@ var $$loading = $$(false, 'loading');
 var $$searchText = $$('', 'search-text');
 
 var h = virtualDom.h;
-var searchBox = h('.search-box.small', [
-  h('i.icon.fa.fa-search'),
-  h('input.search', {
-    tabIndex: 0,
-    placeholder: '搜索车间',
-    oninput() {
-      $$searchText.val(this.value);
-    }
-  }),
-]);
+var $$searchBox = $$.connect([$$searchText], function (searchText) {
+  return h('.search-box.small', [
+    h('i.icon.fa.fa-search'),
+    h('input.search', {
+      tabIndex: 0,
+      placeholder: '搜索车间',
+      value: searchText,
+      oninput() {
+        $$searchText.val(this.value);
+      }
+    }),
+  ]);
+});
 
-var vf = function ([loading, departments, searchText]) {
+var vf = function ([loading, departments, searchText, searchBox]) {
   return h('#departments-app.list-app' + (loading? '.loading': ''), [
     h('.header', [
       '车间列表(' + departments.length + '个)',
@@ -70,12 +73,13 @@ var vf = function ([loading, departments, searchText]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$departments, $$searchText], vf, 
-                       'departments-app'),
+    $$view: $$.connect([$$loading, $$departments, $$searchText, $$searchBox], 
+                       vf, 'departments-app'),
   },
   init() {
     $$loading.val(true);
-    departmentStore.list.then(function (departments) {
+    departmentStore.list
+    .then(function (departments) {
       $$.update(
         [$$departments, departments],
         [$$loading, false]

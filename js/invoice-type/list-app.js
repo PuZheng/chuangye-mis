@@ -157,10 +157,10 @@ export default {
   page: {
     $$view,
   },
-  init() {
+  init(ctx) {
     $$loading.toggle();
     Promise.all([
-      invoidTypeStore.fetchList($$queryObj.val()),
+      invoidTypeStore.fetchList(ctx.query),
       constStore.get()
     ]) 
     .then(function ([list, { materialTypes, entityTypes }]) {

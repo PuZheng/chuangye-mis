@@ -3,16 +3,15 @@ import virtualDom from 'virtual-dom';
 import field from '../field';
 import $$searchDropdown from '../widget/search-dropdown';
 import tenantStore from '../store/tenant-store.js';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 import { $$toast } from '../toast.js';
 import page from 'page';
 import pinyin from 'pinyin';
 import R from 'ramda';
 import departmentStore from '../store/department-store';
+import co from 'co';
 
 var h = virtualDom.h;
-var $$tenant = $$({}, 'tenant');
+var $$obj = $$({}, 'obj');
 var $$errors = $$({}, 'errors');
 var $$departments = $$([], 'departments');
 var $$loading = $$(false, 'loading');
@@ -33,90 +32,60 @@ var $$departmentDropdown = $$searchDropdown({
       };
     });
   }),
-  $$value: $$tenant.trans(t => t.departmentId),
+  $$value: $$obj.trans(t => t.departmentId),
   onchange(v) {
-    $$tenant.patch({
+    $$obj.patch({
       departmentId: v,
     });
   }
 });
 
-var formVf = function ([errors, departmentDropdown, tenant]) {
+var formVf = function ([errors, departmentDropdown, obj]) {
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
-      tenantStore
-      .validate(tenant)
-      .then(function (obj) {
-        $$loading.toggle();
+      co(function *() {
+        try {
+          yield tenantStore.validate(obj);
+        } catch (e) {
+          $$errors.val(e);
+          return;
+        } 
         if (!dirty(obj)) {
-          throw {
-            code: 'unchanged',
-          };
+          $$toast.val({
+            type: 'info',
+            message: '没有任何变化',
+          });
+          return;
         }
-        return tenantStore.save(obj);
-      }, function (e) {
-        throw {
-          error: e,
-          code: 'validation',
-        };
-      })
-      .then(function ({id=tenant.id}) {
-        $$loading.val(false); 
-        copy = R.clone(tenant);
-        $$toast.val({
-          type: 'success',
-          message: tenant.id? '更新成功': '承包人创建成功',
-        });
-        page('/tenant/' + id);
-      }, function (e) {
-        $$loading.val(false); 
-        if (e.response) {
-          throw {
-            error: e,
-            code: 'server'
-          };
-        };
-        throw e;
-      })
-      .catch(function (e) {
-        switch (e.code) {
-          case 'validation': {
-            $$errors.val(e.error);
-            break;
+        try {
+          $$loading.toggle();
+          let { id=obj.id } = yield tenantStore.save(obj);
+          copy = R.clone(obj);
+          $$toast.val({
+            type: 'success',
+            message: obj.id? '更新成功': '承包人创建成功',
+          });
+          obj.id && page('/tenant/' + id);
+        } catch (e) {
+          debugger;
+          console.error(e);
+          if (e.response && e.response.status == 400)  {
+            $$errors.val(e.response.data.fields || {});
+            return;
           }
-          case 'server': {
-            e = e.error;
-            if (e.response.status == 400)  {
-              $$errors.val(e.response.data.fields || {});
-              return;
-            }
-            overlay.$$content.val({
-              type: 'error',
-              title: '很不幸, 出错了!',
-              message: axiosError2Dom(e),
-            });
-            break;
-          }
-          case 'unchanged': {
-            $$toast.val({
-              type: 'info',
-              message: '没有任何变化',
-            });
-            break;
-          }
-          default: 
-            throw e;
+        } finally {
+          $$loading.val(false); 
         }
       });
       return false;
     }
   }, [
     field('name', '姓名', h('input', {
-      value: (tenant.entity || {}).name,
+      value: (obj.entity || {}).name,
       oninput() {
-        $$tenant.patch({
-          entity: Object.assign(tenant.entity || {}, {
+        $$obj.patch({
+          entity: Object.assign(obj.entity || {}, {
             name: this.value, 
             acronym: pinyin(this.value, {
               style: pinyin.STYLE_NORMAL,
@@ -126,19 +95,19 @@ var formVf = function ([errors, departmentDropdown, tenant]) {
       }
     }), errors, true),
     field('acronym', '缩写', h('input', {
-      value: (tenant.entity || {}).acronym,
+      value: (obj.entity || {}).acronym,
       oninput() {
-        $$tenant.patch({
-          entity: Object.assign(tenant.entity || {}, {
+        $$obj.patch({
+          entity: Object.assign(obj.entity || {}, {
             acronym: this.value,
           })
         });
       }
     }), errors, true),
     field('contact', '联系方式', h('input', {
-      value: tenant.contact,
+      value: obj.contact,
       oninput() {
-        $$tenant.patch({
+        $$obj.patch({
           contact: this.value,
         });
       }
@@ -156,12 +125,12 @@ var formVf = function ([errors, departmentDropdown, tenant]) {
   ]);
 };
 
-var $$form = $$.connect([$$errors, $$departmentDropdown, $$tenant], formVf);
+var $$form = $$.connect([$$errors, $$departmentDropdown, $$obj], formVf);
 
 
-var vf = function ([tenant, form, loading]) {
+var vf = function ([obj, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
-    h('.header' + (dirty(tenant)? '.dirty': ''), tenant.id? `编辑承包人-${tenant.entity.name}`: '创建承包人'),
+    h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑承包人-${obj.entity.name}`: '创建承包人'),
     form,
   ]);
 };
@@ -169,23 +138,24 @@ var vf = function ([tenant, form, loading]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$tenant, $$form, $$loading], vf),
+    $$view: $$.connect([$$obj, $$form, $$loading], vf),
   },
   get dirty() {
-    return !R.equals($$tenant.val(), copy);
+    return !R.equals($$obj.val(), copy);
   },
-  init(id) {
+  init(ctx) {
+    let { id } = ctx.params;
     $$loading.toggle();
     Promise.all([
       departmentStore.list,
       id? tenantStore.get(id): {}
     ])
-    .then(function ([departments, tenant]) {
-      copy = R.clone(tenant);
+    .then(function ([departments, obj]) {
+      copy = R.clone(obj);
       $$.update(
         [$$loading, false],
         [$$departments, departments],
-        [$$tenant, tenant]
+        [$$obj, obj]
       );
     });
   }
