@@ -12,6 +12,7 @@ import {$$vendorDropdown} from './vendor-dropdown.js';
 import {$$purchaserDropdown} from './purchaser-dropdown.js';
 import { field } from '../field.js';
 import { $$toast } from '../toast';
+import co from 'co';
 
 
 var $$errors = x({}, 'invoice-form-errors');
@@ -38,7 +39,32 @@ var valueFunc = function valueFunc([
   let classNames = ['form'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join();
-  return h('form.form#invoice-form' + classNames, [
+  return h('form.form#invoice-form' + classNames, {
+    onsubmit() {
+      co(function *() {
+        try {
+          yield invoiceStore.validate(invoice);
+        } catch (e) {
+          $$errors.val(e);
+          return;
+        } 
+        try {
+          $$loading.inc();
+          let { id } = yield invoiceStore.save(invoice);
+          $$toast.val({
+            type: 'success',
+            message: '发票创建成功',
+          });
+          page('/invoice/' + id);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          $$loading.dec();
+        }
+      });
+      return false;
+    }
+  }, [
     h('.col.col-6', [
       field('invoiceType', '发票类型', invoiceTypeDropdown, errors, true),
       field('date', '发票日期', h('input', {
@@ -91,25 +117,7 @@ var valueFunc = function valueFunc([
     ]): '',
     h('.clearfix'),
     h('hr'),
-    h('button.primary', {
-      onclick() {
-        invoiceStore.validate($$invoice.val()).then(function () {
-          $$loading.inc();
-          return invoiceStore.save($$invoice.val()).then(function (id) {
-            $$loading.dec();
-            console.log('create invoice done');
-            $$toast.val({
-              type: 'success',
-              message: '发票创建成功',
-            });
-            page('/invoice/' + id);
-          });
-        }).catch(function (errors) {
-          $$errors.val(errors);
-        });
-        return false;
-      }
-    }, '提交'),
+    h('button.primary', '提交'),
     h('button', {
       onclick(e) {
         e.preventDefault();

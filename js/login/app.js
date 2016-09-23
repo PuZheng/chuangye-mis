@@ -5,9 +5,7 @@ import { field } from '../field.js';
 import accountStore from '../store/account-store.js';
 import classNames from '../class-names.js';
 import page from 'page';
-import promiseFinally from 'promise-finally';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
+import co from 'co';
 
 var $$username = x('', 'username');
 var $$password = x('', 'password');
@@ -29,36 +27,32 @@ var $$page = x.connect(
         h('h3.header.c1', '欢迎登陆创业电镀管理系统'),
         h('form.form', {
           onsubmit() {
-            let p = accountStore.validate({
-              username, 
-              password
-            })
-            .then(function () {
-              $$loading.val('loading');
-              accountStore.login({
-                username,
-                password
-              })
-              .then(function () {
-                page('/');
-              }, function (error) {
-                if (error.response && error.response.status == 400) {
-                  $$errors.val({
-                    username: error.response.data.message,
-                  });
-                  return;
-                }
-                overlay.$$content.val({
-                  type: 'error',
-                  title: '很不幸, 出错了!',
-                  message: axiosError2Dom(error),
+            co(function *() {
+              try {
+                yield accountStore.validate({
+                  username, 
+                  password
                 });
-              });
-            }, function (errors) {
-              $$errors.val(errors);
-            });
-            promiseFinally(p, function () {
-              $$loading.val('');
+              } catch (e) {
+                $$errors.val(e);
+                return;
+              }
+              try {
+                $$loading.val('loading');
+                yield accountStore.login({
+                  username, password
+                });
+                page('/');
+              } catch (e) {
+                console.error(e);
+                if (e.response && e.response.status == 403) {
+                  $$errors.val({
+                    username: e.response.data.message,
+                  });
+                }
+              } finally {
+                $$loading.val('');
+              }
             });
             return false;
           }

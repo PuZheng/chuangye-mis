@@ -24,7 +24,8 @@ export default {
   page: {
     $$view,
   },
-  init(id) {
+  init(ctx) {
+    let { id } = ctx.params;
     $$loading.val(true);
     let promises = [
       voucherTypeStore.list,
@@ -33,7 +34,8 @@ export default {
         date: moment().format('YYYY-MM-DD')
       }
     ];
-    Promise.all(promises).then(function ([voucherTypes, voucherSubjects, voucher]) {
+    Promise.all(promises)
+    .then(function ([voucherTypes, voucherSubjects, voucher]) {
       $$.update(
         [$$voucherTypes, voucherTypes],
         [$$loading, false],

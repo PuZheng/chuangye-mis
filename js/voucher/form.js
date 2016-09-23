@@ -10,6 +10,7 @@ import { $$payerDropdown } from './payer-dropdown.js';
 import { $$recipientDropdown } from './recipient-dropdown.js';
 import { field } from '../field';
 import { $$toast } from '../toast';
+import co from 'co';
 
 const $$errors = x({}, 'errors');
 
@@ -33,7 +34,32 @@ const valueFunc = function valueFunc([
   let classNames = ['form', 'relative'];
   loading && classNames.push('loading');
   classNames = classNames.map( c => '.' + c ).join('');
-  return h(classNames, [
+  return h('form' + classNames, {
+    onsubmit() {
+      co(function *() {
+        try {
+          yield voucherStore.validate(voucher);
+        } catch (e) {
+          $$errors.val(e);
+          return;
+        } 
+        try {
+          $$loading.val(true);
+          let { id } = yield voucherStore.save(voucher);
+          $$toast.val({
+            type: 'success',
+            message: '凭证创建成功',
+          });
+          page('/voucher/' + id);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          $$loading.val(false);
+        }
+      });
+      return false;
+    }
+  }, [
     field('voucherTypeId', '凭证类型', voucherTypeDropdown, errors, true),
     field('voucherSubjectId', '项目', voucherSubjectDropdown, errors, true),
     field('date', '日期', h('input', {
@@ -66,24 +92,7 @@ const valueFunc = function valueFunc([
     field('recipientId', '(实际)收入方', recipientDropdown, errors, true),
     h('.clearfix'),
     h('hr'),
-    h('button.primary', {
-      onclick() {
-        voucherStore.validate($$voucher.val()).then(function () {
-          $$loading.val(true);
-          voucherStore.save($$voucher.val()).then(function (id) {
-            $$loading.val(false);
-            console.log('create invoice done');
-            $$toast.val({
-              type: 'success',
-              message: '凭证创建成功',
-            });
-            page('/voucher/' + id);
-          });
-        }).catch(function (errors) {
-          $$errors.val(errors);
-        });
-      }
-    }, '提交'),
+    h('button.primary', '提交'),
     h('button', {
       onclick(e) {
         e.preventDefault();

@@ -1,6 +1,8 @@
 import { validateObj } from '../validate-obj.js';
 import { notEmpty } from '../checkers.js';
 import { backendURL } from '../backend-url.js';
+import overlay from '../overlay';
+import axiosError2Dom from '../axios-error-2-dom';
 
 var rules = {
   username: notEmpty(),
@@ -14,7 +16,18 @@ var validate = function (obj) {
 var login = function ({ username, password }) {
     return axios.post(backendURL('/auth/login'), {
       username, password
-    }).then(function (response) {
+    })
+    .catch(function (error) {
+      if (!error.response || error.response.status == 500) {
+        overlay.$$content.val({
+          type: 'error',
+          title: '很不幸, 出错了!',
+          message: axiosError2Dom(error),
+        });
+      }
+      throw error;
+    })
+    .then(function (response) {
       sessionStorage.setItem('user', JSON.stringify(response.data));
     });
 };

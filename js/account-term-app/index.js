@@ -3,8 +3,6 @@ import accountTermStore from 'store/account-term-store';
 import R from 'ramda';
 import { $$toast } from 'toast';
 import moment from 'moment';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
 import virtualDom from 'virtual-dom';
 
 var h = virtualDom.h;
@@ -60,12 +58,7 @@ var create = function (at) {
         message: '账期创建成功!',
       });
     }, function (e) {
-      debugger;
-      overlay.$$content.val({
-        type: 'error',
-        title: '很不幸, 出错了!',
-        message: axiosError2Dom(e),
-      });
+      console.error(e);
     });
   };
 };
