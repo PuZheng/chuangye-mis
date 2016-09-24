@@ -33,12 +33,39 @@
         padding: .6rem 1.14285714em;
         color: var(--color-tertiary);
         outline: none;
+        position: relative;
+
 
         &.celled {
             border-right: 1px solid var(--color-gray-light);
         }
         &.celled:last-child {
             border-right: 0px;
+        }
+
+        & .sub.menu {
+            display: none;
+            width: 12rem;
+            margin: 0rem;
+            position: absolute;
+            top: 100%;
+            & .item {
+                width: 100%;
+                &.active {
+                    border: none;
+                    color: color(var(--color-accent) a(-10%) s(-20%) l(+10%));
+                }
+                &:hover {
+                    background-color: var(--color-gray-light);
+                }
+            }
+        }
+
+        &.expanded {
+            & .sub.menu {
+                display: block;
+
+            }
         }
     }
     
@@ -53,6 +80,6 @@
         margin: 0 0 -2px;
         border-bottom-width: 2px;
         transition: color .1s ease;
-        color: var(--color-secondary);
+        color: var(--color-accent);
     }
 }
