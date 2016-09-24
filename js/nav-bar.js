@@ -46,7 +46,7 @@ var $$store = function () {
       expanded && 'expanded'
     );
     return R.ifElse(
-      R.prop('editMaterialNotes'),
+      R.prop('manageStore'),
       () => h(classes, {
         onmouseover() {
           $$expanded.val(true);
@@ -299,12 +299,12 @@ export var setupNavBar = function (mod) {
     .could('edit.invoice_type')
     .could('edit.voucher_subject')
     .could('edit.user')
-    .could('edit.material_notes')
+    .could('manage.store')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editMeter,
       editAccountTerm, editInvoiceType, editVoucherSubject,
-      editUser, editMaterialNotes
+      editUser, manageStore
     ) {
       $$.update(
         [$$mods, {
@@ -318,7 +318,7 @@ export var setupNavBar = function (mod) {
           editInvoiceType,
           editVoucherSubject,
           editUser,
-          editMaterialNotes,
+          manageStore,
         }],
         [$$currentMod, mod]
       );
