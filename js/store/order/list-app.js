@@ -9,7 +9,8 @@ import constStore from 'store/const-store';
 import storeSubjectStore from '../../store/store-subject-store';
 import $$tableHints from 'widget/table-hints';
 import $$paginator from 'widget/paginator';
-import config from '../../config.js';
+import config from '../../config';
+import $$oth from 'widget/oth';
 
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
@@ -79,14 +80,38 @@ var filtersVf = function ([dateSpanDropdown, subjectDropdown]) {
   ]);
 };
 
+var $$createdOth = $$oth({
+  label: '创建于',
+  $$order: $$queryObj.trans(function (qo) {
+    let [ col, order ] = (qo.sort_by || '').split('.');
+    return R.ifElse(
+      R.equals('created'),
+      R.always(order || 'asc'),
+      R.always('')
+    )(col);
+  }),
+  onchange(order) {
+    $$queryObj.patch({ sort_by: 'created.' + order });
+  }
+});
+
 var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown], filtersVf);
 
-var $$table = $$.connect([$$list], function ([list]) {
-  return list.map(function (obj) {
-    return h('tr', [
-      h('td', obj.id),
-    ]);
-  });
+var $$table = $$.connect([$$createdOth, $$list], function ([createdOth, list]) {
+  return h('table.table.compact.striped', [
+    h('thead', [
+      h('tr', [
+        h('th', '编号'),
+        h('th', '科目'),
+        h('th', '数量'),
+        h('th', '单价'),
+        h('th', '总价'),
+        h('th', '发票'),
+        createdOth,
+      ])
+    ]),
+    h('tbody')
+  ]);
 });
 
 var $$tabNames = $$.connect(
