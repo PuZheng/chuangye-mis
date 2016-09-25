@@ -10,13 +10,26 @@ const ESC = 27;
 
 export var $$searchDropdown = function (
   {
-    defaultText, $$value, $$options, onchange, optionContent=dropdownUtils.optionContent,
+    defaultText, 
+    $$value, 
+    $$options, 
+    onchange, 
+    optionContent=dropdownUtils.optionContent,
   }
 ) {
   let $$searchText = $$('', 'search-text');
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
   let valueFunc = function ([activated, searchText, options, value, selection]) {
+    options = options.map(function (o) {
+      if (typeof o === 'string') {
+        return {
+          value: o,
+          text: o,
+        };
+      }
+      return o;
+    });
     let classNames = ['dropdown', 'search'];
     if (activated) {
       classNames.push('activated');

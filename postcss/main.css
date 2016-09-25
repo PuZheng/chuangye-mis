@@ -12,6 +12,7 @@
 @import 'component/segment';
 @import 'component/checkbox';
 @import 'component/toggle';
+@import 'component/tabs';
 
 @import "generic.css";
 @import "atomic.css";

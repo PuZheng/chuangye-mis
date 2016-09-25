@@ -2,11 +2,8 @@ import request from '../request';
 import R from 'ramda';
 
 export default {
-  fetchList: function (opts) {
-    let url = '/material-subject/list';
-    if (opts.type) {
-      url += '?type=' + opts.type;
-    }
+  get list() {
+    let url = '/store-subject/list';
     return request.get(url)
     .then(R.path(['data', 'data']));
   }

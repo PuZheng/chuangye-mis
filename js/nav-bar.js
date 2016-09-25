@@ -42,7 +42,7 @@ var $$store = function () {
   let vf = function ([currentMod, mods, expanded]) {
     let classes = classNames(
       'item', 
-      (currentMod === 'store.material_notes' || currentMod === 'store.checkbook') && 'active',
+      (currentMod === 'store.order' || currentMod === 'store.checkbook') && 'active',
       expanded && 'expanded'
     );
     return R.ifElse(
@@ -59,10 +59,10 @@ var $$store = function () {
         h('i.fa.fa-caret-down'),
         h('.sub.menu', [
           h('a' + classNames(
-            'item', (currentMod == 'store.material_notes') && 'active'), {
+            'item', (currentMod == 'store.order') && 'active'), {
             onclick(e) {
               e.preventDefault();
-              page('/material-note-list');
+              page('/store-order-list');
               $$expanded.val(false);
               return false;
             }
