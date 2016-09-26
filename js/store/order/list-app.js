@@ -13,6 +13,7 @@ import $$paginator from 'widget/paginator';
 import config from '../../config';
 import $$myOth from 'widget/my-oth';
 import moment from 'moment';
+import tenantStore from '../../store/tenant-store';
 
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
@@ -79,10 +80,31 @@ var $$subjectDropdown = $$searchDropdown({
   })
 });
 
-var filtersVf = function ([dateSpanDropdown, subjectDropdown]) {
+var $$tenantDropdown = $$searchDropdown({
+  defaultText: '选择相关承包人',
+  onchange(tenant_id) {
+    $$queryObj.patch({ tenant_id });
+  },
+  $$value: $$queryObj.trans(R.prop('tenant_id')),
+  $$options: tenantStore.trans(function (list) {
+    return R.concat([{
+      text: '不限承包人',
+      value: '',
+    }], list.map(function (o) {
+      return {
+        text: o.name,
+        value: o.id,
+        acronym: o.acronym,
+      };
+    }));
+  })
+});
+
+var filtersVf = function ([dateSpanDropdown, subjectDropdown, tenantDropdown]) {
   return h('.filters', [
     dateSpanDropdown,
     subjectDropdown,
+    tenantDropdown,
   ]);
 };
 
@@ -96,7 +118,8 @@ var $$createdOth = $$myOth({
   column: 'created'
 });
 
-var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown], filtersVf);
+var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown, 
+                           $$tenantDropdown], filtersVf);
 
 var $$table = $$.connect(
   [$$totalPriceOth, $$createdOth, $$list], 
