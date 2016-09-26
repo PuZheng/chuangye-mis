@@ -7,10 +7,12 @@ import $$dropdown from 'widget/dropdown';
 import $$searchDropdown from 'widget/search-dropdown';
 import constStore from 'store/const-store';
 import storeSubjectStore from '../../store/store-subject-store';
+import storeOrderStore from '../../store/store-order-store';
 import $$tableHints from 'widget/table-hints';
 import $$paginator from 'widget/paginator';
 import config from '../../config';
-import $$oth from 'widget/oth';
+import $$myOth from 'widget/my-oth';
+import moment from 'moment';
 
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
@@ -39,26 +41,30 @@ var contentVf = function ([loading, filters, table, tableHints, paginator]) {
 
 var $$dateSpanDropdown = $$dropdown({
   defaultText: '选择日期范围',
-  onchange(dateSpan) {
-    $$queryObj.patch({ dateSpan });
+  onchange(date_span) {
+    $$queryObj.patch({ date_span });
   },
   $$value: $$queryObj.trans(R.prop('date_span')),
   $$options: $$([
     {
       text: '不限日期范围',
       value: '',
-    },
-    '一周内',
-    '一月内',
+    }, { 
+      text: '一周内',
+      value: 'in_7_days',
+    }, {
+      text: '一月内',
+      value: 'in_30_days',
+    }
   ]),
 });
 
 var $$subjectDropdown = $$searchDropdown({
   defaultText: '选择单据科目',
-  onchange(subject) {
-    $$queryObj.patch({ subject });
+  onchange(subject_id) {
+    $$queryObj.patch({ subject_id });
   },
-  $$value: $$queryObj.trans(R.prop('subject')),
+  $$value: $$queryObj.trans(R.prop('subject_id')),
   $$options: $$storeSubjects.trans(function (list) {
     return R.concat([{
       text: '不限科目',
@@ -80,24 +86,21 @@ var filtersVf = function ([dateSpanDropdown, subjectDropdown]) {
   ]);
 };
 
-var $$createdOth = $$oth({
+var $$totalPriceOth = $$myOth({
+  label: '总价',
+  column: 'total_price',
+});
+
+var $$createdOth = $$myOth({
   label: '创建于',
-  $$order: $$queryObj.trans(function (qo) {
-    let [ col, order ] = (qo.sort_by || '').split('.');
-    return R.ifElse(
-      R.equals('created'),
-      R.always(order || 'asc'),
-      R.always('')
-    )(col);
-  }),
-  onchange(order) {
-    $$queryObj.patch({ sort_by: 'created.' + order });
-  }
+  column: 'created'
 });
 
 var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown], filtersVf);
 
-var $$table = $$.connect([$$createdOth, $$list], function ([createdOth, list]) {
+var $$table = $$.connect(
+  [$$totalPriceOth, $$createdOth, $$list], 
+  function ([totalPriceOth, createdOth, list]) {
   return h('table.table.compact.striped', [
     h('thead', [
       h('tr', [
@@ -105,12 +108,26 @@ var $$table = $$.connect([$$createdOth, $$list], function ([createdOth, list]) {
         h('th', '科目'),
         h('th', '数量'),
         h('th', '单价'),
-        h('th', '总价'),
+        totalPriceOth,
         h('th', '发票'),
         createdOth,
       ])
     ]),
-    h('tbody')
+    h('tbody', list.map(function (record) {
+      return h('tr', [
+        h('td', '' + record.id),
+        h('td', record.storeSubject.name),
+        h('td', `${record.quantity}(${record.storeSubject.unit})`),
+        h('td', '' + record.unitPrice),
+        h('td', record.unitPrice * record.quantity + ''),
+        h('td', R.ifElse(
+          R.identity,
+          R.prop('number'),
+          R.always('--')
+        )(record.invoice)),
+        h('td', moment(record.created).format('YYYY-MM-DD HH:mm')),
+      ]);
+    }))
   ]);
 });
 
@@ -151,18 +168,21 @@ export default {
       })], contentVf),
     }),
   },
-  init() {
+  init(ctx) {
     $$loading.val(true);
     Promise.all([
       constStore.get(),
       storeSubjectStore.list,
+      storeOrderStore.fetchList(ctx.query),
     ])
-    .then(function ([{ storeOrderDirections, storeOrderTypes }, storeSubjects]) {
+    .then(function ([{ storeOrderDirections, storeOrderTypes }, storeSubjects, { totalCnt, data }]) {
       $$.update(
         [$$loading, false],
         [$$storeOrderTypes, storeOrderTypes],
         [$$storeOrderDirections, storeOrderDirections],
-        [$$storeSubjects, storeSubjects]
+        [$$storeSubjects, storeSubjects],
+        [$$list, data],
+        [$$totalCnt, totalCnt]
       );
     });
   }

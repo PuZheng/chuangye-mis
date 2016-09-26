@@ -1,7 +1,7 @@
 import R from 'ramda';
 import { validateObj } from '../validate-obj.js';
 import { notEmpty } from '../checkers.js';
-import config from '../config.js';
+import config from '../config';
 import request from '../request';
 
 var rules = {
