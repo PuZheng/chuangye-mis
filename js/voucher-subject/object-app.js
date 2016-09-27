@@ -66,23 +66,35 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
       return false;
     }
   }, [
-    field('name', '名称', h('input', {
-      value: obj.name,
-      onchange() {
-        $$obj.patch({ 
-          name: this.value,
-          acronym: pinyin(this.value, {
-            style: pinyin.STYLE_NORMAL,
-          }).map(i => i[0][0]).join(''),
-        });
-      }
-    }), errors, true),
-    field('acronym', '缩写', h('input', {
-      value: obj.acronym,
-      onchange() {
-        $$obj.patch({ acronym: this.value });
-      }
-    }), errors, true),
+    field({
+      key: 'name', 
+      label: '名称', 
+      input: h('input', {
+        value: obj.name,
+        onchange() {
+          $$obj.patch({ 
+            name: this.value,
+            acronym: pinyin(this.value, {
+              style: pinyin.STYLE_NORMAL,
+            }).map(i => i[0][0]).join(''),
+          });
+        }
+      }),
+      errors,
+      required: true
+    }),
+    field({
+      key: 'acronym', 
+      label: '缩写', 
+      input: h('input', {
+        value: obj.acronym,
+        onchange() {
+          $$obj.patch({ acronym: this.value });
+        }
+      }), 
+      errors,
+      required: true
+    }),
     h('.inline.field', [
       h('label', '备注'),
       h('textarea', {
@@ -105,8 +117,18 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
         }
       }, '是否进入总账'),
     ]),
-    field('payerType', '支付方类型', payerTypeDropdown, errors),
-    field('purchaserType', '收入方类型', recipientTypeDropdown, errors),
+    field({
+      key: 'payerType', 
+      label: '支付方类型', 
+      input: payerTypeDropdown, 
+      errors,
+    }),
+    field({
+      key: 'purchaserType', 
+      label: '收入方类型', 
+      input: recipientTypeDropdown, 
+      errors,
+    }),
     h('hr'),
     h('button.primary', '提交'),
     h('button', {

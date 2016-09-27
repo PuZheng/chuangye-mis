@@ -57,19 +57,27 @@ var $$page = x.connect(
             return false;
           }
         }, [
-          field('username', '', h('input', {
-            placeholder: '请输入用户名',
-            onchange() {
-              $$username.val(this.value);
-            }
-          }), errors),
-          field('password', '', h('input', {
-            placeholder: '请输入密码',
-            type: 'password',
-            onchange() {
-              $$password.val(this.value);
-            }
-          }), errors),
+          field({
+            key: 'username', 
+            input: h('input', {
+              placeholder: '请输入用户名',
+              onchange() {
+                $$username.val(this.value);
+              }
+            }), 
+            errors,
+          }),
+          field({
+            key: 'password', 
+            input: h('input', {
+              placeholder: '请输入密码',
+              type: 'password',
+              onchange() {
+                $$password.val(this.value);
+              }
+            }), 
+            errors,
+          }),
           h('button.btn.btn-outline.bc1.block.mx-auto.mt3', '登陆')
         ]),
       ]),

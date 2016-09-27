@@ -66,12 +66,18 @@ var formVf = function (
       return false;
     }
   }, [
-    field('name', '名称', h('input', {
-      value: obj.name,
-      onchange() {
-        $$obj.patch({ name: this.value });
-      }
-    }), errors, true),
+    field({
+      key: 'name', 
+      label: '名称', 
+      input: h('input', {
+        value: obj.name,
+        onchange() {
+          $$obj.patch({ name: this.value });
+        }
+      }), 
+      errors,
+      required: true,
+    }),
     h('.field.inline', [
       h('input', {
         type: 'checkbox',
@@ -86,9 +92,24 @@ var formVf = function (
         }
       }, '是否增值税'),
     ]),
-    field('vendorType', '销售方类型', vendorDropdown, errors),
-    field('purchaserType', '购买方类型', purchaserDropdown, errors),
-    field('materialType', '相关物料单类型', materialTypeDropdown, errors),
+    field({
+      key: 'vendorType', 
+      label: '销售方类型', 
+      input: vendorDropdown, 
+      errors,
+    }),
+    field({
+      key: 'purchaserType', 
+      label: '购买方类型', 
+      input: purchaserDropdown, 
+      errors,
+    }),
+    field({
+      key: 'materialType', 
+      label: '相关物料单类型', 
+      input: materialTypeDropdown, 
+      errors,
+    }),
     h('hr'),
     h('button.primary', '提交'),
     h('button', {

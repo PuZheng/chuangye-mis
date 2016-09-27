@@ -1,8 +1,10 @@
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 
-export var field = function field(field, label, input, errors, required) {
-  let err = errors[field];
+export var field = function field({
+  key, label='', input, errors={}, required
+}) {
+  let err = errors[key];
   let classNames = ['field', 'inline'];
   required && classNames.push('required');
   err && classNames.push('error');

@@ -81,38 +81,61 @@ var formVf = function ([errors, departmentDropdown, obj]) {
       return false;
     }
   }, [
-    field('name', '姓名', h('input', {
-      value: (obj.entity || {}).name,
-      oninput() {
-        $$obj.patch({
-          entity: Object.assign(obj.entity || {}, {
-            name: this.value, 
-            acronym: pinyin(this.value, {
-              style: pinyin.STYLE_NORMAL,
-            }).map(i => i[0][0]).join(''),
-          }),
-        });
-      }
-    }), errors, true),
-    field('acronym', '缩写', h('input', {
-      value: (obj.entity || {}).acronym,
-      oninput() {
-        $$obj.patch({
-          entity: Object.assign(obj.entity || {}, {
-            acronym: this.value,
-          })
-        });
-      }
-    }), errors, true),
-    field('contact', '联系方式', h('input', {
-      value: obj.contact,
-      oninput() {
-        $$obj.patch({
-          contact: this.value,
-        });
-      }
-    }), errors),
-    field('departmentId', '车间', departmentDropdown, errors, true),
+    field({
+      key: 'name', 
+      label: '姓名', 
+      input: h('input', {
+        value: (obj.entity || {}).name,
+        oninput() {
+          $$obj.patch({
+            entity: Object.assign(obj.entity || {}, {
+              name: this.value, 
+              acronym: pinyin(this.value, {
+                style: pinyin.STYLE_NORMAL,
+              }).map(i => i[0][0]).join(''),
+            }),
+          });
+        }
+      }),
+      errors,
+      required: true
+    }),
+    field({
+      key: 'acronym',
+      label: '缩写', 
+      input: h('input', {
+        value: (obj.entity || {}).acronym,
+        oninput() {
+          $$obj.patch({
+            entity: Object.assign(obj.entity || {}, {
+              acronym: this.value,
+            })
+          });
+        }
+      }),
+      errors,
+      required: true, 
+    }),
+    field({
+      key: 'contact', 
+      label: '联系方式', 
+      input: h('input', {
+        value: obj.contact,
+        oninput() {
+          $$obj.patch({
+            contact: this.value,
+          });
+        }
+      }),
+      errors,
+    }),
+    field({
+      key: 'departmentId', 
+      label: '车间', 
+      input: departmentDropdown, 
+      errors,
+      required: true
+    }),
     h('hr'),
     h('button.primary', '提交'),
     h('button', {

@@ -72,36 +72,60 @@ var formVf = function ([errors, obj, roleDropdown]) {
       return false;
     }
   }, [
-    field('username', '用户名', h('input', {
-      value: obj.username,
-      onchange() {
-        $$obj.patch({ username: this.value });
-      }
-    }), errors, true),
+    field({
+      key: 'username', 
+      label: '用户名', 
+      input: h('input', {
+        value: obj.username,
+        onchange() {
+          $$obj.patch({ username: this.value });
+        }
+      }), 
+      errors,
+      required: true
+    }),
     // 不能直接编辑密码字段，要放到单独的功能
     R.ifElse(
       R.prop('id'),
       () => '',
-      () => field('password', '密码', h('input', {
-        type: 'password',
-        value: obj.password,
-        onchange() {
-          $$obj.patch({ password: this.value });
-        }
-      }), errors, true)
+      () => field({
+        key: 'password', 
+        label: '密码', 
+        input: h('input', {
+          type: 'password',
+          value: obj.password,
+          onchange() {
+            $$obj.patch({ password: this.value });
+          }
+        }), 
+        errors,
+        required: true
+      })
     )(obj),
     R.ifElse(
       R.prop('id'),
       () => '',
-      () => field('passwordAg', '再次输入密码', h('input', {
-        type: 'password',
-        value: obj.passwordAg,
-        onchange() {
-          $$obj.patch({ passwordAg: this.value });
-        }
-      }), errors, true)
+      () => field({
+        key: 'passwordAg', 
+        label: '再次输入密码', 
+        input: h('input', {
+          type: 'password',
+          value: obj.passwordAg,
+          onchange() {
+            $$obj.patch({ passwordAg: this.value });
+          }
+        }),
+        errors,
+        required: true
+      })
     )(obj),
-    field('role', '角色', roleDropdown, errors, true),
+    field({
+      key: 'role', 
+      label: '角色', 
+      input: roleDropdown, 
+      errors,
+      required: true
+    }),
     h('hr'),
     h('button.primary', '提交'),
     h('button', {

@@ -50,36 +50,59 @@ function materialsEditorValueFunc([
 ]) {
   return h('.border-box.border.rounded', [
     h('.form', [
-      field('materialSubjectId', '物料类别', 
-           materialSubjectDropdown, errors, true),
-      field('quantity', '数量' + wrapIf((materialNote.materialSubject || {}).unit), h('input', {
-        value: materialNote.quantity || '',
-        onchange() {
-          $$materialNote.patch({
-            quantity: parseFloat(this.value),
-          });
-        }
-      }), errors, true),
-      field('unitPrice', '单价(元)', h('input', {
+      field({
+        key: 'materialSubjectId', 
+        label: '物料类别', 
+        input: materialSubjectDropdown, 
+        errors,
+        required: true
+      }),
+      field({
+        key: 'quantity', 
+        label: '数量' + wrapIf((materialNote.materialSubject || {}).unit), 
+        input: h('input', {
+          value: materialNote.quantity || '',
+          onchange() {
+            $$materialNote.patch({
+              quantity: parseFloat(this.value),
+            });
+          }
+        }), 
+        errors,
+        required: true
+      }),
+      field({
+        key: 'unitPrice', 
+        label: '单价(元)', 
+        input: h('input', {
           value: materialNote.unitPrice || '',
           onchange() {
             $$materialNote.patch({
               unitPrice: parseFloat(this.value),
             });
           }
-      }), errors, true),
+        }), 
+        errors,
+        required: true
+      }),
       h('.field.inline', [
         h('label', '总金额'),
         h('span.color-accent.input', (materialNote.quantity || 0) * (materialNote.unitPrice || 0) + '(元)'),
       ]),
-      field('taxRate', '税率(百分比)', h('input', {
-        value: materialNote.taxRate || '',
-        onchange() {
-          $$materialNote.patch({
-            taxRate: parseFloat(this.value),
-          });
-        }
-      }), errors, true),
+      field({
+        key: 'taxRate', 
+        label: '税率(百分比)', 
+        input: h('input', {
+          value: materialNote.taxRate || '',
+          onchange() {
+            $$materialNote.patch({
+              taxRate: parseFloat(this.value),
+            });
+          }
+        }), 
+        errors,
+        required: true
+      }),
       h('.field.inline', [
         h('label', '税额'),
         h('span.ca.input', ((materialNote.quantity || 0) * (materialNote.unitPrice || 0) * (materialNote.taxRate || 0) / 100) + '(元)'),

@@ -79,15 +79,27 @@ var formVf = function ([obj, errors, statusDropdown,
       return false;
     }
   }, [
-    field('name', '名称', h('input', {
-      value: obj.name || '',
-      oninput() {
-        $$obj.patch({
-          name: this.value,
-        });
-      }
-    }), errors, true),
-    field('type', '类型', typeDropdown, errors, true),
+    field({
+      key: 'name', 
+      label: '名称', 
+      input: h('input', {
+        value: obj.name || '',
+        oninput() {
+          $$obj.patch({
+            name: this.value,
+          });
+        }
+      }), 
+      errors,
+      required: true
+    }),
+    field({
+      key: 'type', 
+      label: '类型', 
+      input: typeDropdown, 
+      errors,
+      required: true
+    }),
     h('.field.inline', [
       h('input', {
         type: 'checkbox',
@@ -98,24 +110,48 @@ var formVf = function ([obj, errors, statusDropdown,
       }),
       h('label', '是否总线'),
     ]),
-    field('status', '状态', statusDropdown, errors, true),
-    field('times', '倍数', h('input', {
-      type: 'number',
-      placeholder: '请输入倍数',
-      value: obj.times,
-      onchange() {
-        $$obj.patch({ times: this.value });
-      }
-    }), errors, true),
+    field({
+      key: 'status', 
+      label: '状态', 
+      input: statusDropdown, 
+      errors,
+      required: true
+    }),
+    field({
+      key: 'times', 
+      label: '倍数', 
+      input: h('input', {
+        type: 'number',
+        placeholder: '请输入倍数',
+        value: obj.times,
+        onchange() {
+          $$obj.patch({ times: this.value });
+        }
+      }), 
+      errors,
+      required: true
+    }),
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
-      () => field('parentMeterId', '线路', parentMeterDropdown, errors, true),
-        () => ''
+      () => field({
+        key: 'parentMeterId', 
+        label: '线路', 
+        input: parentMeterDropdown, 
+        errors,
+        required: true
+      }),
+      R.always('')
     )(obj),
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
-      () => field('departmentId', '部门', departmentDropdown, errors, true),
-        () => ''
+      () => field({
+        key: 'departmentId', 
+        label: '部门', 
+        input: departmentDropdown, 
+        errors,
+        required: true
+      }),
+      R.always('')
     )(obj),
     h('hr'),
     h('button.primary', '提交'),
