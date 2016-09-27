@@ -14,6 +14,7 @@ import config from '../../config';
 import $$myOth from 'widget/my-oth';
 import moment from 'moment';
 import tenantStore from '../../store/tenant-store';
+import page from 'page';
 
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
@@ -26,11 +27,15 @@ var $$loading = $$(false, 'loading');
 var $$tenants = $$([], 'tenants');
 
 
-var contentVf = function ([loading, filters, table, tableHints, paginator]) {
+var contentVf = function ([qo, loading, filters, table, tableHints, paginator]) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '单据列表'),
-      h('button.new-btn', [
+      h('button.new-btn', {
+        onclick() {
+          page(`/store-order?direction=${qo.direction}&type=${qo.type}`);
+        }
+      }, [
         h('i.fa.fa-plus'),
       ]),
     ]),
@@ -138,7 +143,14 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
     ]),
     h('tbody', list.map(function (record) {
       return h('tr', [
-        h('td', '' + record.id),
+        h('td', h('a', {
+          href: '/store-order/' + record.id,
+          onclick(e) {
+            e.preventDefault();
+            page('/store-order/' + record.id);
+            return false;
+          }
+        }, '' + record.id)),
         h('td', record.storeSubject.name),
         h('td', `${record.quantity}(${record.storeSubject.unit})`),
         h('td', '' + record.unitPrice),
@@ -185,7 +197,7 @@ export default {
           $$queryObj.patch({ type: m[1], direction: m[2] });
         }
       },
-      $$content: $$.connect([$$loading, $$filters, $$table, $$tableHints({
+      $$content: $$.connect([$$queryObj, $$loading, $$filters, $$table, $$tableHints({
         $$totalCnt,
         $$queryObj,
         pageSize: config.getPageSize('storeOrder'),
