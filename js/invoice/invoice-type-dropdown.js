@@ -3,7 +3,7 @@ import $$dropdown from '../widget/dropdown';
 import {$$invoice, $$invoiceTypes, $$loading, $$vendors, $$purchasers, $$selectedInvoiceType} from './data-slots';
 import R from 'ramda';
 import entityStore from '../store/entity-store';
-import materialSubjectStore from '../store/material-subject-store';
+import storeSubjectStore from '../store/store-subject-store';
 import { $$materialSubjects } from './materials-editor';
 
 export var $$invoiceTypeDropdown = $$dropdown({
@@ -36,7 +36,7 @@ export var onInvoiceTypeChange = function (value) {
     invoiceType.purchaserType?  entityStore.fetchList({
       type: invoiceType.purchaserType,
     }): [],
-    invoiceType.materialType? materialSubjectStore.fetchList({ type: invoiceType.materialType }): [],
+    invoiceType.materialType? storeSubjectStore.fetchList({ type: invoiceType.materialType }): [],
   ]).then(function ([vendors, purchasers, materialSubjects]) {
     $$.update(
       [$$loading, $$loading.val() - 1],

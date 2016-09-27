@@ -31,6 +31,7 @@ import voucherSubjectListApp from './voucher-subject/list-app';
 import voucherSubjectObjectApp from './voucher-subject/object-app';
 import userListApp from './user/list-app';
 import userObjectApp from './user/object-app';
+import storeOrderListApp from './store/order/list-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -246,6 +247,18 @@ page(
   '/user/:id?', loginRequired, 
   _setupNavBar('user'),
   _could('edit.user'), useWith(userObjectApp)
+);
+
+page(
+  '/store-order-list', loginRequired,
+  _setupNavBar('store.order'),
+  _could('manage.store'), function (ctx, next) {
+    if (!ctx.query.date_span || !ctx.query.direction) {
+      page('/store-order-list?date_span=一周内&type=原材料&direction=入库');
+      return; 
+    }
+    next();
+  }, useWith(storeOrderListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

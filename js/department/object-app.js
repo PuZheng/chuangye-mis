@@ -17,25 +17,36 @@ let vf = function ([obj, errors, loading]) {
   return h('.object-app', [
     h('.header', '创建车间'),
     h('form.form' + (loading? '.loading': ''), [
-      field('name', '车间名称', h('input', {
-        placeholder: '输入车间名称',
-        value: obj.name,
-        oninput() {
-          let acronym = pinyin(this.value, {
-            style: pinyin.STYLE_NORMAL,
-          }).map(function (it) {
-            return it[0][0];
-          }).join('');
-          $$obj.val({
-            name: this.value,
-            acronym,
-          });
-        }
-      }), errors, true),
-      field('acronym', '车间缩写', h('input', {
-        value: obj.acronym,
-        placeholder: '输入车间缩写'
-      }), errors),
+      field({
+        key: 'name', 
+        label: '车间名称', 
+        input: h('input', {
+          placeholder: '输入车间名称',
+          value: obj.name,
+          oninput() {
+            let acronym = pinyin(this.value, {
+              style: pinyin.STYLE_NORMAL,
+            }).map(function (it) {
+              return it[0][0];
+            }).join('');
+            $$obj.val({
+              name: this.value,
+              acronym,
+            });
+          }
+        }), 
+        errors,
+        required: true
+      }),
+      field({
+        key: 'acronym', 
+        label: '车间缩写', 
+        input: h('input', {
+          value: obj.acronym,
+          placeholder: '输入车间缩写'
+        }), 
+        errors,
+      }),
       h('hr'),
       h('button.primary', {
         onclick() {

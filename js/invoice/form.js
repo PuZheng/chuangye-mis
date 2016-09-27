@@ -13,6 +13,7 @@ import {$$purchaserDropdown} from './purchaser-dropdown.js';
 import { field } from '../field.js';
 import { $$toast } from '../toast';
 import co from 'co';
+import R from 'ramda';
 
 
 var $$errors = x({}, 'invoice-form-errors');
@@ -66,29 +67,77 @@ var valueFunc = function valueFunc([
     }
   }, [
     h('.col.col-6', [
-      field('invoiceType', '发票类型', invoiceTypeDropdown, errors, true),
-      field('date', '发票日期', h('input', {
-        type: 'date',
-        value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
-        oninput() {
-          $$invoice.patch({
-            date: this.value
+      field({
+        key: 'invoiceType', 
+        label: '发票类型', 
+        input: invoiceTypeDropdown, 
+        errors,
+        required: true
+      }),
+      field({
+        key: 'date', 
+        label: '发票日期', 
+        input: h('input', {
+          type: 'date',
+          value: invoice.date? invoice.date: moment().format('YYYY-MM-DD'),
+          oninput() {
+            $$invoice.patch({
+              date: this.value
+            });
+          }
+        }), 
+        errors,
+      }),
+      field({
+        key: 'number', 
+        label: '发票号码', 
+        input: h('input', {
+          type: 'text',
+          placeholder: '请输入发票号码',
+          value: invoice.number || '',
+          onchange() {
+            $$invoice.patch({
+              number: this.value,
+            });
+          }
+        }), 
+        errors,
+        required: true
+      }),
+      field({
+        key: 'accountTermId', 
+        label: '会计帐期', 
+        input: accountTermDropdown, 
+        errors,
+        required: true
+      }),
+      R.ifElse(
+        R.path(['invoiceType', 'vendorType']),
+        function () {
+          return field({
+            key: 'vendorId', 
+            label: '销售方', 
+            input: vendorDropdown, 
+            errors,
+            required: true
           });
-        }
-      }), errors),
-      field('number', '发票号码', h('input', {
-        type: 'text',
-        placeholder: '请输入发票号码',
-        value: invoice.number || '',
-        onchange() {
-          $$invoice.patch({
-            number: this.value,
+        },
+        R.always('')
+      )(invoice),
+      R.ifElse(
+        R.path(['invoiceType', 'purchaserType']),
+        function () {
+          return field({
+            key: 'purchaserId', 
+            label: '购买方', 
+            input: purchaserDropdown, 
+            errors,
+            required: true
           });
-        }
-      }), errors, true),
-      field('accountTermId', '会计帐期', accountTermDropdown, errors, true),
-      (invoice.invoiceType || {}).vendorType? field('vendorId', '销售方', vendorDropdown, errors, true): '',
-      (invoice.invoiceType || {}).purchaserType? field('purchaserId', '购买方', purchaserDropdown, errors, true): '',
+        },
+        R.always('')
+      )(invoice),
+      (invoice.invoiceType || {}).purchaserType? field(): '',
       h('.field.inline', [
         h('input', {
           type: 'checkbox',

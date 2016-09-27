@@ -60,24 +60,48 @@ const valueFunc = function valueFunc([
       return false;
     }
   }, [
-    field('voucherTypeId', '凭证类型', voucherTypeDropdown, errors, true),
-    field('voucherSubjectId', '项目', voucherSubjectDropdown, errors, true),
-    field('date', '日期', h('input', {
-      type: 'date',
-      value: voucher.date,
-      onchange() {
-        $$voucher.patch({ 
-          date: this.value,
-        });
-      }
-    }), errors, true),
-    field('number', '凭证号', h('input', {
-      placeholder: '请输入凭证号',
-      value: voucher.number,
-      onchange() {
-        $$voucher.patch({ number: this.value });
-      }
-    }), errors, true),
+    field({
+      key: 'voucherTypeId', 
+      label: '凭证类型', 
+      input: voucherTypeDropdown, 
+      errors,
+      required: true,
+    }),
+    field({
+      key: 'voucherSubjectId', 
+      label: '项目', 
+      input: voucherSubjectDropdown, 
+      errors,
+      required: true,
+    }),
+    field({
+      key: 'date', 
+      label: '日期', 
+      input: h('input', {
+        type: 'date',
+        value: voucher.date,
+        onchange() {
+          $$voucher.patch({ 
+            date: this.value,
+          });
+        }
+      }), 
+      errors,
+      required: true
+    }),
+    field({
+      key: 'number', 
+      label: '凭证号', 
+      input: h('input', {
+        placeholder: '请输入凭证号',
+        value: voucher.number,
+        onchange() {
+          $$voucher.patch({ number: this.value });
+        }
+      }), 
+      errors,
+      required: true
+    }),
     h('.field.inline', [
       h('input', {
         type: 'checkbox',
@@ -88,8 +112,20 @@ const valueFunc = function valueFunc([
       }),
       h('label', '是否进入总账'),
     ]),
-    field('payerId', '(实际)支付方', payerDropdown, errors, true),
-    field('recipientId', '(实际)收入方', recipientDropdown, errors, true),
+    field({
+      key: 'payerId', 
+      label: '(实际)支付方', 
+      input: payerDropdown, 
+      errors,
+      required: true
+    }),
+    field({
+      key: 'recipientId', 
+      label: '(实际)收入方', 
+      input: recipientDropdown, 
+      errors,
+      required: true
+    }),
     h('.clearfix'),
     h('hr'),
     h('button.primary', '提交'),
