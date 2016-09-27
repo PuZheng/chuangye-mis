@@ -23,6 +23,7 @@ var $$storeOrderDirections = $$({}, 'store-order-directions');
 var $$list = $$([], 'list');
 var $$totalCnt = $$(0, 'total-cnt');
 var $$loading = $$(false, 'loading');
+var $$tenants = $$([], 'tenants');
 
 
 var contentVf = function ([loading, filters, table, tableHints, paginator]) {
@@ -86,15 +87,15 @@ var $$tenantDropdown = $$searchDropdown({
     $$queryObj.patch({ tenant_id });
   },
   $$value: $$queryObj.trans(R.prop('tenant_id')),
-  $$options: tenantStore.trans(function (list) {
+  $$options: $$tenants.trans(function (list) {
     return R.concat([{
       text: '不限承包人',
       value: '',
-    }], list.map(function (o) {
+    }], list.map(function ({ id, entity }) {
       return {
-        text: o.name,
-        value: o.id,
-        acronym: o.acronym,
+        text: entity.name,
+        value: id,
+        acronym: entity.acronym,
       };
     }));
   })
@@ -121,9 +122,7 @@ var $$createdOth = $$myOth({
 var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown, 
                            $$tenantDropdown], filtersVf);
 
-var $$table = $$.connect(
-  [$$totalPriceOth, $$createdOth, $$list], 
-  function ([totalPriceOth, createdOth, list]) {
+var tableVf = function ([totalPriceOth, createdOth, list]) {
   return h('table.table.compact.striped', [
     h('thead', [
       h('tr', [
@@ -134,6 +133,7 @@ var $$table = $$.connect(
         totalPriceOth,
         h('th', '发票'),
         createdOth,
+        h('th', '承包人'),
       ])
     ]),
     h('tbody', list.map(function (record) {
@@ -149,10 +149,15 @@ var $$table = $$.connect(
           R.always('--')
         )(record.invoice)),
         h('td', moment(record.created).format('YYYY-MM-DD HH:mm')),
+        h('td', record.tenant.entity.name),
       ]);
     }))
   ]);
-});
+};
+
+var $$table = $$.connect(
+  [$$totalPriceOth, $$createdOth, $$list], tableVf
+);
 
 var $$tabNames = $$.connect(
   [$$storeOrderDirections, $$storeOrderTypes], 
@@ -197,15 +202,17 @@ export default {
       constStore.get(),
       storeSubjectStore.list,
       storeOrderStore.fetchList(ctx.query),
+      tenantStore.list,
     ])
-    .then(function ([{ storeOrderDirections, storeOrderTypes }, storeSubjects, { totalCnt, data }]) {
+    .then(function ([{ storeOrderDirections, storeOrderTypes }, storeSubjects, { totalCnt, data }, tenants]) {
       $$.update(
         [$$loading, false],
         [$$storeOrderTypes, storeOrderTypes],
         [$$storeOrderDirections, storeOrderDirections],
         [$$storeSubjects, storeSubjects],
         [$$list, data],
-        [$$totalCnt, totalCnt]
+        [$$totalCnt, totalCnt],
+        [$$tenants, tenants]
       );
     });
   }
