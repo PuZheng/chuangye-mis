@@ -115,7 +115,7 @@ var filtersVf = function ([dateSpanDropdown, subjectDropdown, tenantDropdown]) {
 };
 
 var $$totalPriceOth = $$myOth({
-  label: '总价',
+  label: '总价(元)',
   column: 'total_price',
 });
 
@@ -134,8 +134,10 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
         h('th', '编号'),
         h('th', '科目'),
         h('th', '数量'),
-        h('th', '单价'),
+        h('th', '单价(元)'),
         totalPriceOth,
+        h('th', '税率'),
+        h('th', '税额(元)'),
         h('th', '发票'),
         createdOth,
         h('th', '承包人'),
@@ -153,8 +155,26 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
         }, '' + record.id)),
         h('td', record.storeSubject.name),
         h('td', `${record.quantity}(${record.storeSubject.unit})`),
-        h('td', '' + record.unitPrice),
-        h('td', record.unitPrice * record.quantity + ''),
+        h('td', R.ifElse(
+          R.identity,
+          R.concat(''),
+          R.always('--')
+        )(record.unitPrice)),
+        h('td', R.ifElse(
+          R.identity,
+          R.pipe(R.multiply(record.quantity), R.concat('')),
+          R.always('--')
+        )(record.unitPrice)),
+        h('td', R.ifElse(
+          R.identity,
+          taxRate => taxRate + '%',
+          R.always('--')
+        )(record.taxRate)),
+        h('td', R.ifElse(
+          R.identity,
+          taxRate => '' + record.unitPrice * record.quantity  * taxRate / 100,
+          R.always('--')
+        )(record.taxRate)),
         h('td', R.ifElse(
           R.identity,
           R.prop('number'),
