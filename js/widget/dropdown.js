@@ -11,6 +11,7 @@ var h = virtualDom.h;
 export var $$dropdown = function (
   {
     $$options, $$value, defaultText, onchange, 
+    $$disabled=$$(false, 'disabled'),
     optionContent=function (o) {
       if (typeof o === 'object') {
         return o.text;
@@ -27,11 +28,12 @@ export var $$dropdown = function (
 ) {
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
-  let valueFunc = function ([activated, options, value, selection]) {
+  let vf = function ([activated, options, value, selection, disabled]) {
     let classNames = ['dropdown'];
     if (activated) {
       classNames.push('activated');
     }
+    disabled && classNames.push('disabled');
     classNames = classNames.map( c => '.' + c ).join('');
     let selectedOption;
     if (value != 'undefined') {
@@ -71,10 +73,10 @@ export var $$dropdown = function (
     return h(classNames, {
       // a div with tabIndex could be focused/blured
       tabIndex: 0,
-      onfocus: function () {
+      onfocus: !disabled && function () {
         $$activated.val(true);
       },
-      onmousedown: function () {
+      onmousedown: !disabled && function () {
         // click an activated dropdown will make it blur
         $$activated.toggle();
       },
@@ -114,7 +116,7 @@ export var $$dropdown = function (
       h('.menu', optionElms)
     ]);
   };
-  return $$.connect([$$activated, $$options, $$value, $$selection], valueFunc);
+  return $$.connect([$$activated, $$options, $$value, $$selection, $$disabled], vf);
 };
 
 export default $$dropdown;
