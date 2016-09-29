@@ -1,10 +1,15 @@
 import virtualDom from 'virtual-dom';
+import R from 'ramda';
 var h = virtualDom.h;
 
 export var field = function field({
   key, label='', input, errors={}, required
 }) {
-  let err = errors[key];
+  let err = R.ifElse(
+    R.identity,
+    key => errors[key],
+    R.always('')
+  )(key);
   let classNames = ['field', 'inline'];
   required && classNames.push('required');
   err && classNames.push('error');

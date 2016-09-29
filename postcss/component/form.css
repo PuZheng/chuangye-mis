@@ -65,8 +65,14 @@
         margin-left: .5rem;
     }
     & > .input {
+        min-height: 2.7142rem;
         & > input, & > textarea, & > .dropdown {
             width: 100%;
+        }
+        & > .text {
+            height: 2.7142rem;
+            line-height: 1rem;
+            padding: .78571429rem 2.1rem .78571429rem 1rem;
         }
     }
 }

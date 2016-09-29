@@ -14,6 +14,7 @@ import config from '../../config';
 import $$myOth from 'widget/my-oth';
 import moment from 'moment';
 import tenantStore from '../../store/tenant-store';
+import page from 'page';
 
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
@@ -26,11 +27,15 @@ var $$loading = $$(false, 'loading');
 var $$tenants = $$([], 'tenants');
 
 
-var contentVf = function ([loading, filters, table, tableHints, paginator]) {
+var contentVf = function ([qo, loading, filters, table, tableHints, paginator]) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '单据列表'),
-      h('button.new-btn', [
+      h('button.new-btn', {
+        onclick() {
+          page(`/store-order?direction=${qo.direction}&type=${qo.type}`);
+        }
+      }, [
         h('i.fa.fa-plus'),
       ]),
     ]),
@@ -110,7 +115,7 @@ var filtersVf = function ([dateSpanDropdown, subjectDropdown, tenantDropdown]) {
 };
 
 var $$totalPriceOth = $$myOth({
-  label: '总价',
+  label: '总价(元)',
   column: 'total_price',
 });
 
@@ -129,8 +134,10 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
         h('th', '编号'),
         h('th', '科目'),
         h('th', '数量'),
-        h('th', '单价'),
+        h('th', '单价(元)'),
         totalPriceOth,
+        h('th', '税率'),
+        h('th', '税额(元)'),
         h('th', '发票'),
         createdOth,
         h('th', '承包人'),
@@ -138,11 +145,36 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
     ]),
     h('tbody', list.map(function (record) {
       return h('tr', [
-        h('td', '' + record.id),
+        h('td', h('a', {
+          href: '/store-order/' + record.id,
+          onclick(e) {
+            e.preventDefault();
+            page('/store-order/' + record.id);
+            return false;
+          }
+        }, '' + record.id)),
         h('td', record.storeSubject.name),
         h('td', `${record.quantity}(${record.storeSubject.unit})`),
-        h('td', '' + record.unitPrice),
-        h('td', record.unitPrice * record.quantity + ''),
+        h('td', R.ifElse(
+          R.identity,
+          R.concat(''),
+          R.always('--')
+        )(record.unitPrice)),
+        h('td', R.ifElse(
+          R.identity,
+          R.pipe(R.multiply(record.quantity), R.concat('')),
+          R.always('--')
+        )(record.unitPrice)),
+        h('td', R.ifElse(
+          R.identity,
+          taxRate => taxRate + '%',
+          R.always('--')
+        )(record.taxRate)),
+        h('td', R.ifElse(
+          R.identity,
+          taxRate => '' + record.unitPrice * record.quantity  * taxRate / 100,
+          R.always('--')
+        )(record.taxRate)),
         h('td', R.ifElse(
           R.identity,
           R.prop('number'),
@@ -185,7 +217,7 @@ export default {
           $$queryObj.patch({ type: m[1], direction: m[2] });
         }
       },
-      $$content: $$.connect([$$loading, $$filters, $$table, $$tableHints({
+      $$content: $$.connect([$$queryObj, $$loading, $$filters, $$table, $$tableHints({
         $$totalCnt,
         $$queryObj,
         pageSize: config.getPageSize('storeOrder'),
