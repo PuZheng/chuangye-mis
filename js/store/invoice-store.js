@@ -8,16 +8,25 @@ var rules = {
   invoiceType: notEmpty('发票类型'),
   number: notEmpty('发票号码'),
   accountTermId: notEmpty('会计帐期'),
-  vendorId: function (v) {
-    if (this.invoiceType.vendorType)  {
-      notEmpty('销售方')(v);
+  vendorId: function (v, obj) {
+    if (R.path(['invoiceType', 'vendorType'])(obj))  {
+      return notEmpty('销售方')(v);
     }
   },
-  purchaserId: function (v) {
-    if (this.invoiceType.purchaserType)  {
-      notEmpty('购买方')(v);
+  purchaserId: function (v, obj) {
+    if (R.path(['invoiceType', 'purchaserType'])(obj))  {
+      return notEmpty('购买方')(v);
     }
   },
+  amount: notEmpty(),
+  taxRate: function (v, obj) {
+    if (R.and(
+      R.path(['invoiceType', 'storeOrderType']), 
+    R.path(['invoiceType', 'storeOrderDirection'])
+    )(obj)) {
+      return notEmpty('')(v);
+    }
+  }
 };
 var validate = R.partialRight(validateObj, [rules]);
 var fetchList = function (queryObj) {

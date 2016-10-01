@@ -6,7 +6,7 @@ import invoiceStore from '../store/invoice-store.js';
 import { $$materialsEditor } from './materials-editor.js';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
-import {$$invoiceTypeDropdown, onInvoiceTypeChange} from './invoice-type-dropdown.js';
+import {$$invoiceTypeDropdown} from './invoice-type-dropdown.js';
 import {$$accountTermDropdown} from './account-term-dropdown.js';
 import {$$vendorDropdown} from './vendor-dropdown.js';
 import {$$purchaserDropdown} from './purchaser-dropdown.js';
@@ -18,19 +18,8 @@ import R from 'ramda';
 
 var $$errors = x({}, 'invoice-form-errors');
 
-$$invoice.change(function () {
-  let id;
-  return function (invoice) {
-    if ((invoice.id != id) && invoice.invoiceTypeId) {
-      onInvoiceTypeChange(invoice.invoiceTypeId);
-    }
-    id = invoice.id;
-    $$errors.val({});
-  };
-}());
 
-
-var valueFunc = function valueFunc([
+var vf = function vf([
   errors, loading,  
   invoice, 
   invoiceTypeDropdown,
@@ -186,6 +175,6 @@ export default {
       $$purchaserDropdown,
       $$materialsEditor
     ],
-    valueFunc, 
+    vf, 
     'invoice-form'),
 };

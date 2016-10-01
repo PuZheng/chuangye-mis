@@ -14,6 +14,10 @@ body {
     --border-radius: .28571429rem;
 }
 
+.hidden {
+    display: none;
+}
+
 .loading:before {
     position: absolute;
     content: '';

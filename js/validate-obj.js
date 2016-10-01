@@ -19,7 +19,7 @@ export var validateObj = function validateObj(obj, rules) {
     for (var [field, checker] of R.toPairs(rules)) {
       if (typeof checker === 'function') {
         try {
-          checker.apply(obj, [obj[field]]);
+          checker.apply(obj, [obj[field], obj]);
         } catch (e) {
           errors[field] = e.message;
         }

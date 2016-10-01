@@ -18,10 +18,36 @@
         letter-spacing: .05em;
         color: rgba(0,0,0,.85);
         -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
         user-select: none;
-        -webkit-tap-highlight-color: transparent;
+        tap-highlight-color: transparent;
         font-size: 1rem;
+    }
+    
+    & .item {
+        padding: .5rem 1rem;
+        &:before, &:after {
+            content: " ";
+            display: table;
+        }
+        &:after {
+            clear: both;
+        }
+        & .title {
+            display: inline-block;
+            font-weight: 700;
+            line-height: 1rem;
+        }
+        & .ops {
+            display: inline-block;
+            float: right;
+            & button {
+                outline: none;
+                border: none;
+                height: 1rem;
+                padding: 0;
+                line-height: 1rem;
+            }
+        }
+        border-bottom: 1px solid rgba(34,36,38,.15);
     }
 }

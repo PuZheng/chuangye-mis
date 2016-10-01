@@ -19,7 +19,6 @@ var validate = function (obj) {
       type: notEmpty(),
       quantity: notEmpty(),
       unitPrice: relateInvoice && notEmpty(),
-      taxRate: relateInvoice && notEmpty(),
     });
   });
 };

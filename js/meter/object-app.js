@@ -64,7 +64,7 @@ var formVf = function ([obj, errors, statusDropdown,
             [$$loading, false],
             [$$toast, {
               type: 'success',
-              message: obj.id? '更新成功' :'创建成功',
+              message: obj.id? '更新成功': '创建成功',
             }]
           );
           !obj.id && page('/meter/' + id);
