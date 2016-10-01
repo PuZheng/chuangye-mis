@@ -35,6 +35,10 @@
         color: rgba(0,0,0,.87);
         box-shadow: none;
         border-radius: .28571429rem;
+        &[disabled] {
+            border-color: var(--color-gray-light);
+            color: var(--color-gray);
+        }
     }
     & > input[type=checkbox] {
         min-width: auto;

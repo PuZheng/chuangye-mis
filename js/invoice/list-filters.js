@@ -1,8 +1,6 @@
 import $$ from 'slot';
 import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import $$queryObj from '../query-obj';
-import $$searchBox from '../widget/search-box';
-import invoiceStore from '../store/invoice-store';
 import $$dropdown from '../widget/dropdown';
 import $$searchDropdown from '../widget/search-dropdown';
 import virtualDom from 'virtual-dom';
@@ -117,35 +115,17 @@ var $$purchaserFilter = $$searchDropdown({
   },
 });
 
-var $$numberFilter = $$searchBox({
-  minLen: 2,
-  defaultText: '搜索编号',
-  $$searchText: $$.connect([$$queryObj], function ([qo]) {
-    return qo.number__like || ''; 
-  }),
-  onsearch(searchText) {
-    $$queryObj.patch({
-      number__like: searchText,
-    });
-  },
-  getHints(text) {
-    return invoiceStore.getHints(text);
-  }
-});
-
 export var $$filters = $$.connect([
   $$invoiceTypeFilter,
   $$dateFilter,
   $$accountTermFilter,
   $$vendorFilter,
   $$purchaserFilter,
-  $$numberFilter,
 ], function ([
   invoiceTypeFilter, dateFilter, accountTermFilter, vendorFilter,
-  purchaserFilter, numberFilter
+  purchaserFilter
 ]) {
   return h('.filters', [
-    numberFilter,
     invoiceTypeFilter,
     dateFilter,
     accountTermFilter,

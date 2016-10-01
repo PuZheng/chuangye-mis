@@ -136,8 +136,6 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
         h('th', '数量'),
         h('th', '单价(元)'),
         totalPriceOth,
-        h('th', '税率'),
-        h('th', '税额(元)'),
         h('th', '发票'),
         createdOth,
         h('th', '承包人'),
@@ -165,16 +163,6 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
           R.pipe(R.multiply(record.quantity), R.concat('')),
           R.always('--')
         )(record.unitPrice)),
-        h('td', R.ifElse(
-          R.identity,
-          taxRate => taxRate + '%',
-          R.always('--')
-        )(record.taxRate)),
-        h('td', R.ifElse(
-          R.identity,
-          taxRate => '' + record.unitPrice * record.quantity  * taxRate / 100,
-          R.always('--')
-        )(record.taxRate)),
         h('td', R.ifElse(
           R.identity,
           R.prop('number'),

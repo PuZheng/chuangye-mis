@@ -1,70 +1,48 @@
 import $$ from 'slot';
 import virtualDom from 'virtual-dom';
-import oth from '../oth';
 import classNames from '../class-names';
 import page from 'page';
 import $$queryObj from '../query-obj';
 import config from '../config.js';
 import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
 import { $$filters } from './list-filters';
-import getColOrder from '../get-col-order';
 import $$tableHints from '../widget/table-hints';
 import $$paginator from '../widget/paginator';
 import invoiceStore from 'store/invoice-store';
 import invoiceTypeStore from 'store/invoice-type-store';
 import accountTermStore from 'store/account-term-store';
 import entityStore from 'store/entity-store';
+import $$searchBox from '../widget/search-box';
+import R from 'ramda';
+import $$myOth from 'widget/my-oth';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$list = $$([], 'list');
 var $$totalCnt = $$('', 'total-cnt');
 
-
-var $$idOth = $$.connect([$$queryObj], function ([queryObj]) {
-  let order = getColOrder('id', queryObj);
-  return oth({
-    label: 'id', 
-    order, 
-    onchange(order) {
-      $$queryObj.patch({
-        sort_by: 'id.' + order,
-      });
-    },
-  });
+var $$idOth = $$myOth({
+  label: '编号',
+  column: 'id'
 });
 
-var $$dateOth = $$.connect([$$queryObj], function ([queryObj]) {
-  let order = getColOrder('date', queryObj);
-  return oth({
-    label: '日期', 
-    order, 
-    onchange(order) {
-      $$queryObj.patch({
-        sort_by: 'date.' + order,
-      });
-    }
-  });
+var $$dateOth = $$myOth({
+  label: '日期',
+  column: 'date',
 });
 
-var $$accountTermOth = $$.connect([$$queryObj], function ([queryObj]) {
-  let order = getColOrder('account_term', queryObj);
-  return oth({
-    label: '帐期', 
-    order, 
-    onchange(order) {
-      $$queryObj.patch({
-        sort_by: 'account_term.' + order,
-      });
-    }
-  });
+var $$accountTermOth = $$myOth({
+  label: '账期',
+  column: 'account_term',
 });
 
-var valueFunc = function valueFunc([
-  loading, list, idOth, dateOth, paginator, tableHints, filters,
-  accountTermOth
-]) {
-  return h('.list-app', [
+var $$amountOth = $$myOth({
+  label: '金额(元)',
+  column: 'amount',
+});
+
+var vf = function vf([loading, paginator, tableHints, filters, table, numberSearchBox]) {
+  return h(classNames('list-app', loading && 'loading'), [
     h('.header', [
       h('.title', '发票列表'),
       h('button.new-btn', {
@@ -72,66 +50,105 @@ var valueFunc = function valueFunc([
           page('/invoice');
         }
       }, h('i.fa.fa-plus')),
+      h('.search', numberSearchBox),
     ]),
     filters,
-    h('table#invoice-list' + classNames('striped', 'compact', 'relative', 'color-gray-dark', loading && 'loading'), [
-      h('thead', [
-        h('tr', [
-          idOth,
-          h('th', '发票类型'),
-          dateOth,
-          h('th', '编号'),
-          accountTermOth,
-          h('th', '是否增值税'),
-          h('th', '销售方'),
-          h('th', '购买方'),
-          h('th', '经办人'),
-        ]),
-      ]),
-      h('tbody', [
-        list.map(function (it) {
-          return h('tr', [
-            h('td', [
-              h('a', {
-                href: '/invoice/' + it.id,
-                onclick: function () {
-                  page('/invoice/' + it.id);
-                  return false;
-                },
-              }, it.id),
-            ]),
-            h('td', it.invoiceType.name),
-            h('td', it.date),
-            h('td', it.number),
-            h('td', it.accountTerm.name),
-            h('td', [
-              h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove', it.isVat? 'color-success': 'color-gray')),
-            ]),
-            h('td', (it.vendor || {}).name || '--'),
-            h('td', (it.purchaser || {}).name || '--'),
-            h('td', it.creator.username),
-          ]);
-        })
-      ]),
-    ]),
+    table,
     tableHints,
     h('.paginator-container', paginator)
   ]);
 };
 
+var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
+  return h('table#invoice-list' + classNames('striped', 'compact', 'color-gray-dark'), [
+    h('thead', [
+      h('tr', [
+        idOth,
+        h('th', '发票类型'),
+        dateOth,
+        h('th', '编号'),
+        amountOth,
+        h('th', '税率(百分比)'),
+        h('th', '税额(元)'),
+        accountTermOth,
+        h('th', '是否增值税'),
+        h('th', '销售方'),
+        h('th', '购买方'),
+        h('th', '经办人'),
+      ]),
+    ]),
+    h('tbody', [
+      list.map(function (it) {
+        return h('tr', [
+          h('td', [
+            h('a', {
+              href: '/invoice/' + it.id,
+              onclick: function () {
+                page('/invoice/' + it.id);
+                return false;
+              },
+            }, it.id),
+          ]),
+          h('td', it.invoiceType.name),
+          h('td', it.date),
+          h('td', it.number),
+          h('td', '' + it.amount),
+          h('td', R.ifElse(
+            R.identity,
+            R.concat(''),
+            R.always('--')
+          )(it.taxRate)),
+          h('td', R.ifElse(
+            R.prop('taxRate'),
+            it => it.taxRate * it.amount / 100 + '',
+            R.always('--')
+          )(it)),
+          h('td', it.accountTerm.name),
+          h('td', [
+            h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove', it.isVat? 'color-success': 'color-gray')),
+          ]),
+          h('td', (it.vendor || {}).name || '--'),
+          h('td', (it.purchaser || {}).name || '--'),
+          h('td', it.creator.username),
+        ]);
+      })
+    ]),
+  ]);
+};
+
+var $$table = $$.connect([$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list], tableVf);
+
+var $$numberSearchBox = $$searchBox({
+  minLen: 2,
+  defaultText: '搜索编号',
+  $$searchText: $$.connect([$$queryObj], function ([qo]) {
+    return qo.number__like || ''; 
+  }),
+  onsearch(searchText) {
+    $$queryObj.patch({
+      number__like: searchText,
+    });
+  },
+  getHints(text) {
+    return invoiceStore.getHints(text);
+  }
+});
+
+
 var $$view = $$.connect([
-  $$loading, $$list, $$idOth, 
-  $$dateOth, $$paginator({
+  $$loading, 
+  $$paginator({
     $$totalCnt,
     $$queryObj,
     pageSize: config.getPageSize('invoice'),
-  }), $$tableHints({
+  }), 
+  $$tableHints({
     $$totalCnt,
     $$queryObj,
     pageSize: config.getPageSize('invoice'),
-  }), $$filters, 
-  $$accountTermOth], 
-  valueFunc);
+  }), $$filters, $$table, $$numberSearchBox,
+  ], 
+  vf);
 
 export default {
   page: { $$view },

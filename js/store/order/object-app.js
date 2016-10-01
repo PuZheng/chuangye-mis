@@ -103,28 +103,6 @@ var formVf = function (
             R.always('--')
         )(obj.quantity, obj.unitPrice)),
       }),
-      field({
-        key: 'taxRate',
-        label: '税率(百分比)',
-        input: h('input', {
-          type: 'number',
-          value: obj.taxRate,
-          onchange() {
-            $$obj.patch({ taxRate: this.value });
-          }
-        }),
-        errors,
-        required: true,
-      }),
-      field({
-        key: '',
-        label: '税额',
-        input: h('.ca.text', R.ifElse(
-          (quantity, unitPrice, taxRate) => quantity && unitPrice && taxRate,
-            (quantity, unitPrice, taxRate) => quantity * unitPrice * taxRate / 100 + '(元)',
-            R.always('--')
-        )(obj.quantity, obj.unitPrice, obj.taxRate))
-      }),
     ]);
   }
   return h('form.form', {
