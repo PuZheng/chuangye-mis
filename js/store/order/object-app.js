@@ -64,7 +64,7 @@ var formVf = function (
       input: h('input', {
         type: 'number',
         value: obj.quantity,
-        onchange() {
+        oninput() {
           $$obj.patch({ quantity: this.value });
         },
       }),
@@ -87,7 +87,7 @@ var formVf = function (
         input: h('input', {
           type: 'number',
           value: obj.unitPrice,
-          onchange() {
+          oninput() {
             $$obj.patch({ unitPrice: this.value });
           }
         }),
