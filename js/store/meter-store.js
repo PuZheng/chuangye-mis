@@ -2,6 +2,7 @@ import request from '../request';
 import R from 'ramda';
 import validateObj from 'validate-obj';
 import { notEmpty } from 'checkers';
+import object2qs from '../utils/object2qs';
 
 var validate = function (obj) {
   return validateObj(obj, {
@@ -10,7 +11,7 @@ var validate = function (obj) {
     times: notEmpty(),
     parentMeterId: !obj.isTotal && notEmpty(),
     departmentId: !obj.isTotal && notEmpty(),
-    type: notEmpty(),
+    meterTypeId: notEmpty(),
   });
 };
 
@@ -22,29 +23,21 @@ export default {
     });
   },
   fetchList(qo) {
-    return request.get('/meter/list?' + R.toPairs(qo).map(p => p.join('=')).join('&'))
-    .then(function (res) {
-      return res.data;
-    });
+    return request.get('/meter/list?' + object2qs(qo))
+    .then(R.prop('data'));
   },
   save(obj) {
     if (!obj.id) {
       return request.post('/meter/object', obj)
-      .then(function (res) {
-        return res.data.id;
-      });
+      .then(R.path(['data', 'id']));
     } else {
       return request.put('/meter/object/' + obj.id, obj)
-      .then(function () {
-        return obj.id;
-      });
+      .then(R.prop('id'));
     }
   },
   get(id) {
     return request.get('/meter/object/' + id)
-    .then(function (res) {
-      return res.data;
-    });
+    .then(R.prop('data'));
   },
   validate,
 };
