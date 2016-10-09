@@ -254,7 +254,8 @@ export default {
   page: {
     $$view: $$.connect([$$obj, $$form, $$loading], vf),
   },
-  init(id) {
+  init(ctx) {
+    let { id } = ctx.params;
     $$loading.toggle();
     Promise.all([
       constStore.get(),

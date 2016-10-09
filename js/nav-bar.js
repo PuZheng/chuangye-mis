@@ -146,22 +146,66 @@ var $$settings = $$.connect(
   }
 );
 
-var $$meter = $$.connect(
-  [$$currentMod, $$mods], 
-  function ([currentMod, mods]) {
+var $$meter = function () {
+  let $$expanded = $$(false, 'expanded');
+  let vf = function ([currentMod, mods, expanded]) {
+    let classes = classNames('item', expanded && 'expanded',
+                             (currentMod == 'meter.meter' || currentMod == 'meter.meter_type') && 'active');
+    return h(classes, {
+      onmouseover() {
+        $$expanded.val(true);
+      },
+      onmouseout() {
+        $$expanded.val(false);
+      }
+    }, [
+      '设备管理',
+      h('i.fa.fa-caret-down'),
+      h('.sub.menu', [
+        R.ifElse(
+          R.prop('editMeter'),
+          () => h('a' + classNames('item', (currentMod === 'meter.meter') && 'active'), {
+            href: '/meter-list',
+            onclick() {
+              page('/meter-list');
+            }
+          }, '表设备信息'),
+          R.always('')
+        )(mods),
+        R.ifElse(
+          R.prop('editMeterType'),
+          function () {
+            return h('a' + classNames('item', (currentMod === 'meter.meter_type') && 'active'), {
+              href: '/meter-type-list',
+              onclick() {
+                page('/meter-type-list');
+              }
+            }, '表设备类型'); 
+          },
+          R.always('')
+        )(mods),
+      ])
+    ]); 
+  };
+  return $$.connect([$$currentMod, $$mods, $$expanded], vf);
+}();
+
+// var $$meter = $$.connect(
+//   [$$currentMod, $$mods], 
+//   function ([currentMod, mods]) {
     
-    return R.ifElse(
-      R.prop('editMeter'),
-      () => h('a' + classNames('item', (currentMod === 'meter') && 'active'), {
-        href: '/meter-list',
-        onclick() {
-          page('/meter-list');
-        }
-      }, '表设备信息'),
-      R.always('')
-    )(mods);
-  }
-);
+//     return R.ifElse(
+//       R.prop('editMeter'),
+//       () => h('a' + classNames('item', (currentMod === 'meter') && 'active'), {
+//         href: '/meter-list',
+//         onclick() {
+//           page('/meter-list');
+//         }
+//       }, '表设备信息'),
+//       R.always('')
+//     )(mods);
+//   }
+// );
 
 var $$accountTerm = $$.connect(
   [$$currentMod, $$mods],
@@ -295,6 +339,7 @@ export var setupNavBar = function (mod) {
     .could('view.tenant.list')
     .could('edit.settings')
     .could('edit.meter')
+    .could('edit.meter_type')
     .could('edit.account_term')
     .could('edit.invoice_type')
     .could('edit.voucher_subject')
@@ -302,7 +347,7 @@ export var setupNavBar = function (mod) {
     .could('manage.store')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
-      viewTenantList, editSettings, editMeter,
+      viewTenantList, editSettings, editMeter, editMeterType,
       editAccountTerm, editInvoiceType, editVoucherSubject,
       editUser, manageStore
     ) {
@@ -314,6 +359,7 @@ export var setupNavBar = function (mod) {
           viewTenantList,
           editSettings,
           editMeter,
+          editMeterType,
           editAccountTerm,
           editInvoiceType,
           editVoucherSubject,
