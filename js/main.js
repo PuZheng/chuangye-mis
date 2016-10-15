@@ -11,6 +11,7 @@ import departmentApp from './department/object-app';
 import meterListApp from './meter/list-app';
 import meterObjectApp from './meter/object-app';
 import meterTypeListApp from './meter-type/list-app';
+import meterTypeObjectApp from './meter-type/object-app';
 import accountStore from 'store/account-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
@@ -206,6 +207,12 @@ page(
   '/meter-type-list', loginRequired,
   _setupNavBar('meter.meter_type'),
   _could('edit.meter_type'), useWith(meterTypeListApp)
+);
+
+page(
+  '/meter-type/:id?', loginRequired,
+  _setupNavBar('meter.meter_type'),
+  _could('edit.meter_type'), useWith(meterTypeObjectApp)
 );
 
 page(
