@@ -41,8 +41,6 @@ $$storeOrders.change(function (storeOrders) {
 });
 
 var dirty = function (obj) {
-  console.log(obj);
-  console.log(copy);
   return !R.equals(obj, copy);
 };
 

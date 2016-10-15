@@ -6,6 +6,7 @@ import { $$searchDropdown } from '../widget/search-dropdown';
 import R from 'ramda';
 import meterStore from '../store/meter-store';
 import constStore from '../store/const-store';
+import meterTypeStore from 'store/meter-type-store';
 import { $$toast } from '../toast.js';
 import page from 'page';
 import departmentStore from '../store/department-store';
@@ -19,7 +20,7 @@ var $$statusList = $$([], 'status-list');
 var $$loading = $$(false, 'loading');
 var allMeters = [];
 var $$departments = $$([], 'departments');
-var $$typeList = $$([], 'meter-types');
+var $$meterTypeList = $$([], 'meter-types');
 var $$parentMeters = $$([], 'parent-meters');
 
 var copy = {};
@@ -37,8 +38,10 @@ var vf = function ([obj, form, loading]) {
   ]);
 };
 
-var formVf = function ([obj, errors, statusDropdown, 
-                       parentMeterDropdown, departmentDropdown, typeDropdown]) {
+var formVf = function (
+  [obj, errors, statusDropdown, 
+    parentMeterDropdown, departmentDropdown, meterTypeDropdown]
+) {
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
@@ -94,9 +97,9 @@ var formVf = function ([obj, errors, statusDropdown,
       required: true
     }),
     field({
-      key: 'type', 
+      key: 'meterTypeId', 
       label: '类型', 
-      input: typeDropdown, 
+      input: meterTypeDropdown, 
       errors,
       required: true
     }),
@@ -108,7 +111,11 @@ var formVf = function ([obj, errors, statusDropdown,
           $$obj.patch({ isTotal: this.checked });
         }
       }),
-      h('label', '是否总线'),
+      h('label', {
+        onclick() {
+          $$obj.patch({ isTotal: !obj.isTotal });
+        }
+      }, '是否总线'),
     ]),
     field({
       key: 'status', 
@@ -202,21 +209,19 @@ var $$parentMeterDropdown = $$dropdown({
   $$value: $$obj.trans(o => o.parentMeterId),
 });
 
-var $$typeDropdown = $$dropdown({
+var $$meterTypeDropdown = $$dropdown({
   defaultText: '请选择类型',
-  onchange(value) {
-    $$obj.patch({
-      type: value
-    });
-    $$parentMeters.val(allMeters.filter(m => m.isTotal && m.type == value));
+  onchange(meterTypeId) {
+    $$obj.patch({ meterTypeId });
+    $$parentMeters.val(allMeters.filter(m => m.isTotal && m.meterTypeId == meterTypeId));
   },
-  $$options: $$typeList.trans(function (list) {
+  $$options: $$meterTypeList.trans(function (list) {
     return list.map(it => ({
-      value: it,
-      text: it,
+      value: it.id,
+      text: it.name,
     }));
   }),
-  $$value: $$obj.trans(o => o.type),
+  $$value: $$obj.trans(o => o.meterTypeId),
 });
 
 var $$departmentDropdown = $$searchDropdown({
@@ -240,7 +245,7 @@ var $$departmentDropdown = $$searchDropdown({
 
 var $$form = $$.connect(
   [$$obj, $$errors, $$statusDropdown, $$parentMeterDropdown,
-    $$departmentDropdown, $$typeDropdown], 
+    $$departmentDropdown, $$meterTypeDropdown], 
   formVf
 );
 
@@ -249,21 +254,23 @@ export default {
   page: {
     $$view: $$.connect([$$obj, $$form, $$loading], vf),
   },
-  init(id) {
+  init(ctx) {
+    let { id } = ctx.params;
     $$loading.toggle();
     Promise.all([
       constStore.get(),
+      meterTypeStore.list,
       meterStore.fetchList(),
       departmentStore.list,
       id? meterStore.get(id): {}
     ])
-    .then(function ([{ meterTypes, meterStatus }, { data: meters }, departments, obj]) {
+    .then(function ([{ meterStatus }, meterTypes, { data: meters }, departments, obj]) {
       copy = R.clone(obj);
       allMeters = meters;
       $$.update(
         [$$loading, false],
         [$$statusList, R.values(meterStatus)],
-        [$$typeList, R.values(meterTypes)],
+        [$$meterTypeList, R.values(meterTypes)],
         [$$departments, departments],
         [$$obj, obj]
       );

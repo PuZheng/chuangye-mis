@@ -10,6 +10,8 @@ import departmentListApp from './department/list-app';
 import departmentApp from './department/object-app';
 import meterListApp from './meter/list-app';
 import meterObjectApp from './meter/object-app';
+import meterTypeListApp from './meter-type/list-app';
+import meterTypeObjectApp from './meter-type/object-app';
 import accountStore from 'store/account-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
@@ -185,10 +187,9 @@ var meterList = function () {
 
 page(
   '/meter-list', loginRequired, 
-  _setupNavBar('meter'),
+  _setupNavBar('meter.meter'),
   _could('edit.meter'), meterList
 );
-
 
 page(
   '/account-term-list', loginRequired,
@@ -196,16 +197,22 @@ page(
   _could('edit.account_term'), useWith(accountTermApp)
 );
 
-var meter = function (ctx) {
-  currentApp = meterObjectApp;
-  mount(currentApp.page);
-  currentApp.init(ctx.params.id);
-};
-
 page(
   '/meter/:id?', loginRequired,
-  _setupNavBar('meter'),
-  _could('edit.meter'), meter
+  _setupNavBar('meter.meter'),
+  _could('edit.meter'), useWith(meterObjectApp)
+);
+
+page(
+  '/meter-type-list', loginRequired,
+  _setupNavBar('meter.meter_type'),
+  _could('edit.meter_type'), useWith(meterTypeListApp)
+);
+
+page(
+  '/meter-type/:id?', loginRequired,
+  _setupNavBar('meter.meter_type'),
+  _could('edit.meter_type'), useWith(meterTypeObjectApp)
 );
 
 page(
