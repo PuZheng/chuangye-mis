@@ -158,54 +158,44 @@ var $$meter = function () {
       onmouseout() {
         $$expanded.val(false);
       }
-    }, [
-      '设备管理',
-      h('i.fa.fa-caret-down'),
-      h('.sub.menu', [
-        R.ifElse(
-          R.prop('editMeter'),
-          () => h('a' + classNames('item', (currentMod === 'meter.meter') && 'active'), {
-            href: '/meter-list',
-            onclick() {
-              page('/meter-list');
-            }
-          }, '表设备信息'),
-          R.always('')
-        )(mods),
-        R.ifElse(
-          R.prop('editMeterType'),
-          function () {
-            return h('a' + classNames('item', (currentMod === 'meter.meter_type') && 'active'), {
-              href: '/meter-type-list',
+    }, R.ifElse(
+      mods => mods.editMeter || mods.editMeterType,
+      mods => [
+        '设备管理',
+        h('i.fa.fa-caret-down'),
+        h('.sub.menu', [
+          R.ifElse(
+            R.prop('editMeter'),
+            () => h('a' + classNames('item', (currentMod === 'meter.meter') && 'active'), {
+              href: '/meter-list',
               onclick() {
-                page('/meter-type-list');
+                $$expanded.val(false);
+                page('/meter-list');
               }
-            }, '表设备类型'); 
-          },
-          R.always('')
-        )(mods),
-      ])
-    ]); 
+            }, '表设备信息'),
+            R.always('')
+          )(mods),
+          R.ifElse(
+            R.prop('editMeterType'),
+            function () {
+              return h('a' + classNames('item', (currentMod === 'meter.meter_type') && 'active'), {
+                href: '/meter-type-list',
+                onclick() {
+                  $$expanded.val(false);
+                  page('/meter-type-list');
+                }
+              }, '表设备类型'); 
+            },
+            R.always('')
+          )(mods),
+        ])
+      ], 
+      R.always('')
+    )(mods)); 
   };
   return $$.connect([$$currentMod, $$mods, $$expanded], vf);
 }();
 
-// var $$meter = $$.connect(
-//   [$$currentMod, $$mods], 
-//   function ([currentMod, mods]) {
-    
-//     return R.ifElse(
-//       R.prop('editMeter'),
-//       () => h('a' + classNames('item', (currentMod === 'meter') && 'active'), {
-//         href: '/meter-list',
-//         onclick() {
-//           page('/meter-list');
-//         }
-//       }, '表设备信息'),
-//       R.always('')
-//     )(mods);
-//   }
-// );
 
 var $$accountTerm = $$.connect(
   [$$currentMod, $$mods],
