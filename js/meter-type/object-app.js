@@ -53,7 +53,7 @@ var vf = function ([loading, obj, errors, readingEditor]) {
           } catch (e) {
             console.error(e);
             if ((e.response || {}).status == 400) {
-            $$errors.val(e.response.data.fields || {});
+              $$errors.val(e.response.data.fields || {});
             }
           } finally {
             $$loading.val(false);
@@ -157,15 +157,16 @@ export default {
   },
   init(ctx) {
     let { id } = ctx.params;
-    $$loading.val(true);
-    meterTypeStore.get(id)
-    .then(function (obj) {
-      console.log(obj);
-      copy = R.clone(obj);
-      $$.update(
-        [$$obj, obj],
-        [$$loading, false]
-      );
-    });
+    if (id) {
+      $$loading.val(true);
+      meterTypeStore.get(id)
+      .then(function (obj) {
+        copy = R.clone(obj);
+        $$.update(
+          [$$obj, obj],
+          [$$loading, false]
+        );
+      });
+    }
   }
 };

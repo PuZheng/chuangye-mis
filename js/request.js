@@ -17,11 +17,15 @@ var request = new Proxy(axios,  {
   get: function (target, name) {
     return function (...args) {
       switch (name) {
-        case 'get': {
+        case 'get':
+        case 'delete': {
           let [url, options={}] = args;
-          return target.get(
-            backendURL(url), 
-            setAuthorization(options)
+          return target[name].apply(
+            target,
+            [
+              backendURL(url), 
+              setAuthorization(options)
+            ]
           ).catch(function (error) {
             if (!error.response || error.response.status == 500) {
               overlay.$$content.val({

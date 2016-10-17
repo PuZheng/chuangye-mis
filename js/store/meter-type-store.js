@@ -23,5 +23,8 @@ export default {
   },
   get(id) {
     return request.get('/meter-type/object/' + id).then(R.prop('data'));
+  },
+  del(id) {
+    return request.delete('/meter-type/object/' + id).then(R.prop('data'));
   }
 };
