@@ -7,11 +7,14 @@ import page from 'page';
 import co from 'co';
 import meterTypeStore from 'store/meter-type-store';
 import { $$toast } from '../toast';
+import $$searchDropdown from 'widget/search-dropdown';
+import settingsStore from 'store/settings-store';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$errors = $$({}, 'errors');
 var $$obj = $$({}, 'obj');
+var $$settings = $$([], 'settings');
 var copy = {};
 
 var dirty = function (obj) {
@@ -66,7 +69,7 @@ var vf = function ([loading, obj, errors, readingEditor]) {
         key: 'name',
         label: '名称',
         input: h('input', {
-          value: obj.name,
+          value: obj.name || '',
           oninput() {
             $$obj.patch({ name: this.value });
           }
@@ -90,45 +93,60 @@ var vf = function ([loading, obj, errors, readingEditor]) {
 
 // 读数编辑器
 var $$readingEditor = function () {
-  var $$meterReading = $$({}, 'meter-reading');
-  let vf = function ([obj, meterReading, errors]) {
+  let $$meterReading = $$({}, 'meter-reading');
+  let $$settingsDropdown = $$searchDropdown({
+    defaultText: '选择相关价格配置项',
+    $$value: $$meterReading.trans(R.propOr('', 'priceSettingId')),
+    $$options: $$settings.trans(R.map(function ({ id, name, group }) {
+      return {
+        value: id,
+        text: name,
+        group: group
+      };
+    })),
+    onchange(priceSettingId) {
+      $$meterReading.patch({ priceSettingId });
+    },
+    optionGroup: R.prop('group')
+  });
+  let vf = function ([obj, meterReading, errors, settingsDropdown, settings]) {
     let err = errors['meterReadings'];
     return h('.field.inline', [
       h('.border.border-box.p2', [
-        h('label', '读数'),
         h('input', {
+          placeholder: '输入读数名称',
           oninput() {
             $$meterReading.patch({ name: this.value });
           },
           value: meterReading.name || '',
         }),
-        h('button', {
+        settingsDropdown,
+        h('button.btn.btn-outline', {
           style: {
             background: 'none',
-            outline: 'none',
-            border: 'none'
           },
-          title: '添加读数',
           onclick(e) {
             e.preventDefault();
-            if (meterReading.name) {
+            if (meterReading.name && meterReading.priceSettingId) {
               $$obj.patch({
-                meterReadings: (obj.meterReadings || []).concat([{
-                  name: meterReading.name
-                }])
+                meterReadings: (obj.meterReadings || []).concat([R.clone(meterReading)])
               });
-              $$meterReading.patch({ name: '' });
+              $$meterReading.patch({ 
+                name: '', 
+                priceSettingId: '',
+              });
             }
             return false;
           },
-        }, h('i.fa.fa-plus.color-success')),
+        }, '添加读数'),
         R.ifElse(
           (meterReadings) => meterReadings == undefined || R.isEmpty(meterReadings),
             R.always(''),
           function (meterReadings=[]) {
             return h('.segment', meterReadings.map(function (it, idx) {
+              let setting = R.find(R.propEq('id', it.priceSettingId))(settings);
               return h('.item', [
-                h('.title', it.name),
+                h('.title', it.name + `(${setting.name})`),
                 h('.ops', h('button', {
                   onclick(e) {
                     e.preventDefault();
@@ -148,7 +166,8 @@ var $$readingEditor = function () {
       err? h('.label.pointing.error', err): '',
     ]);
   };
-  return $$.connect([$$obj, $$meterReading, $$errors], vf);
+  return $$.connect([$$obj, $$meterReading, $$errors, $$settingsDropdown, $$settings], 
+                    vf);
 }();
 
 export default {
@@ -157,16 +176,18 @@ export default {
   },
   init(ctx) {
     let { id } = ctx.params;
-    if (id) {
-      $$loading.val(true);
-      meterTypeStore.get(id)
-      .then(function (obj) {
-        copy = R.clone(obj);
-        $$.update(
-          [$$obj, obj],
-          [$$loading, false]
-        );
-      });
-    }
+    $$loading.val(true);
+    Promise.all([
+      id? meterTypeStore.get(id): {},
+      settingsStore.list
+    ])
+    .then(function ([obj, settings]) {
+      copy = R.clone(obj);
+      $$.update(
+        [$$obj, obj],
+        [$$settings, settings],
+        [$$loading, false]
+      );
+    });
   }
 };
