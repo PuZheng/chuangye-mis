@@ -34,6 +34,7 @@ import userListApp from './user/list-app';
 import userObjectApp from './user/object-app';
 import storeOrderListApp from './store/order/list-app';
 import storeOrderObjectApp from './store/order/object-app';
+import chargeBillApp from './charge-bill/';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -156,35 +157,17 @@ page('/tenant/:id?', loginRequired,
     _could('edit.tenant.object'),
     _setupNavBar('tenant'), useWith(tenantObjectApp));
 
-// page('/charge-bill/:id?', function (ctx) {
-//   currentApp = chargeBillApp;
-//   mount(chargeBillApp.makePage());
-//   app.$$loading.val(true);
-//   chargeBillStore.get(ctx.params.id).then(function (chargeBill) {
-//     mount(chargeBillApp.makePage(chargeBill));
-//     app.$$loading.val(false);
-//   });
-// });
-
-var settings = function () {
-  currentApp = settingsApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
+page('/charge-bill/:accountTermName', loginRequired,
+    _could('edit.charge_bill'),
+    _setupNavBar('charge_bill'), useWith(chargeBillApp));
 
 page('/settings', loginRequired, _setupNavBar('settings'),
-      _could('edit.settings'), settings);
-
-var meterList = function () {
-  currentApp = meterListApp;
-  mount(currentApp.page);
-  currentApp.init();
-};
+      _could('edit.settings'), useWith(settingsApp));
 
 page(
   '/meter-list', loginRequired,
   _setupNavBar('meter.meter'),
-  _could('edit.meter'), meterList
+  _could('edit.meter'), useWith(meterListApp)
 );
 
 page(

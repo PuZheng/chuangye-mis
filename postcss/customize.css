@@ -1,5 +1,17 @@
+:root {
+    --main-padding-top: calc(2.2rem + 1px);
+}
+html {
+    height: 100%;
+}
 body {
     color: var(--color-gray-dark);
+    height: 100%;
+}
+
+#main {
+    padding-top: var(--main-padding-top);
+    height: 100%;
 }
 
 a {
@@ -225,5 +237,19 @@ a {
     }
     & .role:after {
         content: ')';
+    }
+}
+
+.charge-bills {
+    height: 100%;
+    & > aside {
+        height: 100%;
+        width: 12rem;
+        float: left;
+    }
+
+    & > .content {
+        padding-left: calc(12rem + 5px);
+        height: 100%;
     }
 }

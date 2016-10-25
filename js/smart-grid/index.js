@@ -237,7 +237,7 @@ export class SmartGrid {
           onwheel(e) {
             let actualHeight = smartGrid.$$actualHeight.val();
             let viewportHeight = smartGrid.$$viewportHeight.val();
-            var top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
+            let top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
             if (top < 0) {
               top = 0;
             }

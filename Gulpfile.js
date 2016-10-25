@@ -84,7 +84,7 @@ gulp.task('rollup', function () {
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers', 'store', 'toast', 'widget']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers', 'store', 'toast', 'widget', 'scrollable']
     }),
     commonjs({
       ignoreGlobal: true,
@@ -101,6 +101,7 @@ gulp.task('rollup', function () {
         store: 'js/store/',
         toast: 'js/toast.js',
         widget: 'js/widget/',
+        scrollable: 'js/scrollable/index.js',
       }
     }),
     json({

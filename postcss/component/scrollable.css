@@ -1,0 +1,51 @@
+:root {
+    --scrollbar-width: 10px;
+}
+
+.scrollable {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
+
+    & .container {
+        position: absolute;
+        width: 100%;
+        background: transparent;
+    }
+
+    &.with-scrollbar {
+        & .container {
+            width: calc(100% - var(--scrollbar-width));
+        }
+    }
+
+    & .scrollbar {
+        position: absolute;
+        background: var(--color-gray-light);
+        border-radius: var(--scrollbar-width);
+        cursor: grab;
+
+        &.grabbing {
+            cursor: grabbing;
+        }
+
+        &.hidden {
+            display: none;
+        }
+
+        & .bar {
+            position: absolute;
+            background: var(--color-gray-dark);
+            border-radius: var(--scrollbar-width);
+        }
+        &.vertical {
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: var(--scrollbar-width);
+            & .bar {
+                width: 100%;
+            }
+        }
+    }
+}

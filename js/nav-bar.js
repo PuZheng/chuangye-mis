@@ -265,9 +265,27 @@ var $$user = $$.connect(
   }
 );
 
+var $$chargeBill = $$.connect(
+  [$$currentMod, $$mods], 
+  function ([currentMod, mods]) {
+    return R.ifElse(
+      R.prop('editChargeBill'),
+      R.always(h('a' + classNames('item', (currentMod === 'charge_bill') && 'active'), {
+        href: '/charge-bill/latest',
+        onclick(e) {
+          e.preventDefault();
+          page('/charge-bill/latest');
+        }
+      }, '账单录入')),
+      R.always('')
+    )(mods);
+  }
+);
+
+
 var vf = function vf([
   home, invoice, store, voucher, department, tenant, settings, meter, 
-  accountTerm, invoiceType, voucherSubject, user
+  accountTerm, invoiceType, voucherSubject, user, chargeBill,
 ]) {
   return h('.menu.top', [
     home,
@@ -282,6 +300,7 @@ var vf = function vf([
     invoiceType,
     voucherSubject,
     user,
+    chargeBill,
     R.ifElse(
       R.prop('user'),
       () => h('.right.color-gray', [
@@ -311,7 +330,7 @@ var vf = function vf([
 
 export var $$navBar = $$.connect(
   [$$home, $$invoice, $$store, $$voucher, $$department, $$tenant, 
-    $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user, $$currentMod, $$mods], 
+    $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user, $$chargeBill], 
   vf, 
   'nav-bar'
 );
@@ -335,11 +354,12 @@ export var setupNavBar = function (mod) {
     .could('edit.voucher_subject')
     .could('edit.user')
     .could('manage.store')
+    .could('edit.charge_bill')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editMeter, editMeterType,
       editAccountTerm, editInvoiceType, editVoucherSubject,
-      editUser, manageStore
+      editUser, manageStore, editChargeBill
     ) {
       $$.update(
         [$$mods, {
@@ -355,6 +375,7 @@ export var setupNavBar = function (mod) {
           editVoucherSubject,
           editUser,
           manageStore,
+          editChargeBill,
         }],
         [$$currentMod, mod]
       );

@@ -2,28 +2,55 @@ import $$ from 'slot';
 import meterStore from 'store/meter-store';
 import SmartGrid from 'smart-grid';
 import virtualDom from 'virtual-dom';
+import accountTermStore from 'store/account-term-store';
+import classNames from '../class-names';
+import R from 'ramda';
+import Scrollable from 'scrollable';
 
 var h = virtualDom.h;
 
-var vf = function ([]) {
-  return h('div');
-};
 
 var sg;
-var $$view = $$.connect([], vf);
+var $$loading = $$(false, 'loading');
+var $$view = $$.connect([], () => h('.charge-bills'));
 
 export default {
   page: {
     $$view,
     onUpdated() {
-      sg.onUpdated();
+      // sg.onUpdated();
     },
   },
-  init() {
+  init(ctx) {
+    let { accountTermName } = ctx.params;
+    $$loading.val(true);
     Promise.all([
-      meterStore.fetchList(), 
+      accountTermStore.list,
+      meterStore.list
     ])
-    .then(function ([{ data: meters }]) {
+    .then(function ([accountTerms, meters]) {
+      if (accountTermName == 'latest') {
+        accountTerms[0].active = true;
+      } else {
+        let accountTerm = R.find(R.propEq('name', accountTermName))(accountTerms);
+        if (accountTerm) {
+          accountTerm.active = true;
+        } else {
+          accountTerms[0].active = true;
+        }
+      }
+      let sidebar = new Scrollable({
+        tag: 'aside',
+        $$content: $$(
+          h('.borderless.vertical.fluid.menu', 
+            accountTerms.map(function (at) {
+              return h('a' + classNames('item', at.active && 'active'), 
+                       {
+                         href: 'charge-bill/' + at.name,
+                       }, at.name);
+            })), 'content'),
+      });
+
       let def = { sheets: [] };
       let headerCellDef = {
         readOnly: true,
@@ -34,9 +61,7 @@ export default {
         }
       };
       for (let [type, group] of R.toPairs(
-        R.groupBy(function (it) {
-          return it.type
-        })(meters)
+        R.groupBy(R.path(['meterType', 'id']))(meters)
       )) {
         let headers = [
           Object.assign({
@@ -48,23 +73,28 @@ export default {
             headerCellDef,
           }),
           Object.assign({
-
+            val: '表设备',
+            headerCellDef,
           })
-        ]
+        ];
         def.sheets.push({
           label: type,
           grids: [
+            headers
           ]
         }); 
       }
       sg = new SmartGrid(def);
-      $$view
-      .connect([sg.$$view], function ([sg]) {
-        return h('.charge-bills', sg);
-      })
-      .refresh();
+      $$view.connect([sidebar.$$view, sg.$$view], function ([sidebar, sg]) {
+        return h('.charge-bills', [
+          sidebar,
+          h('.content', sg),
+        ]);
+      }).refresh();
+      sidebar.setupLayout();
       sg.setupLayout();
       sg.registerShortcus();
+
     });
   }
 };
