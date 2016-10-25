@@ -14,12 +14,14 @@ export var $$searchDropdown = function (
     $$value, 
     $$options, 
     onchange, 
+    optionGroup,
     optionContent=dropdownUtils.optionContent,
   }
 ) {
   let $$searchText = $$('', 'search-text');
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
+  let inputEl;
   let valueFunc = function ([activated, searchText, options, value, selection]) {
     options = options.map(function (o) {
       if (typeof o === 'string') {
@@ -34,6 +36,9 @@ export var $$searchDropdown = function (
     if (activated) {
       classNames.push('activated');
     }
+    if (optionGroup) {
+      classNames.push('grouped');
+    }
     classNames = classNames.map(c => '.' + c).join('');
     let selectedOption;
     if (value != 'undefined') {
@@ -47,18 +52,53 @@ export var $$searchDropdown = function (
     options = options.filter(function (o) {
       return dropdownUtils.match(o, searchText);
     });
-    let optionElms = options.map(function (o, idx) {
-      let classNames = ['item'];
-      (o.value == value) && classNames.push('current-value');
-      (idx == selection) && classNames.push('selected');
-      classNames = classNames.map( c => '.' + c ).join('');
-      return h(classNames, {
-        // note!!!, don't use onclick, since onclick event fired after input.search's onblur
-        onmousedown: function () {
-          onchange(o.value, o);
-        },
-      }, optionContent(o, searchText));
-    });
+    let optionElms;
+    if (optionGroup) {
+      let groups = {};
+      for (let option of options) {
+        let group = optionGroup(option);
+        if (!groups[group]) {
+          groups[group] = [];
+        }
+        groups[group].push(option);
+      }
+      optionElms = [];
+      let optionCounter = 0;
+      for (let k in groups) {
+        let subOptions = groups[k];
+        optionElms.push(h('.group', [
+          h('.group-name', k),
+          h('.options', subOptions.map(function (o, idx) {
+            let classNames = ['item'];
+            (o.value == value) && classNames.push('current-value');
+            (optionCounter + idx == selection) && classNames.push('selected');
+            classNames = classNames.map( c => '.' + c ).join('');
+            return h(classNames, {
+              // note!!!, don't use onclick, since onclick event fired after input.search's onblur
+              onmousedown: function () {
+                onchange(o.value, o);
+              },
+            }, optionContent(o, searchText));
+          })),
+          h('.clearfix')
+        ]));
+        optionCounter += subOptions.length;
+      }
+    } else {
+      optionElms = options.map(function (o, idx) {
+        let classNames = ['item'];
+        (o.value == value) && classNames.push('current-value');
+        (idx == selection) && classNames.push('selected');
+        classNames = classNames.map( c => '.' + c ).join('');
+        return h(classNames, {
+          // note!!!, don't use onclick, since onclick event fired after input.search's onblur
+          onmousedown: function () {
+            onchange(o.value, o);
+          },
+        }, optionContent(o, searchText));
+      });
+    }
+
   
     if (optionElms.length == 0) {
       optionElms = [h('.message', '没有可选项')];
@@ -66,9 +106,18 @@ export var $$searchDropdown = function (
     return h(classNames, {
       // a div with tabIndex could be focused/blured
     }, [
-      h('i.icon.fa.fa-caret-down'),
+      h('i.icon.fa.fa-caret-down', {
+        onclick() {
+          inputEl.focus();
+        }
+      }),
       h('input.search', {
         tabIndex: 0,
+        hook: new class Hook {
+          hook(el) {
+            inputEl = el;
+          }
+        },
         value: searchText,
         oninput: function () {
           $$searchText.val(this.value);
