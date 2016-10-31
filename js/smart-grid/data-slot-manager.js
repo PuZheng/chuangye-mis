@@ -1,20 +1,20 @@
 import $$ from '../slot/';
-import { Lexer } from './script/lexer.js';
-import { Interpreter } from './script/interpreter.js';
-import { Parser } from './script/parser.js';
+import { Lexer, Token } from './engine/lexer.js';
+import { Interpreter } from './engine/interpreter.js';
+import { Parser } from './engine/parser.js';
 
 /**
  * make a slot for a cell which:
- * 1. either depends on other cells 
- * 2. or is depended by other cells. 
+ * 1. either depends on other cells
+ * 2. or is depended by other cells.
  * 3. is asked by client to have a slot
  *
  * for example, given 3 cells:
  * [
- *    ['1', '2'],
- *    ['=B1*2']
+ *    ['1', '2', { label: 'foo' }],
+ *    ['=B1*2+${foo}']
  * ]
- * cell 'B1' has a slot, since 'A2' depends on it, but 'A1' doesn't have a 
+ * cell 'B1', 'C1' has a slot, since 'A2' depends on it, but 'A1' doesn't have a
  * slot, since no cells depends on it, and it doesn't depend on any cells.
  * */
 class DataSlotManager {
@@ -31,9 +31,10 @@ class DataSlotManager {
   }
   /**
    * reset all the slots for the cells, the old slots are reused if possible,
-   * those not needed are deleted 
+   * those not needed are deleted
    * */
   reset() {
+    // create slots for the cells
     for (var [idx, sheet] of this.analyzer.sheets.entries()) {
       // note, this._data[idx] may already created
       this._data[idx] = this._data[idx] || {};
@@ -45,6 +46,7 @@ class DataSlotManager {
         }
       }
     }
+    // purge unused slots
     for (let slots of this._data) {
       for (let tag in slots) {
         if (!this._reservedTags.has(tag)) {
@@ -77,10 +79,10 @@ class DataSlotManager {
     }();
   }
   /**
-   * make a slot for cell, if the cell depends on other cells, we will assure 
-   * each dependent cell does have a slot. 
+   * make a slot for cell, if the cell depends on other cells, we will assure
+   * each dependent cell does have a slot.
    * @param cell - cell definition
-   * @param currentSheetIdx - the sheet idx of the cell
+   * @param currentSheetIdx - the sheet idx of the cell, as the CONTEXT
    * */
   makeSlot(cell, currentSheetIdx) {
     this._reservedTags.add(cell.tag);
@@ -95,45 +97,75 @@ class DataSlotManager {
       if (!slot) {
         slot = $$(null, `cell-${cell.tag}`);
       }
-      return slot.connect(this.getDependentSlots(cell, currentSheetIdx), function (slots) {
-        let env = {};
-        for (var { val, tag, sheetName } of slots) {
-          env[sheetName? sheetName + ':' + tag: tag] = val;
+      let dependencies = this.getDependencies(cell, currentSheetIdx);
+      return slot.connect(
+        dependencies.map(dep => dep.slot),
+        function (values) {
+          let env = {};
+          let refMaps = {};
+          for (let i = 0; i < values.length; ++i) {
+            let dep = dependencies[i];
+            let val = values[i];
+            let { label, tag, sheet } = dep;
+            if (tag) {
+              if (!env[sheet]) {
+                env[sheet] = {};
+              }
+              env[sheet][tag] = val;
+            }
+            if (label) {
+              if (!refMaps[sheet]) {
+                refMaps[sheet] = {};
+              }
+              refMaps[sheet][label] = val;
+            }
+          }
+          let lexer = new Lexer(cell.script);
+          let parser = new Parser(lexer);
+          return new Interpreter(parser.expr, env, refMaps).eval();
         }
-        let lexer = new Lexer(cell.script);
-        let parser = new Parser(lexer);
-        return new Interpreter(parser.expr, env).eval();
-      });
+      );
     }
   }
-  getDependentSlots(cellDef, currentSheetIdx) {
-      let dependentSlots = [];
-      for (let {sheetName, tag} of cellDef.dependencies) {
-        let sheetIdx;
-        if (sheetName) {
-          sheetIdx = Number(sheetName.replace(/SHEET/i, '')) - 1;
-        } else {
-          sheetIdx = currentSheetIdx;
-        }
-        if (!this._data[sheetIdx]) {
-          this._data[sheetIdx] = {};
-        }
-        if (!this._data[sheetIdx][tag]) {
-          this._data[sheetIdx][tag] = this.makeSlot(this.analyzer.getCellDef(sheetIdx, tag) || {
-            primitive: true,
-            val: '',
-            tag: tag,
-          }, sheetIdx);
-        }
-        dependentSlots.push(this._data[sheetIdx][tag].map(function (val) {
-          return {
-            val,
-            tag,
-            sheetName,
-          };
-        }));
+  getDependencies(cellDef, currentSheetIdx) {
+    let dependentSlots = [];
+    for (let token of cellDef.dependencies || []) {
+      if (token.type != Token.REF && token.type != Token.VARIABLE) {
+        throw new Error('dependent token type must be reference or variable');
       }
-      return dependentSlots;
+      let { sheet, name } = token.value;
+      let sheetIdx;
+      if (sheet) {
+        sheetIdx = Number(sheet.replace(/SHEET/i, '')) - 1;
+      } else {
+        sheetIdx = currentSheetIdx;
+      }
+      if (!this._data[sheetIdx]) {
+        this._data[sheetIdx] = {};
+      }
+      let tag;
+      let label;
+      if (token.type == Token.REF) {
+        label = name;
+        tag = this.analyzer.getTagByLabel(sheetIdx, name);
+      } else if (token.type == Token.VARIABLE) {
+        tag = name;
+      }
+      if (!this._data[sheetIdx][tag]) {
+        this._data[sheetIdx][tag] = this.makeSlot(this.analyzer.getCellDef(sheetIdx, tag) || {
+          primitive: true,
+          val: '',
+          tag: tag,
+        }, sheetIdx);
+      }
+      dependentSlots.push({
+        slot: this._data[sheetIdx][tag],
+        sheet,
+        tag,
+        label,
+      });
+    }
+    return dependentSlots;
   }
   get(sheetIdx, tag) {
     return (this._data[sheetIdx] || {})[tag];
@@ -148,11 +180,14 @@ class DataSlotManager {
       if (!this._data[sheetIdx])  {
         this._data[sheetIdx] = {};
       }
-      let cellDef = this.analyzer.getCellDef(sheetIdx, tag);
+      let cellDef = this.analyzer.getCellDef(sheetIdx, tag) || {
+        tag,
+        primitive: true,
+      };
       slot = this._data[sheetIdx][tag] = this.makeSlot(cellDef, sheetIdx);
     }
-    return slot; 
+    return slot;
   }
-};
+}
 
 export default DataSlotManager;

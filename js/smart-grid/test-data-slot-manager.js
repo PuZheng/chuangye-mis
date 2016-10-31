@@ -22,7 +22,7 @@ test('simple', function (t) {
         label: 'A',
         grids: [
           ['a', 'b', 'c'],
-          [, , , 'x']
+          [void 0, void 0, void 0, 'x']
         ]
       }
     ]
@@ -42,7 +42,7 @@ test('dependency1', function (t) {
         label: 'A',
         grids: [
           ['1', '2', '3'],
-          [, , , '=SHEET1:A1*3']
+          [void 0, void 0, void 0, '=SHEET1:A1*3']
         ]
       }
     ]
@@ -62,7 +62,7 @@ test('dependency2', function (t) {
         label: 'A',
         grids: [
           ['1', '2', '3'],
-          [, , , '=A1+SHEET2:A1*C1']
+          [void 0, void 0, void 0, '=A1+SHEET2:A1*C1']
         ]
       }, {
         label: 'B',
@@ -85,8 +85,8 @@ test('dependency3', function (t) {
         label: 'A',
         grids: [
           ['1', '2', '3'],
-          [, , , '=A1+SHEET2:A1*C1'],
-          [, , , '=D2+B1']
+          [void 0, void 0, void 0, '=A1+SHEET2:A1*C1'],
+          [void 0, void 0, void 0, '=D2+B1']
         ]
       }, {
         label: 'B',
@@ -102,6 +102,46 @@ test('dependency3', function (t) {
   t.is(mngr.get(0, 'D3').val(), '12');
 });
 
+test('dependency4', function (t) {
+  let def = {
+    sheets: [
+      {
+        grids: [
+          [{
+            label: 'FOO',
+            val: '19'
+          }, '=${FOO} * 2']
+        ]
+      }
+    ]
+  };
+  let mngr = new DataSlotManager(new Analyzer(def));
+  t.is(mngr.get(0, 'B1').val(), '38');
+});
+
+test('dependency5', function (t) {
+  let def = {
+    sheets: [
+      {
+        grids: [
+          ['=SHEET2:${FOO} * A2'],
+          ['9']
+        ]
+      }, {
+        grids: [
+          [{
+            label: 'FOO'
+          }]
+        ]
+      }
+    ]
+  };
+  let mngr = new DataSlotManager(new Analyzer(def));
+  t.falsy(mngr.get(0, 'A1').val());
+  mngr.get(1, 'A1').val('3');
+  t.is(mngr.get(0, 'A1').val(), '27');
+});
+
 test('create', function (t) {
   let def = {
     sheets: [
@@ -109,8 +149,8 @@ test('create', function (t) {
         label: 'A',
         grids: [
           ['1', '2', '3'],
-          [, , , '=A1*2'],
-          [, , , '=D2']
+          [void 0, void 0, void 0, '=A1*2'],
+          [void 0, void 0, void 0, '=D2']
         ]
       }, {
         label: 'B',
@@ -121,7 +161,7 @@ test('create', function (t) {
   };
   let mngr = new DataSlotManager(new Analyzer(def));
   t.is(mngr.create(0, 'B1').val(), '2');
-  t.is(mngr.create(0, 'A2').val(), undefined);
+  t.is(mngr.create(0, 'A2').val(), void(0));
 });
 
 test('reset1', function (t) {
@@ -141,7 +181,7 @@ test('reset1', function (t) {
   });
   mngr.reset();
   let $$slot = mngr.get(0, 'A1');
-  t.is($$slot, undefined);
+  t.is($$slot, void(0));
 });
 
 test('reset2', function (t) {
@@ -210,9 +250,9 @@ test('reset4', function (t) {
   });
   mngr.reset();
   $$slot = mngr.get(0, 'A2');
-  t.is($$slot, undefined);
+  t.is($$slot, void(0));
   $$slot = mngr.get(0, 'C1');
-  t.is($$slot, undefined);
+  t.is($$slot, void(0));
 });
 
 test('reset5', function (t) {

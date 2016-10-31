@@ -1,27 +1,5 @@
 import makeTag from './make-tag';
-import { Lexer, Token } from './script/lexer.js';
-
-/**
- * split var name to sheetName and tag, eg. "sheet1:A3" => { 
- *  sheetName: 'sheet1',
- *  tag: 'A3'
- * }
- * */
-let splitVarName = function (varName) {
-  let arr = varName.split(':');
-  let sheetName = '';
-  let tag;
-  if (arr.length > 1) {
-    sheetName = arr[0];
-    tag = arr[1];
-  } else {
-    tag = arr[0];
-  }
-  return {
-    sheetName,
-    tag
-  };
-};
+import { Lexer, Token } from './engine/lexer.js';
 
 /**
  * get next cell definition from raw definitions.
@@ -30,18 +8,18 @@ let splitVarName = function (varName) {
  * @param {Number} i - row of start position
  * @param {Number} j - column of start position
  *
- * @return {Array} - next cell definition and its position, eg. 
- *  [nextCellDef, nextRow, nextCol], or [undefined] if there's no next cell 
+ * @return {Array} - next cell definition and its position, eg.
+ *  [nextCellDef, nextRow, nextCol], or [void(0] if there's no next cell
  *  definition
  * */
 export var getNextCellDef = function getNextCellDef(grids, i, j) {
   let cellDef;
   while (i < grids.length) {
     let row = grids[i];
-    while (j < row.length && row[j] === undefined) {
+    while (j < row.length && row[j] === void(0)) {
       ++j;
     }
-    if (row[j] === undefined) {
+    if (row[j] === void(0)) {
       ++i;
       continue;
     }
@@ -51,19 +29,19 @@ export var getNextCellDef = function getNextCellDef(grids, i, j) {
   if (cellDef) {
     return [cellDef, i, j];
   }
-  return [undefined];
+  return [];
 };
 
 
 /*
- * Analyzer of smart grid raw definitions. 
+ * Analyzer of smart grid raw definitions.
  * */
 class Analyzer {
   /**
    * @constructor
    *
-   * @param {object} def - the raw definition of smart grid. it must has a field 
-   * named sheets which is an array of sheet object, each sheet object has 2 
+   * @param {object} def - the raw definition of smart grid. it must has a field
+   * named sheets which is an array of sheet object, each sheet object has 2
    * fields: label and grids. here's a sample definition:
    *
    * {
@@ -91,14 +69,23 @@ class Analyzer {
   constructor(def) {
     this.def = def;
     let analyzer = this;
+    this.labelMaps = {};
     this.sheets = def.sheets.map(function ({label, grids=[]}, idx) {
       var cells = {};
       let [cellDef, i, j] = getNextCellDef(grids, 0, 0);
-      while (cellDef != undefined) {
+      let sheet = ('SHEET' + (idx + 1));
+      while (cellDef != void(0)) {
         let tag = makeTag(i, j);
-        cellDef = analyzer.analyze(cellDef);
+        cellDef = analyzer.normalize(cellDef);
         cellDef.tag = tag;
+        cellDef.sheet = sheet;
         cells[tag] = cellDef;
+        if (cellDef.label) {
+          if (!analyzer.labelMaps[idx]) {
+            analyzer.labelMaps[idx] = {};
+          }
+          analyzer.labelMaps[idx][cellDef.label] = tag;
+        }
         j++;
         if (j == grids[i].length) {
           j = 0;
@@ -108,15 +95,15 @@ class Analyzer {
       }
       return {
         idx: idx,
-        label: label || ('SHEET' + (idx + 1)),
+        label: label || sheet,
         cells,
       };
     });
   }
   /**
-   * Get all the cell definitions that pass the given test 
+   * Get all the cell definitions that pass the given test
    *
-   * @param {function} [test] - a function that take a cell definition as 
+   * @param {function} [test] - a function that take a cell definition as
    * argument, return true if cell passes the test, otherwise false
    *
    * @return {array} - all the cell definitions if test is not provided, or
@@ -144,15 +131,15 @@ class Analyzer {
     return ret;
   }
   /**
-   * analyze a cell's definition and normalize it
+   * normalize a cell's definition and normalize it
    * */
-  analyze(cellDef) {
+  normalize(cellDef) {
     if (typeof cellDef === 'string') {
       cellDef = {
         val: cellDef,
       };
     }
-    let val = cellDef.val;
+    let val = cellDef.val || '';
     let primitive = val[0] != '=';
     let dependencies = [];
     let script;
@@ -160,16 +147,21 @@ class Analyzer {
       let lexer = new Lexer(val.slice(1));
       for (var token of lexer.tokens) {
         if (token.type === Token.VARIABLE) {
-          dependencies.push(splitVarName(token.value));
+          dependencies.push(token);
+        } else if (token.type === Token.REF) {
+          dependencies.push(token);
         }
       }
       script = val.slice(1);
     }
     return Object.assign(cellDef, {
-      primitive, 
+      primitive,
       dependencies,
       script,
     });
+  }
+  getTagByLabel(sheetIdx, label) {
+    return (this.labelMaps[sheetIdx] || {})[label];
   }
   getCellDef(sheetIdx, tag) {
     let sheet = this.sheets[sheetIdx];
@@ -183,16 +175,16 @@ class Analyzer {
     if (!sheet) {
       return;
     }
-    if (sheet.cells == undefined) {
+    if (sheet.cells == void(0)) {
       sheet.cells = {};
-    };
-    return sheet.cells[tag] = Object.assign(this.analyze(def), {
+    }
+    return sheet.cells[tag] = Object.assign(this.normalize(def), {
       tag,
     });
   }
   getSheet(sheetIdx) {
     return this.sheets[sheetIdx];
   }
-};
+}
 
 export default Analyzer;

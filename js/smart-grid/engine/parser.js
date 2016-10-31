@@ -22,7 +22,15 @@ export class Num {
 }
 
 export class Var {
-  constructor(name) {
+  constructor({sheet, name}) {
+    this.sheet = sheet;
+    this.name = name;
+  }
+}
+
+export class Ref {
+  constructor({sheet, name}) {
+    this.sheet = sheet;
     this.name = name;
   }
 }
@@ -39,7 +47,7 @@ export class Parser {
       return;
     }
     let node = this.term;
-    while (this.currentToken && 
+    while (this.currentToken &&
            (this.currentToken.type === Token.MINUS || this.currentToken.type === Token.PLUS)) {
       let op = this.currentToken.value;
       this.eat(this.currentToken.type);
@@ -49,7 +57,7 @@ export class Parser {
   }
   get term() {
     let node = this.factor;
-    while (this.currentToken && 
+    while (this.currentToken &&
            (this.currentToken.type === Token.MUL || this.currentToken.type === Token.DIV)) {
       let op = this.currentToken.value;
       this.eat(this.currentToken.type);
@@ -60,37 +68,42 @@ export class Parser {
   get factor() {
     var node;
     switch (this.currentToken.type) {
-      case Token.PLUS: {
-        let op = this.currentToken.value;
-        this.eat(Token.PLUS);
-        node = new UnaryOp(op, this.factor);
-        break;
-      }
-      case Token.MINUS: {
-        let op = this.currentToken.value;
-        this.eat(Token.MINUS);
-        node = new UnaryOp(op, this.factor);
-        break;
-      }
-      case Token.NUMBER: {
-        node = new Num(this.currentToken.value);
-        this.eat(Token.NUMBER);
-        break;
-      }
-      case Token.LPAREN: {
-        this.eat(Token.LPAREN);
-        node = this.expr;
-        this.eat(Token.RPAREN);
-        break;
-      }
-      case Token.VARIABLE: {
-        node = new Var(this.currentToken.value);
-        this.eat(Token.VARIABLE);
-        break;
-      }
-      default: {
-        throw new Error('unexpected token: ' + this.currentToken.toString());
-      }
+    case Token.PLUS: {
+      let op = this.currentToken.value;
+      this.eat(Token.PLUS);
+      node = new UnaryOp(op, this.factor);
+      break;
+    }
+    case Token.MINUS: {
+      let op = this.currentToken.value;
+      this.eat(Token.MINUS);
+      node = new UnaryOp(op, this.factor);
+      break;
+    }
+    case Token.NUMBER: {
+      node = new Num(this.currentToken.value);
+      this.eat(Token.NUMBER);
+      break;
+    }
+    case Token.LPAREN: {
+      this.eat(Token.LPAREN);
+      node = this.expr;
+      this.eat(Token.RPAREN);
+      break;
+    }
+    case Token.VARIABLE: {
+      node = new Var(this.currentToken.value);
+      this.eat(Token.VARIABLE);
+      break;
+    }
+    case Token.REF: {
+      node = new Ref(this.currentToken.value);
+      this.eat(Token.REF);
+      break;
+    }
+    default: {
+      throw new Error('unexpected token: ' + this.currentToken.toString());
+    }
     }
     return node;
   }
@@ -102,4 +115,4 @@ export class Parser {
       throw new Error('unexpected token: ' + this.currentToken.toString());
     }
   }
-};
+}

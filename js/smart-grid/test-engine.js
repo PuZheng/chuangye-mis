@@ -1,10 +1,23 @@
-import { Lexer, Token } from './script/lexer.js';
-import { Parser, Num, BinOp, UnaryOp, Var } from './script/parser.js';
-import { Interpreter, types } from './script/interpreter.js';
-import { SmartGrid } from './';
+import {
+  Lexer,
+  Token
+} from './engine/lexer.js';
+import {
+  Parser,
+  Num,
+  BinOp,
+  UnaryOp,
+  Var,
+  Ref
+} from './engine/parser.js';
+import {
+  Interpreter,
+  types
+} from './engine/interpreter.js';
 import test from 'ava';
+import R from 'ramda';
 
-test('lexer', function(t) {
+test('lexer', function (t) {
   let lexer = new Lexer('1');
   let tokens = [...lexer.tokens];
   t.is(tokens.length, 1);
@@ -14,7 +27,7 @@ test('lexer', function(t) {
   lexer = new Lexer('');
   tokens = [...lexer.tokens];
   t.is(tokens.length, 0);
-  
+
 
   lexer = new Lexer('+');
   tokens = [...lexer.tokens];
@@ -25,13 +38,34 @@ test('lexer', function(t) {
   tokens = [...lexer.tokens];
   t.is(tokens.length, 1);
   t.is(tokens[0].type, Token.VARIABLE);
-  t.is(tokens[0].value, 'TAB1:EE3');
+  t.deepEqual(tokens[0].value, {
+    sheet: 'TAB1',
+    name: 'EE3'
+  });
 
   lexer = new Lexer('E3 + (E2 * (TAB1:A1 + 2))');
   tokens = [...lexer.tokens];
   t.is(tokens.length, 11);
-  t.deepEqual(tokens.map( t => t.type ), [
-    Token.VARIABLE, Token.PLUS, Token.LPAREN, Token.VARIABLE, Token.MUL, Token.LPAREN, Token.VARIABLE, Token.PLUS, Token.NUMBER, Token.RPAREN, Token.RPAREN
+  t.deepEqual(tokens.map(R.prop('type')), [
+    Token.VARIABLE, Token.PLUS, Token.LPAREN, Token.VARIABLE, Token.MUL,
+    Token.LPAREN, Token.VARIABLE, Token.PLUS, Token.NUMBER, Token.RPAREN,
+    Token.RPAREN
+  ]);
+  lexer = new Lexer('SHEET2:${ref1}');
+  tokens = [...lexer.tokens];
+  t.is(tokens.length, 1);
+  t.is(tokens[0].type, Token.REF);
+  t.deepEqual(tokens[0].value, {
+    sheet: 'SHEET2',
+    name: 'REF1'
+  });
+
+  lexer = new Lexer('E1 + (${ref1} + ${ref2})');
+  tokens = [...lexer.tokens];
+  console.log(tokens);
+  t.is(tokens.length, 7);
+  t.deepEqual(tokens.map(R.prop('type')), [
+    Token.VARIABLE, Token.PLUS, Token.LPAREN, Token.REF, Token.PLUS, Token.REF, Token.RPAREN
   ]);
 });
 
@@ -69,7 +103,7 @@ test('parser', function (t) {
   t.true(expr.right instanceof Num);
   t.is(expr.right.value, 2);
 
-  lexer = new Lexer('1 * (2 + e3)');
+  lexer = new Lexer('1 * (2 + SHEET1:E3)');
   parser = new Parser(lexer);
   expr = parser.expr;
   t.true(expr instanceof BinOp);
@@ -79,7 +113,34 @@ test('parser', function (t) {
   t.true(expr.right.left instanceof Num);
   t.is(expr.right.left.value, 2);
   t.true(expr.right.right instanceof Var);
+  t.is(expr.right.right.sheet, 'SHEET1');
   t.is(expr.right.right.name, 'E3');
+
+  lexer = new Lexer('${REF1}');
+  parser = new Parser(lexer);
+  expr = parser.expr;
+  t.true(expr instanceof Ref);
+  t.falsy(expr.sheet);
+  t.is(expr.name, 'REF1');
+
+  lexer = new Lexer('SHEET1:${REF1}');
+  parser = new Parser(lexer);
+  expr = parser.expr;
+  t.true(expr instanceof Ref);
+  t.is(expr.sheet, 'SHEET1');
+
+  lexer = new Lexer('SHEET1:${REF1} * (2 + ${REF2} + ${REF3})');
+  parser = new Parser(lexer);
+  expr = parser.expr;
+  t.true(expr instanceof BinOp);
+  t.true(expr.left instanceof Ref);
+  t.is(expr.left.sheet, 'SHEET1');
+  t.is(expr.left.name, 'REF1');
+  t.true(expr.right instanceof BinOp);
+  t.true(expr.right.left instanceof BinOp);
+  t.true(expr.right.left.left instanceof Num);
+  t.true(expr.right.left.right instanceof Ref);
+  t.true(expr.right.right instanceof Ref);
 });
 
 test('interpreter', function (t) {
@@ -96,31 +157,39 @@ test('interpreter', function (t) {
   lexer = new Lexer('E3');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E3: '10',
+    '': {
+      E3: '10',
+    }
   });
   t.is(interpreter.eval(), '10');
 
   lexer = new Lexer('-E3');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E3: '10',
+    '': {
+      E3: '10',
+    }
   });
   t.is(interpreter.eval(), '-10');
 
   lexer = new Lexer('E2 - E3');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E2: '11',
-    E3: '10',
+    '': {
+      E2: '11',
+      E3: '10',
+    }
   });
   t.is(interpreter.eval(), '1');
 
   lexer = new Lexer('E2 - (E3 * (9 + D1))');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    D1: '-3',
-    E2: '11',
-    E3: '10',
+    '': {
+      D1: '-3',
+      E2: '11',
+      E3: '10',
+    }
   });
   t.is(interpreter.eval(), '-49');
 
@@ -132,74 +201,55 @@ test('interpreter', function (t) {
   lexer = new Lexer('E2 + (E3 * 2)');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E2: '1',
+    '': {
+      E2: '1',
+    }
   });
   t.is(interpreter.eval(), '');
 
   lexer = new Lexer('E2 + (E3 * 2)');
   parser = new Parser(lexer);
   interpreter = new Interpreter(parser.expr, {
-    E2: '1asd',
+    '': {
+      E2: '1asd',
+    }
   });
   t.throws(interpreter.eval, Error);
+
+  lexer = new Lexer('SHEET1:A1 + A2 * 3');
+  parser = new Parser(lexer);
+  interpreter = new Interpreter(parser.expr, {
+    '': {
+      A2: '9'
+    },
+    'SHEET1': {
+      A1: '2'
+    }
+  });
+  t.is(interpreter.eval(), '29');
+
+  lexer = new Lexer('${REF1}');
+  parser = new Parser(lexer);
+  interpreter = new Interpreter(parser.expr, {}, {
+    '': {
+      REF1: '1'
+    }
+  });
+  t.is(interpreter.eval(), '1');
+
+  lexer = new Lexer('${REF1} + (SHEET1:${REF2} * E3)');
+  parser = new Parser(lexer);
+  interpreter = new Interpreter(parser.expr, {
+    '': {
+      E3: '10'
+    }
+  }, {
+    '': {
+      REF1: '2',
+    },
+    'SHEET1': {
+      REF2: '3'
+    }
+  });
+  t.is(interpreter.eval(), '32');
 });
-
-// test('grid', function (t) {
-//   let grid = new SmartGrid({
-//     def: {
-//       columns: 4,
-//       rows: 4,
-//     }
-//   });
-//   t.is(grid.getCellVal(0, 0), '');
-//   t.deepEqual(grid.getCellDef(0, 0), {});
-
-//   grid = new SmartGrid({
-//     def: {
-//       columns: 2,
-//       rows: 2,
-//     }, 
-//     data: [
-//       ['00', '01'],
-//       ['10', '11']
-//     ]
-//   });
-//   t.is(grid.env[0][0].val(), '00');
-//   t.is(grid.env[0][1].val(), '01');
-//   t.is(grid.env[1][0].val(), '10');
-//   t.is(grid.env[1][1].val(), '11');
-
-//   grid = new SmartGrid({
-//     def: {
-//       columns: 2,
-//       rows: 2,
-//     }, data: [
-//       ['=A2 + (-B1 * (B2 + 9))']
-//     ]
-//   });
-//   t.truthy(~grid.dependencyMap['A1'].indexOf('A2'));
-//   t.truthy(~grid.dependencyMap['A1'].indexOf('B1'));
-//   t.truthy(~grid.dependencyMap['A1'].indexOf('B2'));
-//   t.is(grid.env[0][0].val(), '');
-
-//   grid = new SmartGrid({
-//     def: {
-//       columns: 2,
-//       rows: 2,
-//     }, data: [
-//       ['=A2 + (-B1 * (B2 + 9))', '12'],
-//       ['11', '9'],
-//     ]
-//   });
-//   t.is(grid.env[0][0].val(), '-205');
-//   t.is(grid.env[0][1].val(), '12');
-//   t.is(grid.env[1][0].val(), '11');
-//   t.is(grid.env[1][1].val(), '9');
-//   grid.env[1][1].val('1');
-//   t.is(grid.env[0][0].val(), '-109');
-//   t.is(grid.env[0][1].val(), '12');
-//   t.is(grid.env[1][0].val(), '11');
-//   grid.env[1][1].val('');
-//   t.is(grid.env[0][0].val(), '');
-// });
-

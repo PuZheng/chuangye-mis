@@ -1,5 +1,3 @@
-import { Var } from './parser.js';
-
 const NUMBER_REGEX = /^[+-]?\d+(\.\d+)?$/;
 
 export const types = {
@@ -8,9 +6,13 @@ export const types = {
 };
 
 export class Interpreter {
-  constructor(tree, env={}) {
+  constructor(tree, env={}, refMap={}) {
     this.tree = tree;
     this.env = env;
+    this.refMap = {};
+    for (let k in refMap) {
+      this.refMap[k.toUpperCase()] = refMap[k];
+    }
   }
   visitNum(node, type) {
     return this.coerce(node.value, type);
@@ -31,32 +33,36 @@ export class Interpreter {
    * */
   coerce(val, type) {
     switch (type) {
-      case types.NUMBER: {
-        // if val is undefined or empty, we just pass it silently
-        if (val === undefined || val === '' || isNaN(val)) {
-          val = NaN;
-        } else {
-          if (!NUMBER_REGEX.test(val)) {
-            throw new Error(`"${val}" can't be converted to Number`); 
-          }
-          val = Number(val);
+    case types.NUMBER: {
+      // if val is undefined or empty, we just pass it silently
+      if (val === undefined || val === '' || isNaN(val)) {
+        val = NaN;
+      } else {
+        if (!NUMBER_REGEX.test(val)) {
+          throw new Error(`"${val}" can't be converted to Number`);
         }
-        break;
+        val = Number(val);
       }
-      case types.STRING: {
-        if (val === undefined || isNaN(val)) {
-          val = '';
-        } else {
-          val = String(val);
-        }
+      break;
+    }
+    case types.STRING: {
+      if (val === undefined || isNaN(val)) {
+        val = '';
+      } else {
+        val = String(val);
       }
-      default:
-        break;
+      break;
+    }
+    default:
+      break;
     }
     return val;
   }
   visitVar(node, type) {
-    return this.coerce(this.env[node.name], type);
+    return this.coerce((this.env[node.sheet] || {})[node.name], type);
+  }
+  visitRef(node, type) {
+    return this.coerce((this.refMap[node.sheet] || {})[node.name], type);
   }
   visitUnaryOp(node, type) {
     let child = this.iter(node.child, 'NUMBER');
@@ -87,7 +93,7 @@ export class Interpreter {
   eval(type='STRING') {
     if (this.tree === undefined) {
       return this.coerce(undefined, type);
-    } 
+    }
     return this.iter(this.tree, type);
   }
-};
+}

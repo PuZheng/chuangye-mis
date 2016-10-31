@@ -1,15 +1,16 @@
 import test from 'ava';
 import Analyzer from './analyzer';
 import R from 'ramda';
+import { Token } from './engine/lexer';
 
-test('analyzer', function (t) {
+test('primitive', function (t) {
   let def = {
     sheets: [
       {
         label: 'A',
         grids: [
           ['1', '2', 'abc'],
-          [, '3'],
+          [void 0, '3'],
         ],
       },
       {
@@ -51,7 +52,7 @@ test('getCellDef', function (t) {
         label: 'A',
         grids: [
           ['a', 'b', 'c'],
-          [, , 'f'],
+          [void 0, void 0, 'f'],
         ]
       }
     ]
@@ -69,32 +70,35 @@ test('dependencies', function (t) {
         name: 'A',
         grids: [
           ['a', 'b', 'c'],
-          ['=A1+B1+C1+SHEET1:A1', , 'f'],
+          ['=A1+SHEET1:A1+SHEET2:${REF1}', void 0, 'f'],
         ]
       }
     ]
   };
   let analyzer = new Analyzer(def);
   let cellDef = analyzer.getCellDef(0, 'A2');
-  t.is(cellDef.val, '=A1+B1+C1+SHEET1:A1');
+  t.is(cellDef.val, '=A1+SHEET1:A1+SHEET2:${REF1}');
   t.false(cellDef.primitive);
 
   let dependencies = cellDef.dependencies;
-  t.deepEqual(dependencies[0], {
-    sheetName: '',
-    tag: 'A1'
+  t.is(dependencies.length, 3);
+  let dep = dependencies[0];
+  t.is(dep.type, Token.VARIABLE);
+  t.deepEqual(dep.value, {
+    sheet: '',
+    name: 'A1'
   });
-  t.deepEqual(dependencies[1], {
-    sheetName: '',
-    tag: 'B1'
+  dep = dependencies[1];
+  t.is(dep.type, Token.VARIABLE);
+  t.deepEqual(dep.value, {
+    sheet: 'SHEET1',
+    name: 'A1'
   });
-  t.deepEqual(dependencies[2], {
-    sheetName: '',
-    tag: 'C1'
-  });
-  t.deepEqual(dependencies[3], {
-    sheetName: 'SHEET1',
-    tag: 'A1'
+  dep = dependencies[2];
+  t.is(dep.type, Token.REF);
+  t.deepEqual(dep.value, {
+    sheet: 'SHEET2',
+    name: 'REF1'
   });
 });
 
@@ -110,18 +114,45 @@ test('setCellDef', function (t) {
     ]
   };
   let analyzer = new Analyzer(def);
-  let cellDef = analyzer.setCellDef(0, 'A2', '=A1+B1+C1');
+  let cellDef = analyzer.setCellDef(0, 'A2', '=SHEET1:A1+B1+SHEET2:${REF1}');
   let dependencies = cellDef.dependencies;
-  t.deepEqual(dependencies[0], {
-    sheetName: '',
-    tag: 'A1'
+  t.is(dependencies.length, 3);
+  let dep = dependencies[0];
+  t.is(dep.type, Token.VARIABLE);
+  t.deepEqual(dep.value, {
+    sheet: 'SHEET1',
+    name: 'A1'
   });
-  t.deepEqual(dependencies[1], {
-    sheetName: '',
-    tag: 'B1'
+  dep = dependencies[1];
+  t.is(dep.type, Token.VARIABLE);
+  t.deepEqual(dep.value, {
+    sheet: '',
+    name: 'B1'
   });
-  t.deepEqual(dependencies[2], {
-    sheetName: '',
-    tag: 'C1'
+  dep = dependencies[2];
+  t.is(dep.type, Token.REF);
+  t.deepEqual(dep.value, {
+    sheet: 'SHEET2',
+    name: 'REF1'
   });
+});
+
+test('getTagByLabel', function (t) {
+  let analyzer = new Analyzer({
+    sheets: [
+      {
+        grids: [
+          [
+            {
+              label: 'foo'
+            }, void 0, void 0, {
+              label: 'bar'
+            }
+          ]
+        ]
+      }
+    ]
+  });
+  t.is(analyzer.getTagByLabel(0, 'foo'), 'A1');
+  t.is(analyzer.getTagByLabel(0, 'bar'), 'D1');
 });

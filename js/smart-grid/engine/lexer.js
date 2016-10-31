@@ -9,8 +9,12 @@ export class Token {
   }
 }
 
-[Token.PLUS, Token.MINUS, Token.MUL, Token.DIV, Token.NUMBER, Token.LPAREN, Token.RPAREN, Token.VARIABLE] = 
-  ['PLUS', 'MINUS', 'MUL', 'DIV', 'NUMBER', 'LPAREN', 'RPAREN', 'VARIABLE'];
+[
+  Token.PLUS, Token.MINUS, Token.MUL, Token.DIV, Token.NUMBER, Token.LPAREN,
+  Token.RPAREN, Token.VARIABLE, Token.REF
+] = [
+  'PLUS', 'MINUS', 'MUL', 'DIV', 'NUMBER', 'LPAREN', 'RPAREN', 'VARIABLE', 'REF'
+];
 
 const TOKEN_TYPE_MAP = {
   '+': Token.PLUS,
@@ -21,7 +25,8 @@ const TOKEN_TYPE_MAP = {
   ')': Token.RPAREN
 };
 
-const VARIABLE_RE = /^(\w+:)?\w+/;
+const VARIABLE_RE = /^(\w+:)?([A-Z]+[0-9]+)/;
+const REF_RE = /^(\w+:)?\$\{([^{}]+)\}/;
 
 export class Lexer {
   constructor(text) {
@@ -32,10 +37,28 @@ export class Lexer {
     let m = this.text.slice(pos).match(this.numberRegex);
     return [Number(m[0]), pos + m[0].length];
   }
-  variable(pos) {
-    let m = this.text.slice(pos).match(VARIABLE_RE);
-    let varLen = m? m[0].length: 0;
-    return [m? m[0]: '', pos + varLen];
+  /**
+   * process variable
+   *
+   * @param {Number} pos
+   * @returns {Array}
+   *
+   * @memberOf Lexer
+   */
+  variableOrRef(pos) {
+    let m = this.text.slice(pos).match(REF_RE);
+    if (m) {
+      return [Token.REF, {
+        sheet: m[1] ? m[1].substr(0, m[1].length - 1) : '',
+        name: m[2],
+      }, pos + m[0].length];
+    }
+    m = this.text.slice(pos).match(VARIABLE_RE);
+    // since 'A' <= this.text[pos] <= 'Z', so m can't be null
+    return [Token.VARIABLE, {
+      sheet: m[1] ? m[1].substr(0, m[1].length - 1) : '',
+      name: m[2]
+    }, pos + m[0].length];
   }
   skipSpaces(pos) {
     for (; pos < this.text.length && (this.text[pos] === ' ' || this.text[pos] === '\t'); ++pos);
@@ -65,11 +88,11 @@ export class Lexer {
               value: new Token(Token.NUMBER, value),
               done: false,
             };
-          } else if (c >= 'A' && c <= 'Z') {
-            let name;
-            [name, pos] = lexer.variable(pos);
+          } else if ((c >= 'A' && c <= 'Z') || c == '$') {
+            let value, tokenType;
+            [tokenType, value, pos] = lexer.variableOrRef(pos);
             return {
-              value: new Token(Token.VARIABLE, name),
+              value: new Token(tokenType, value),
               done: false,
             };
           } else {
@@ -80,4 +103,4 @@ export class Lexer {
       }
     };
   }
-};
+}

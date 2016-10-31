@@ -14,25 +14,25 @@ var h = virtualDom.h;
  * ...
  * 25 -> Z
  * but, 26, which is '10' as 26-based integer, converted to 'AA' (which should be 'BA' if we assume B denotes 1),
- * so the most significant digit should be minus one. 
+ * so the most significant digit should be minus one.
  * This flow shows how 26 is changed to 'AA'
- * 26 -> 10 -> BA -> AA 
+ * 26 -> 10 -> BA -> AA
  * */
 var toColumnIdx = function (idx) {
-  var idx = Number(idx).toString(26).split('').map(c => parseInt(c, 26) + 'A'.charCodeAt(0));
-  if (idx.length > 1) {
-    --idx[0];
+  var columnIdx = Number(idx).toString(26).split('').map(c => parseInt(c, 26) + 'A'.charCodeAt(0));
+  if (columnIdx.length > 1) {
+    --columnIdx[0];
   }
-  return idx.map(i => String.fromCharCode(i)).join('');
+  return columnIdx.map(i => String.fromCharCode(i)).join('');
 };
 
 export class SmartGrid {
   /**
-   * @constructor 
+   * @constructor
    *
    * to seperate css with js, smart grid use '2 way mount' to generate
    * the vdom, for the first way, it only creates a top row header and a
-   * left column header to get their height and width (only after mounted to 
+   * left column header to get their height and width (only after mounted to
    * the real dom tree), and computes how many
    * cells should be used to occupy the whole available spaces, note, it won't
    * create as many cells as the grid's definition required (which is actually
@@ -47,15 +47,15 @@ export class SmartGrid {
     this.dataSlotManager = new DataSlotManager(this.analyzer);
     var sg = this;
     this.$$view = $$(h('.smart-grid', h('.grid-container', {
-        hook: new class Hook {
-          hook(node) {
-            sg.gridContainerEl = node;
-          }
-        },
+      hook: new class Hook {
+        hook(node) {
+          sg.gridContainerEl = node;
+        }
+      },
     }, [
       h('.grid', [
         h('.top-tag-row', [
-          h('.v-h-header'), 
+          h('.v-h-header'),
           h('.header', 'A')
         ]),
         h('.row', h('.header', '1'))
@@ -77,15 +77,15 @@ export class SmartGrid {
             return 0;
           }
         }
-        return Math.floor(top * actualHeight / sg.cellHeight); 
+        return Math.floor(top * actualHeight / sg.cellHeight);
       };
     }(this.$$activeSheetIdx);
     this.$$topmostRow = $$.connect(
-      [this.$$top, this.$$actualHeight, this.$$activeSheetIdx], 
-      topmostRowVf, 
-      'topmost', 
-      function (oldVal, newVal) { 
-        return oldVal != newVal; 
+      [this.$$top, this.$$actualHeight, this.$$activeSheetIdx],
+      topmostRowVf,
+      'topmost',
+      function (oldVal, newVal) {
+        return oldVal != newVal;
       }
     );
     let leftmostColVf = function ($$activeSheetIdx) {
@@ -96,19 +96,19 @@ export class SmartGrid {
             return 0;
           }
         }
-        return Math.floor(top * actualWidth / sg.cellWidth); 
+        return Math.floor(top * actualWidth / sg.cellWidth);
       };
     }(this.$$activeSheetIdx);
     this.$$leftmostCol = $$.connect(
-      [this.$$left, this.$$actualWidth, this.$$activeSheetIdx], 
-      leftmostColVf, 
-      'leftmost', 
-      function (oldVal, newVal) { 
-        return oldVal != newVal; 
+      [this.$$left, this.$$actualWidth, this.$$activeSheetIdx],
+      leftmostColVf,
+      'leftmost',
+      function (oldVal, newVal) {
+        return oldVal != newVal;
       }
     );
     this.$$focusedCell = $$.connect(
-      [this.$$activeSheetIdx], 
+      [this.$$activeSheetIdx],
       function () {
         return null;
       }, 'focused-cell'
@@ -172,18 +172,18 @@ export class SmartGrid {
     var sg = this;
     var $$topTagCells = range(0, this.colNum).map(function (idx) {
       return $$.connect(
-        [sg.$$leftmostCol, sg.$$focusedCell], 
+        [sg.$$leftmostCol, sg.$$focusedCell],
         function ([leftmostCol, focusedCell]) {
           let classNames = '.header';
           if (focusedCell && focusedCell.col === idx + leftmostCol) {
             classNames += '.focused';
           }
-          return h(classNames, 
+          return h(classNames,
                    toColumnIdx(Number(leftmostCol) + idx));
         });
     });
     return $$.connect($$topTagCells, function (cells) {
-      return h('.top-tag-row', [h('.v-h-header')].concat(cells));      
+      return h('.top-tag-row', [h('.v-h-header')].concat(cells));
     });
   }
   makeLeftTagHeaderSlot(row) {
@@ -204,6 +204,9 @@ export class SmartGrid {
   createCellSlot(sheetIdx, tag) {
     return this.dataSlotManager.create(sheetIdx, tag);
   }
+  getTagByLabel(sheetIdx, tag) {
+    return this.analyzer.getTagByLabel(sheetIdx, tag);
+  }
   getCellDef(tag) {
     return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
   }
@@ -213,7 +216,7 @@ export class SmartGrid {
   $$createRow(row) {
     let sg = this;
     return $$.connect(
-      [sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)), 
+      [sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)),
       function ([leftTagHeader, ...cells]) {
         return h('.row', [leftTagHeader].concat(cells));
       }, 'row-${row}');
@@ -253,7 +256,7 @@ export class SmartGrid {
       ]);
     };
     return $$.connect(
-      [this.$$createTopTagRow(), this.$$createDataGrid()], 
+      [this.$$createTopTagRow(), this.$$createDataGrid()],
       vf, 'grid');
   }
   $$createHScrollbar() {
@@ -274,8 +277,8 @@ export class SmartGrid {
           style: {
             width: (viewportWidth / actualWidth) * 100 + '%',
             left: left * 100  + '%',
-          }, 
-          // note, this function won't be recreated, so 
+          },
+          // note, this function won't be recreated, so
           // it always remembers the first "left" etc.
           onmousedown(e) {
             $$dragging.toggle();
@@ -313,7 +316,7 @@ export class SmartGrid {
       ]);
     };
     return $$.connect(
-      [this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left], 
+      [this.$$viewportWidth, this.$$actualWidth, $$dragging, this.$$left],
       vf, 'horizontal-scrollbar');
   }
   $$createVScrollbar() {
@@ -375,7 +378,7 @@ export class SmartGrid {
       ]);
     };
     return $$.connect(
-      [this.$$viewportHeight, this.$$actualHeight, $$dragging, this.$$top], 
+      [this.$$viewportHeight, this.$$actualHeight, $$dragging, this.$$top],
       vf, 'vertical-scrollbar');
   }
   moveLeft() {
@@ -438,8 +441,8 @@ export class SmartGrid {
     let topmostRow = this.$$topmostRow.val();
     let left = null;
     let top = null;
-    // under the viewport, since the last row may cross the right 
-    // boundary of viewport, we test the second last row, same to 
+    // under the viewport, since the last row may cross the right
+    // boundary of viewport, we test the second last row, same to
     // the last column
     if (row >= topmostRow + this.rowNum - 3) {
       top = (row - this.rowNum + 3) * this.cellHeight;
@@ -456,7 +459,7 @@ export class SmartGrid {
     if (col < leftmostCol) {
       left = col * this.cellWidth;
     }
-    
+
     left != null && updates.push([this.$$left, left / this.$$actualWidth.val()]);
     top != null && updates.push([this.$$top, top / this.$$actualHeight.val()]);
     $$.update(...updates);
@@ -476,14 +479,14 @@ export class SmartGrid {
       return false;
     }
     this.$$focusedCell.val({
-      row, 
+      row,
       col,
       tag: makeTag(row, col),
       mode: CellMode.EDIT,
     });
     return true;
   }
-};
+}
 
 SmartGrid.prototype.onUpdated = function () {
   let focusedCell = this.$$focusedCell.val();

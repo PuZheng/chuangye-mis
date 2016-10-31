@@ -1,6 +1,6 @@
 var _uniqueId = function () {
   var i = 1;
-  return function (prefix="") {
+  return function (prefix='') {
     return prefix + i++;
   };
 }();
@@ -59,7 +59,7 @@ Slot.prototype.val = function (newValue) {
     }
     opt.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
     var oldValue = this.value;
-    this.value = newValue; 
+    this.value = newValue;
     this.onChangeCbs.forEach(function (cb) {
       cb.call(this, newValue, oldValue);
     });
@@ -137,11 +137,11 @@ Slot.prototype.calcOffsprings = function () {
   }
   // level by level
   for (
-    var offsprings = objectValues(this.children), level = 1; 
-    offsprings.length; 
+    let offsprings = objectValues(this.children), level = 1;
+    offsprings.length;
     offsprings = collectDirectChildren(offsprings), ++level
   )  {
-    for (var i of offsprings) {
+    for (let i of offsprings) {
       if (!(i.id in this.offsprings)) {
         this.offsprings[i.id] = {
           slot: i,
@@ -155,9 +155,9 @@ Slot.prototype.calcOffsprings = function () {
     }
   }
   this.offspringsByLevels = [];
-  var currentLevel = 0;
+  let currentLevel = 0;
   var slots;
-  for (var { slot, level } of objectValues(this.offsprings).sort((a, b) => a.level - b.level)) {
+  for (let { slot, level } of objectValues(this.offsprings).sort((a, b) => a.level - b.level)) {
     if (level > currentLevel) {
       slots = [];
       this.offspringsByLevels.push(slots);
@@ -220,14 +220,14 @@ Slot.prototype.map = function (f) {
 };
 
 Slot.prototype.connect = function (slots, valueFunc, parentsCalcOffsprings=false) {
-  var self = this;
+  let self = this;
   self.valueFunc = valueFunc;
   // affected slots are parents/un-parents
-  var affected = {};
-  for (var slot of slots) {
+  let affected = {};
+  for (let slot of slots) {
     affected[slot.id] = slot;
   }
-  for (var parent of self.parents) {
+  for (let parent of self.parents) {
     if (slots.every(function (s) {
       return s !== parent;
     })) {
@@ -254,9 +254,9 @@ Slot.prototype.connect = function (slots, valueFunc, parentsCalcOffsprings=false
     return self;
   }
   // re-collect ancestors/un-ancestors
-  var unvisited = objectValues(affected);
+  let unvisited = objectValues(affected);
   while (unvisited.length) {
-    var slot = unvisited.shift();
+    let slot = unvisited.shift();
     for (var parent of slot.parents) {
       if (!(parent.id in affected)) {
         affected[parent.id] = parent;
@@ -293,16 +293,16 @@ var update = function (...slotValuePairs) {
       cb.call(slot, value, oldValue);
     }
   });
-  var relatedSlots = {};
-  var addToRelatedSlots = function (slot, level) {
-      if (slot.id in relatedSlots) {
-        relatedSlots[slot.id].level = Math.max(level, relatedSlots[slot.id].level);
-      } else {
-        relatedSlots[slot.id] = {
-          slot,
-          level,
-        };
-      }
+  let relatedSlots = {};
+  let addToRelatedSlots = function (slot, level) {
+    if (slot.id in relatedSlots) {
+      relatedSlots[slot.id].level = Math.max(level, relatedSlots[slot.id].level);
+    } else {
+      relatedSlots[slot.id] = {
+        slot,
+        level,
+      };
+    }
   };
   slotValuePairs.forEach(function ([slot]) {
     if (isEmptyObject(slot.offsprings)) {
@@ -314,9 +314,9 @@ var update = function (...slotValuePairs) {
   });
 
   // order offsprings by level
-  var levels = [];
-  var slots;
-  var currentLevel = 0;
+  let levels = [];
+  let slots;
+  let currentLevel = 0;
   objectValues(relatedSlots).sort((a, b) => a.level - b.level).forEach(function ({slot, level}) {
     if (level > currentLevel) {
       slots = [];
@@ -326,14 +326,14 @@ var update = function (...slotValuePairs) {
     slots.push(slot);
   });
   let mayChange = {};
-  for (var k in relatedSlots) {
+  for (let k in relatedSlots) {
     mayChange[k] = true;
   }
-  for (var [slot] of slotValuePairs) {
+  for (let [slot] of slotValuePairs) {
     mayChange[slot.id] = true;
   }
-  for (var level of levels) {
-    for (var slot of level) {
+  for (let level of levels) {
+    for (let slot of level) {
       let dirty = slot.parents.some(function (parent) {
         return mayChange[parent.id] && !cleanSlots[parent.id];
       });
