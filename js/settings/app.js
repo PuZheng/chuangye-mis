@@ -22,44 +22,43 @@ $$settings.change(function (settings) {
   var def = {
     sheets: [],
   };
-  for (var [groupName, group] of R.toPairs(
+  let groups = R.toPairs(
     R.groupBy(function (s) {
       return s.group;
     })(settings)
-  )) {
+  );
+  for (let [groupName, settings] of groups) {
     let sheetDef = {
-      label: groupName, 
+      label: groupName,
     };
     let headerCellDef = {
-        readOnly: true,
-        style: {
-          background: 'teal',
-          color: 'yellow',
-          fontWeight: 'bold',
-        }
+      readOnly: true,
+      style: {
+        background: 'teal',
+        color: 'yellow',
+        fontWeight: 'bold',
+      }
     };
     var header = [
-      Object.assign({
+      {
         val: '字段',
-      }, headerCellDef),
-      Object.assign({
+      }, {
         val: '数值',
-      }, headerCellDef),
-      Object.assign({
+      }, {
         val: '说明',
-      }, headerCellDef),
-    ];
-    sheetDef.grids = [header].concat(group.map(function (setting) {
+      }
+    ].map(it => Object.assign(it, headerCellDef));
+    sheetDef.grids = [header].concat(settings.map(function (setting) {
       return [{
         readOnly: true,
         val: setting.name,
       }, {
-        label: groupName + '-' + setting.name,
+        label: setting.name,
         val: setting.value,
       }, {
         readOnly: true,
         val: setting.comment || '',
-      }]; 
+      }];
     }));
     def.sheets.push(sheetDef);
   }
@@ -71,14 +70,17 @@ $$settings.change(function (settings) {
   .refresh();
   sg.setupLayout();
   sg.registerShortcus();
-  for (var setting of settings) {
-    let [{sheetIdx, tag, def}] = sg.getCellDefs(cell => cell.label == setting.group + '-' + setting.name);
-    sg.createCellSlot(sheetIdx, tag).change(function (cellDef, setting) {
-      return function (v) {
-        settingsStore.update(setting.group, setting.name, v);
-      };
-    }(def, setting));
-  };
+  for (let sheetIdx = 0; sheetIdx < groups.length; ++sheetIdx) {
+    let [, settings] = groups[sheetIdx];
+    for (let setting of settings) {
+      let tag = sg.getTagByLabel(sheetIdx, setting.name);
+      sg.createCellSlot(sheetIdx, tag).change(function (setting) {
+        return function (value) {
+          settingsStore.update(setting.group, setting.name, value);
+        };
+      }(setting));
+    }
+  }
 });
 
 export default {
