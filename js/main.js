@@ -1,4 +1,3 @@
-import $$ from 'slot';
 import page from 'page';
 import invoiceObjectApp from './invoice/object-app';
 import invoiceListApp from './invoice/list-app';
@@ -88,7 +87,7 @@ page('/unauthorized', function () {
 });
 
 var goto = function (queryObj) {
-  page(location.pathname + '?' + 
+  page(location.pathname + '?' +
        R.toPairs(queryObj).filter(p => p[1]).map(p => p.join('=')).join('&'));
 };
 
@@ -109,9 +108,6 @@ page.exit(function (ctx, next) {
     ctx.handled = false;
     return;
   }
-  $$.init({
-    debug: false
-  });
   next();
 });
 
@@ -123,14 +119,14 @@ page('/login', function () {
   }
 });
 
-page('/invoice/:id?', loginRequired, _could('edit.invoice.object'), 
+page('/invoice/:id?', loginRequired, _could('edit.invoice.object'),
      _setupNavBar('invoice'), useWith(invoiceObjectApp));
 
-page('/invoice-list', loginRequired, _could('view.invoice.list'), 
+page('/invoice-list', loginRequired, _could('view.invoice.list'),
      _setupNavBar('invoice'), useWith(invoiceListApp));
 
 page(
-  '/voucher-list', loginRequired, 
+  '/voucher-list', loginRequired,
   _could('view.voucher.list'), _setupNavBar('voucher'),
   useWith(voucherListApp)
 );
@@ -141,19 +137,19 @@ page(
 );
 
 page(
-  '/department', loginRequired, 
+  '/department', loginRequired,
     _could('edit.department'), _setupNavBar('department'),
     useWith(departmentApp)
 );
 
 page(
-  '/voucher/:id?', loginRequired, _could('edit.voucher.object'), 
+  '/voucher/:id?', loginRequired, _could('edit.voucher.object'),
      _setupNavBar('voucher'), useWith(voucherObjectApp)
 );
 
-page('/tenant-list', 
-     loginRequired, 
-     _could('view.tenant.list'), 
+page('/tenant-list',
+     loginRequired,
+     _could('view.tenant.list'),
      _setupNavBar('tenant'), useWith(tenantListApp));
 
 page('/tenant/:id?', loginRequired,
@@ -176,7 +172,7 @@ var settings = function () {
   currentApp.init();
 };
 
-page('/settings', loginRequired, _setupNavBar('settings'), 
+page('/settings', loginRequired, _setupNavBar('settings'),
       _could('edit.settings'), settings);
 
 var meterList = function () {
@@ -186,7 +182,7 @@ var meterList = function () {
 };
 
 page(
-  '/meter-list', loginRequired, 
+  '/meter-list', loginRequired,
   _setupNavBar('meter.meter'),
   _could('edit.meter'), meterList
 );
@@ -216,21 +212,16 @@ page(
 );
 
 page(
-  '/invoice-type-list', loginRequired, 
+  '/invoice-type-list', loginRequired,
   _setupNavBar('invoice_type'),
   _could('edit.invoice_type'), useWith(invoiceTypeListApp)
 );
 
 
-var enableSlotDebug = function (ctx, next) {
-  $$.init({ debug: true });
-  next();
-};
-
 page(
   '/invoice-type/:id?', loginRequired,
   _setupNavBar('invoice_type'),
-  _could('edit.invoice_type'), enableSlotDebug, useWith(invoiceTypeObjectApp)
+  _could('edit.invoice_type'), useWith(invoiceTypeObjectApp)
 );
 
 page(
@@ -252,7 +243,7 @@ page(
 );
 
 page(
-  '/user/:id?', loginRequired, 
+  '/user/:id?', loginRequired,
   _setupNavBar('user'),
   _could('edit.user'), useWith(userObjectApp)
 );
@@ -263,7 +254,7 @@ page(
   _could('manage.store'), function (ctx, next) {
     if (!ctx.query.date_span || !ctx.query.direction) {
       page('/store-order-list?date_span=in_7_days&type=原材料&direction=入库');
-      return; 
+      return;
     }
     next();
   }, useWith(storeOrderListApp)
@@ -272,7 +263,7 @@ page(
 page(
   '/store-order/:id?', loginRequired,
   _setupNavBar('store.order'),
-  _could('manage.store'), useWith(storeOrderObjectApp) 
+  _could('manage.store'), useWith(storeOrderObjectApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

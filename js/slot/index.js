@@ -57,7 +57,7 @@ Slot.prototype.val = function (newValue) {
     if (this.changed && !this.changed(this.value, newValue)) {
       return this.value;
     }
-    opt.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
+    this.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
     var oldValue = this.value;
     this.value = newValue;
     this.onChangeCbs.forEach(function (cb) {
@@ -85,7 +85,7 @@ Slot.prototype.val = function (newValue) {
         let initiators = slot.parents.filter(function (parent) {
           return parent.id === updateRoot.id || updateRoot.offsprings[parent.id];
         });
-        opt.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
+        slot.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
         if (!slot.refresh(initiators)) {
           cleanSlots[slot.id] = slot;
         }
@@ -186,7 +186,7 @@ Slot.prototype.refresh = function (initiators) {
 };
 
 Slot.prototype.patch = function (obj) {
-  opt.debug && console.info(`slot: slot ${this.tag} is about to be patched`, obj);
+  this.debug && console.info(`slot: slot ${this.tag} is about to be patched`, obj);
   this.val(Object.assign(this.val(), obj));
 };
 
@@ -282,7 +282,7 @@ var connect = function connect(slots, valueFunc, tag, changed, parentsCalcOffspr
 var update = function (...slotValuePairs) {
   let cleanSlots = {};
   slotValuePairs.forEach(function ([slot, value]) {
-    opt.debug && console.info(`slot ${slot.tag} changed`, slot.value, value);
+    slot.debug && console.info(`slot ${slot.tag} changed`, slot.value, value);
     let oldValue = slot.value;
     slot.value = value;
     if (slot.changed && !slot.changed(oldValue, value)) {
@@ -344,18 +344,12 @@ var update = function (...slotValuePairs) {
       let initiators = slot.parents.filter(function (parent) {
         return relatedSlots[parent.id];
       });
-      opt.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
+      slot.debuggable && console.info(`slot: slot ${slot.tag} will be refreshed`);
       if (!slot.refresh(initiators)) {
         cleanSlots[slot.id] = slot;
       }
     }
   }
-};
-
-var opt = {};
-
-var init = function (opt_ = {}) {
-  opt.debug = !!opt_.debug;
 };
 
 export default (function ($$) {
@@ -366,6 +360,5 @@ export default (function ($$) {
   $$.connect = connect;
   $$.calcOffsprings = calcOffsprings;
   $$.update = update;
-  $$.init = init;
   return $$;
 })((initial, tag, changed) => new Slot(initial, tag, changed));
