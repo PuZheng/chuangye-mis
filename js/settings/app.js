@@ -1,7 +1,7 @@
 import $$ from 'slot';
 import throttleSlot from 'throttle-slot';
 import virtualDom from 'virtual-dom';
-import SmartGrid from 'smart-grid';
+import { SmartGrid } from 'smart-grid';
 import R from 'ramda';
 import settingsStore from '../store/settings-store';
 
@@ -31,14 +31,6 @@ $$settings.change(function (settings) {
     let sheetDef = {
       label: groupName,
     };
-    let headerCellDef = {
-      readOnly: true,
-      style: {
-        background: 'teal',
-        color: 'yellow',
-        fontWeight: 'bold',
-      }
-    };
     var header = [
       {
         val: '字段',
@@ -47,7 +39,14 @@ $$settings.change(function (settings) {
       }, {
         val: '说明',
       }
-    ].map(it => Object.assign(it, headerCellDef));
+    ].map(it => Object.assign(it, {
+      readOnly: true,
+      style: {
+        background: 'teal',
+        color: 'yellow',
+        fontWeight: 'bold',
+      }
+    }));
     sheetDef.grids = [header].concat(settings.map(function (setting) {
       return [{
         readOnly: true,

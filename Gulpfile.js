@@ -84,7 +84,8 @@ gulp.task('rollup', function () {
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 'validate-obj', 'checkers', 'store', 'toast', 'widget', 'scrollable']
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 
+        'validate-obj', 'checkers', 'store', 'toast', 'widget', 'scrollable']
     }),
     commonjs({
       ignoreGlobal: true,

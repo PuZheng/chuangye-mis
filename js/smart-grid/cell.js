@@ -7,7 +7,6 @@ import CellMode from './cell-mode';
 var VNode = virtualDom.VNode;
 var VText = virtualDom.VText;
 
-
 class Hook {
   constructor(cell) {
     this.cell = cell;
@@ -18,33 +17,28 @@ class Hook {
     }(cell);
     this.onclick = function (cell) {
       return function () {
-        cell.onclick();
+        cell.select();
       };
     }(cell);
   }
-  onclick(e) {
-    this.cell.onclick(e);
-  }
   hook(el) {
-    if (~Array.from(el.classList).indexOf('A1')) {
-    }
     this.cell.el = el;
     el.addEventListener('dblclick', this.ondblclick);
     el.addEventListener('click', this.onclick);
   }
   unhook(el) {
     el.removeEventListener('dblclick', this.ondblclick);
-    el.removeEventListener('click', this.click);
+    el.removeEventListener('click', this.onclick);
     el = null;
   }
-};
+}
 
 let stringifyStyle = function (style) {
   if (typeof style === 'object') {
     let s = '';
     for (let k in style) {
       let v = style[k];
-      k = k.replace(/[A-Z]/g, function (s) { 
+      k = k.replace(/[A-Z]/g, function (s) {
         return '-' + s.toLowerCase();
       }).replace(/^_/, '');
       s += `${k}: ${v};`;
@@ -89,11 +83,11 @@ class EditorHook {
     el = null;
   }
 
-};
+}
 
 /**
  * Cell actually represent a vnode slot, it may display as any cell (determined
- * by leftmost column and topmost row) 
+ * by leftmost column and topmost row)
  * */
 class Cell {
   /**
@@ -117,15 +111,14 @@ class Cell {
         ];
         let def = cell.$$def.val();
         if ((def && def.val) != val) {
-          cell.sg.setCellDef(cell.tag, Object.assign(cell.def || {}, {
-            val 
-          }));
+          let def = Object.assign(cell.def || {}, { val });
+          cell.sg.setCellDef(cell.tag, def);
           // why reset all the slots? since modify a value of a cell will affect
-          // many other cells, and we can't know the affection unless we reset 
+          // many other cells, and we can't know the affection unless we reset
           // all the slots, for example, in a grid
           // [
           //  ['1', '=A1+2'],
-          //  ['2'], 
+          //  ['2'],
           // ]
           // if we change definition of 'B1' to '0', then the slot of 'A1' will be
           // revoked, however in this grid
@@ -139,54 +132,57 @@ class Cell {
           // reset will reuse existing slots if possible, so we don't need to
           // recreate the whole grid (which is a very expensive operation)
           cell.sg.dataSlotManager.reset();
-          let $$envSlot = cell.sg.getCellSlot(cell.tag);
-          $$envSlot && $$envSlot.update();
-          cell.sg.cells.forEach(function (row) {
-            row.forEach(function (cell) {
-              cell.$$def.update();
-            });
-          });
+          cell.$$def.update();
+          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
+          let slots = [cell.sg.$$focusedCell, cell.$$def];
+          if (cell.$$envSlot) {
+            slots.push(cell.$$envSlot);
+          }
+          cell._$$view.connect(slots, cell._vf).refresh();
         }
         $$.update(...updates);
         return false;
       };
     }(this));
-    this.$$val = $$(null, `cell-${row}-${col}-val`);
+    let { $$topmostRow, $$leftmostCol } = this.sg;
     this.$$def = $$.connect(
-      [this.sg.$$topmostRow, this.sg.$$leftmostCol, this.sg.$$activeSheetIdx], 
+      [$$topmostRow, $$leftmostCol],
       function (cell) {
         return function ([topmostRow, leftmostCol]) {
-          cell.tag = makeTag(cell.row + topmostRow, 
-                            cell.col + leftmostCol);
-          let def = cell.sg.getCellDef(cell.tag);
-          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
-          if (cell.$$envSlot) {
-            cell.$$val.connect([cell.$$envSlot], ([it]) => it);
-          } else {
-            cell.$$val.connect([], () => (def && def.val) || '');
-          }
-          return def;
+          cell.tag = makeTag(cell.row + topmostRow,
+                             cell.col + leftmostCol);
+          return cell.sg.getCellDef(cell.tag);
         };
       }(this),
       `cell-${row}-${col}-def`
     );
-  }
-  get $$view() {
-    if (this._$$view) {
-      return this._$$view;
-    }
-    let vf = function (cell) {
-      return function ([focusedCell, def, val]) {
+    this.mode = CellMode.DEFAULT;
+    this._vf = function (cell) {
+      return function _vf([focusedCell, def, val], initiators) {
+        // if:
+        // 1. only the focusedCell change
+        // 2. I am not the unfocused or focused one
+        // this wave of change has nothing todo with me
+        let newMode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
+        if (this.value && initiators && initiators.length == 1 && initiators[0].id == cell.sg.$$focusedCell.id) {
+          if (cell.mode == newMode) {
+            return this.value;
+          }
+        }
+        if (val === void 0) {
+          val = def && def.val || '';
+        }
         let className = ['cell', cell.tag];
         if (def && def.readOnly) {
           className.push('readonly');
         }
-        let mode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
-        let selected = mode == CellMode.SELECTED;
+        cell.mode = newMode;
+        // let mode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
+        let selected = cell.mode == CellMode.SELECTED;
         if (selected) {
           className.push('selected');
         }
-        let editing = mode == CellMode.EDIT;
+        let editing = cell.mode == CellMode.EDIT;
         if (editing) {
           className.push('editing');
         }
@@ -209,9 +205,16 @@ class Cell {
         return ret;
       };
     }(this);
-    return this._$$view = pipeSlot(null, 'cell-${this.tag}').connect(
-      [this.sg.$$focusedCell, this.$$def, this.$$val], 
-      vf);
+  }
+  get $$view() {
+    if (this._$$view) {
+      return this._$$view;
+    }
+    this.$$envSlot = this.sg.getCellSlot(this.tag);
+    let slots = [this.sg.$$focusedCell, this.$$def];
+    this.$$envSlot && slots.push(this.$$envSlot);
+    return this._$$view = pipeSlot(null, 'cell-${this.tag}').connect(slots,
+                                                                     this._vf);
   }
   makeEditorVnode(def, editing) {
     // it could be more sophisticated
@@ -221,7 +224,7 @@ class Cell {
         class: 'editor',
         type: 'text',
         value: (def && def.val) || '',
-        style: editing? '': 'display: none', 
+        style: editing? '': 'display: none',
       }
     };
     return new VNode('input', properties);
@@ -236,7 +239,7 @@ class Cell {
     };
     return new VNode('div', properties, [new VText(String(val))]);
   }
-  onclick() {
+  select() {
     let focusedCell = this.sg.$$focusedCell;
     if (focusedCell && focusedCell.tag == this.tag) {
       return;
@@ -260,6 +263,6 @@ class Cell {
       mode: CellMode.EDIT,
     });
   }
-};
+}
 
 export default Cell;

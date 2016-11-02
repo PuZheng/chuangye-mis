@@ -29,7 +29,6 @@ test('primitive', function (t) {
   let cells = sheets[0].cells;
   let cell = cells['A1'];
   t.is(cell.val, '1');
-  t.is(cell.tag, 'A1');
   t.true(cell.primitive);
   cell = cells['B1'];
   t.is(cell.val, '2');

@@ -537,4 +537,7 @@ const range = function (start, end) {
   return a;
 };
 
-export default SmartGrid;
+export default {
+  SmartGrid,
+  toColumnIdx,
+};

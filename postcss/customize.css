@@ -240,7 +240,7 @@ a {
     }
 }
 
-.charge-bills {
+#charge-bills {
     height: 100%;
     & > aside {
         height: 100%;
@@ -252,4 +252,5 @@ a {
         padding-left: calc(12rem + 5px);
         height: 100%;
     }
+
 }
