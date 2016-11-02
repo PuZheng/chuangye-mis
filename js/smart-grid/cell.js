@@ -1,7 +1,6 @@
 import virtualDom from 'virtual-dom';
 import makeTag from './make-tag';
 import $$ from 'slot';
-import pipeSlot from 'pipe-slot';
 import CellMode from './cell-mode';
 
 var VNode = virtualDom.VNode;
@@ -109,8 +108,7 @@ class Cell {
             mode: CellMode.SELECTED,
           })]
         ];
-        let def = cell.$$def.val();
-        if ((def && def.val) != val) {
+        if ((cell.def && cell.def.val) != val) {
           let def = Object.assign(cell.def || {}, { val });
           cell.sg.setCellDef(cell.tag, def);
           // why reset all the slots? since modify a value of a cell will affect
@@ -132,33 +130,22 @@ class Cell {
           // reset will reuse existing slots if possible, so we don't need to
           // recreate the whole grid (which is a very expensive operation)
           cell.sg.dataSlotManager.reset();
-          cell.$$def.update();
+          cell.def = cell.sg.getCellDef(cell.tag);
           cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
-          let slots = [cell.sg.$$focusedCell, cell.$$def];
+          let slots = [cell.sg.$$focusedCell];
           if (cell.$$envSlot) {
             slots.push(cell.$$envSlot);
           }
-          cell._$$view.connect(slots, cell._vf).refresh();
+          cell.$$view.connect(slots, cell._vf).refresh();
         }
         $$.update(...updates);
         return false;
       };
     }(this));
-    let { $$topmostRow, $$leftmostCol } = this.sg;
-    this.$$def = $$.connect(
-      [$$topmostRow, $$leftmostCol],
-      function (cell) {
-        return function ([topmostRow, leftmostCol]) {
-          cell.tag = makeTag(cell.row + topmostRow,
-                             cell.col + leftmostCol);
-          return cell.sg.getCellDef(cell.tag);
-        };
-      }(this),
-      `cell-${row}-${col}-def`
-    );
+    this.tag = makeTag(this.row, this.col);
     this.mode = CellMode.DEFAULT;
     this._vf = function (cell) {
-      return function _vf([focusedCell, def, val], initiators) {
+      return function _vf([focusedCell, val], initiators) {
         // if:
         // 1. only the focusedCell change
         // 2. I am not the unfocused or focused one
@@ -170,10 +157,10 @@ class Cell {
           }
         }
         if (val === void 0) {
-          val = def && def.val || '';
+          val = cell.def && cell.def.val || '';
         }
         let className = ['cell', cell.tag];
-        if (def && def.readOnly) {
+        if (cell.def && cell.def.readOnly) {
           className.push('readonly');
         }
         cell.mode = newMode;
@@ -189,13 +176,13 @@ class Cell {
         let properties = {
           attributes: {
             class: className.join(' '),
-            style: stringifyStyle(def && def.style),
+            style: stringifyStyle(cell.def? cell.def.style: {}),
           },
           hook: cell.hook,
         };
         let ret = new VNode('div', properties, [
-          cell.makeContentVnode(def, val, editing),
-          cell.makeEditorVnode(def, editing),
+          cell.makeContentVnode(cell.def, val, editing),
+          cell.makeEditorVnode(cell.def, editing),
         ]);
         // reset the input element's value, since VNode won't reset value
         // for you
@@ -205,16 +192,17 @@ class Cell {
         return ret;
       };
     }(this);
+    this.$$view = $$(null, `cell-${row}-${col}`);
+    this.resetView(0, 0);
   }
-  get $$view() {
-    if (this._$$view) {
-      return this._$$view;
-    }
+  resetView(topmostRow, leftmostCol) {
+    this.tag = makeTag(this.row + topmostRow,
+                      this.col + leftmostCol);
+    this.def = this.sg.getCellDef(this.tag);
     this.$$envSlot = this.sg.getCellSlot(this.tag);
-    let slots = [this.sg.$$focusedCell, this.$$def];
+    let slots = [this.sg.$$focusedCell];
     this.$$envSlot && slots.push(this.$$envSlot);
-    return this._$$view = pipeSlot(null, 'cell-${this.tag}').connect(slots,
-                                                                     this._vf);
+    this.$$view.connect(slots, this._vf);
   }
   makeEditorVnode(def, editing) {
     // it could be more sophisticated
@@ -252,7 +240,7 @@ class Cell {
     });
   }
   ondblclick() {
-    let def = this.$$def.val();
+    let def = this.def;
     if ((def && def.readOnly)) {
       return;
     }

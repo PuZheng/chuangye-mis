@@ -79,11 +79,6 @@ export default {
         ].map(it => Object.assign(it, headerCellDef));
         let dataRows = group.filter(it => it.parentMeterId)
         .map(function (meter) {
-          console.log(
-            '=' + meterType.meterReadings.map(function (mr) {
-              return '${' + meter.id + '-' + mr.name + '}*' + '${setting-' + mr.priceSetting.name + '}';
-            }).join('+')
-          );
           return [
             {
               // A(idx + 1)

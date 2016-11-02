@@ -26,6 +26,7 @@ var toColumnIdx = function (idx) {
   return columnIdx.map(i => String.fromCharCode(i)).join('');
 };
 
+
 export class SmartGrid {
   /**
    * @constructor
@@ -69,44 +70,50 @@ export class SmartGrid {
     this.$$left = $$(0, 'left');
     this.$$top = $$(0, 'top');
     this.$$activeSheetIdx = $$(0, 'active-tab');
-    let topmostRowVf = function ($$activeSheetIdx) {
-      return function ([top, actualHeight], initiators) {
-        if (!actualHeight) return 0;
-        if (initiators && initiators.length) {
-          if (~initiators.indexOf($$activeSheetIdx)) {
-            return 0;
-          }
-        }
-        return Math.floor(top * actualHeight / sg.cellHeight);
-      };
-    }(this.$$activeSheetIdx);
+    let topmostRowVf = function ([top, actualHeight]) {
+      if (!actualHeight) return 0;
+      return Math.floor(top * actualHeight / sg.cellHeight);
+    };
     this.$$topmostRow = $$.connect(
-      [this.$$top, this.$$actualHeight, this.$$activeSheetIdx],
+      [this.$$top, this.$$actualHeight],
       topmostRowVf,
       'topmost',
       function (oldVal, newVal) {
         return oldVal != newVal;
       }
     );
-    let leftmostColVf = function ($$activeSheetIdx) {
-      return function ([top, actualWidth], initiators) {
-        if (!actualWidth) return 0;
-        if (initiators && initiators.length) {
-          if (~initiators.indexOf($$activeSheetIdx)) {
-            return 0;
-          }
-        }
-        return Math.floor(top * actualWidth / sg.cellWidth);
-      };
-    }(this.$$activeSheetIdx);
+    let leftmostColVf = function ([left, actualWidth]) {
+      if (!actualWidth) return 0;
+      return Math.floor(left * actualWidth / sg.cellWidth);
+    };
     this.$$leftmostCol = $$.connect(
-      [this.$$left, this.$$actualWidth, this.$$activeSheetIdx],
+      [this.$$left, this.$$actualWidth],
       leftmostColVf,
       'leftmost',
       function (oldVal, newVal) {
         return oldVal != newVal;
       }
     );
+    let onScreenScroll = function (sg) {
+      return function () {
+        for (let row of sg.cells) {
+          for (let cell of row) {
+            cell.resetView(sg.$$topmostRow.val(), sg.$$leftmostCol.val());
+          }
+        }
+      };
+    }(this);
+    this.$$topmostRow.change(onScreenScroll);
+    this.$$leftmostCol.change(onScreenScroll);
+    this.$$activeSheetIdx.change(function (sg) {
+      return function () {
+        $$.update(
+          [sg.$$leftmostCol, 0],
+          [sg.$$topmostRow, 0]
+        );
+        onScreenScroll();
+      };
+    }(this));
     this.$$focusedCell = $$.connect(
       [this.$$activeSheetIdx],
       function () {
@@ -219,7 +226,7 @@ export class SmartGrid {
       [sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)),
       function ([leftTagHeader, ...cells]) {
         return h('.row', [leftTagHeader].concat(cells));
-      }, 'row-${row}');
+      }, `row-${row}`);
   }
   $$createDataGrid() {
     var sg = this;

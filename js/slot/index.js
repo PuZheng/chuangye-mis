@@ -257,7 +257,7 @@ Slot.prototype.connect = function (slots, valueFunc, parentsCalcOffsprings=false
   let unvisited = objectValues(affected);
   while (unvisited.length) {
     let slot = unvisited.shift();
-    for (var parent of slot.parents) {
+    for (let parent of slot.parents) {
       if (!(parent.id in affected)) {
         affected[parent.id] = parent;
         unvisited.push(parent);
