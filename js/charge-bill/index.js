@@ -122,7 +122,10 @@ export default {
       $$view.connect([sidebar.$$view, smartGrid.$$view], function ([sidebar, smartGrid]) {
         return h('#charge-bills', [
           sidebar,
-          h('.content', smartGrid),
+          h('.content', [
+            h('button.save', '保存'),
+            smartGrid,
+          ]),
         ]);
       }).refresh();
       sidebar.setupLayout();

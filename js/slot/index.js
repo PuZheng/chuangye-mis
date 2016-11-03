@@ -5,10 +5,6 @@ var _uniqueId = function () {
   };
 }();
 
-var isEmptyObject = function (obj) {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
-};
-
 var objectValues = obj => (Object.values?  obj => Object.values(obj): function (obj) {
   var values = [];
   for (var key in obj) {
@@ -64,10 +60,10 @@ Slot.prototype.val = function (newValue) {
       cb.call(this, newValue, oldValue);
     });
     if (objectValues(this.children).length == 1) {
-      objectValues(this.children)[0].update();
+      objectValues(this.children)[0].refresh(null, true);
       return oldValue;
     }
-    if (this.offspringsByLevels.length === 0) {
+    if (this.offspringsByLevels === void 0 || this.offsprings === void 0) {
       this.calcOffsprings();
     }
     let cleanSlots = {};
@@ -168,19 +164,25 @@ Slot.prototype.calcOffsprings = function () {
   return this;
 };
 
-Slot.prototype.refresh = function (initiators) {
-  let args = [this.parents.map(parent => parent.val())];
-  args.push(initiators);
+Slot.prototype.refresh = function (initiators, propogation=false) {
   let oldValue = this.value;
-  this.value = this.valueFunc.apply(
-    this,
-    args
-  );
+  if (this.valueFunc) {
+    let args = [this.parents.map(parent => parent.val())];
+    initiators && args.push(initiators);
+    this.value = this.valueFunc.apply(
+      this,
+      args
+    );
+  }
   if (this.changed && !this.changed(oldValue, this.value)) {
     return false;
   }
-  for (var cb of this.onChangeCbs) {
-    cb.call(this, this.value, oldValue, initiators);
+  if (propogation) {
+    this.val(this.value);
+  } else {
+    for (let cb of this.onChangeCbs) {
+      cb.call(this, this.value, oldValue, initiators);
+    }
   }
   return true;
 };
@@ -219,7 +221,7 @@ Slot.prototype.map = function (f) {
   });
 };
 
-Slot.prototype.connect = function (slots, valueFunc, parentsCalcOffsprings=false) {
+Slot.prototype.connect = function (slots, valueFunc) {
   let self = this;
   self.valueFunc = valueFunc;
   // affected slots are parents/un-parents
@@ -246,26 +248,10 @@ Slot.prototype.connect = function (slots, valueFunc, parentsCalcOffsprings=false
     self,
     [self.parents.map(parent => parent.val())]
   );
-  if (!parentsCalcOffsprings) {
-    self.parents.forEach(function (parent) {
-      parent.offsprings = {};
-      parent.offspringsByLevels = [];
-    });
-    return self;
-  }
-  // re-collect ancestors/un-ancestors
-  let unvisited = objectValues(affected);
-  while (unvisited.length) {
-    let slot = unvisited.shift();
-    for (let parent of slot.parents) {
-      if (!(parent.id in affected)) {
-        affected[parent.id] = parent;
-        unvisited.push(parent);
-      }
-    }
-  }
-  objectValues(affected).forEach(function (slot) {
-    slot.calcOffsprings();
+  // make parents' offsprings obsolete
+  self.parents.forEach(function (parent) {
+    parent.offsprings = void 0;
+    parent.offspringsByLevels = void 0;
   });
   return self;
 };
@@ -305,7 +291,7 @@ var update = function (...slotValuePairs) {
     }
   };
   slotValuePairs.forEach(function ([slot]) {
-    if (isEmptyObject(slot.offsprings)) {
+    if (slot.offsprings === void 0) {
       slot.calcOffsprings();
     }
     objectValues(slot.offsprings).forEach(function ({slot: offspring, level}) {
