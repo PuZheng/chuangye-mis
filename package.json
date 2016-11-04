@@ -47,6 +47,7 @@
     "basscss-btn-sizes": "^1.2.0",
     "basscss-colors": "^2.2.0",
     "basscss-forms": "^1.0.0",
+    "casing": "^1.0.0",
     "colors.css": "^3.0.0",
     "ejs": "^2.4.2",
     "font-awesome": "^4.6.3",

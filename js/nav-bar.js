@@ -41,7 +41,7 @@ var $$store = function () {
   let $$expanded = $$(false, 'expanded');
   let vf = function ([currentMod, mods, expanded]) {
     let classes = classNames(
-      'item', 
+      'item',
       (currentMod === 'store.order' || currentMod === 'store.checkbook') && 'active',
       expanded && 'expanded'
     );
@@ -68,7 +68,7 @@ var $$store = function () {
             }
           }, '单据管理'),
           h('a' + classNames(
-            'item', (currentMod == 'store.checkbook' && 'active') 
+            'item', (currentMod == 'store.checkbook' && 'active')
           ), {
             onclick(e) {
               e.preventDefault();
@@ -184,14 +184,14 @@ var $$meter = function () {
                   $$expanded.val(false);
                   page('/meter-type-list');
                 }
-              }, '表设备类型'); 
+              }, '表设备类型');
             },
             R.always('')
           )(mods),
         ])
-      ], 
+      ],
       R.always('')
-    )(mods)); 
+    )(mods));
   };
   return $$.connect([$$currentMod, $$mods, $$expanded], vf);
 }();
@@ -215,7 +215,7 @@ var $$accountTerm = $$.connect(
 );
 
 var $$invoiceType = $$.connect(
-  [$$currentMod, $$mods], 
+  [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editInvoiceType'),
@@ -227,12 +227,12 @@ var $$invoiceType = $$.connect(
         }
       }, '发票类型'),
       R.always('')
-    )(mods); 
+    )(mods);
   }
 );
 
 var $$voucherSubject = $$.connect(
-  [$$currentMod, $$mods], 
+  [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editVoucherSubject'),
@@ -249,7 +249,7 @@ var $$voucherSubject = $$.connect(
 );
 
 var $$user = $$.connect(
-  [$$currentMod, $$mods], 
+  [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editUser'),
@@ -266,7 +266,7 @@ var $$user = $$.connect(
 );
 
 var $$chargeBill = $$.connect(
-  [$$currentMod, $$mods], 
+  [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editChargeBill'),
@@ -276,7 +276,7 @@ var $$chargeBill = $$.connect(
           e.preventDefault();
           page('/charge-bill/latest');
         }
-      }, '账单录入')),
+      }, '费用单录入')),
       R.always('')
     )(mods);
   }
@@ -284,7 +284,7 @@ var $$chargeBill = $$.connect(
 
 
 var vf = function vf([
-  home, invoice, store, voucher, department, tenant, settings, meter, 
+  home, invoice, store, voucher, department, tenant, settings, meter,
   accountTerm, invoiceType, voucherSubject, user, chargeBill,
 ]) {
   return h('.menu.top', [
@@ -329,9 +329,9 @@ var vf = function vf([
 };
 
 export var $$navBar = $$.connect(
-  [$$home, $$invoice, $$store, $$voucher, $$department, $$tenant, 
-    $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user, $$chargeBill], 
-  vf, 
+  [$$home, $$invoice, $$store, $$voucher, $$department, $$tenant,
+    $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user, $$chargeBill],
+  vf,
   'nav-bar'
 );
 

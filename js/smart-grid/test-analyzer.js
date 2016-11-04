@@ -29,16 +29,16 @@ test('primitive', function (t) {
   let cells = sheets[0].cells;
   let cell = cells['A1'];
   t.is(cell.val, '1');
-  t.true(cell.primitive);
+  t.true(cell.__primitive);
   cell = cells['B1'];
   t.is(cell.val, '2');
-  t.true(cell.primitive);
+  t.true(cell.__primitive);
   cell = cells['C1'];
   t.is(cell.val, 'abc');
-  t.true(cell.primitive);
+  t.true(cell.__primitive);
   cell = cells['B2'];
   t.is(cell.val, '3');
-  t.true(cell.primitive);
+  t.true(cell.__primitive);
 
   t.true(R.isEmpty(sheets[1].cells));
   t.true(R.isEmpty(sheets[1].cells));
@@ -77,9 +77,9 @@ test('dependencies', function (t) {
   let analyzer = new Analyzer(def);
   let cellDef = analyzer.getCellDef(0, 'A2');
   t.is(cellDef.val, '=A1+SHEET1:A1+SHEET2:${REF1}');
-  t.false(cellDef.primitive);
+  t.false(cellDef.__primitive);
 
-  let dependencies = cellDef.dependencies;
+  let dependencies = cellDef.__dependencies;
   t.is(dependencies.length, 3);
   let dep = dependencies[0];
   t.is(dep.type, Token.VARIABLE);
@@ -114,7 +114,7 @@ test('setCellDef', function (t) {
   };
   let analyzer = new Analyzer(def);
   let cellDef = analyzer.setCellDef(0, 'A2', '=SHEET1:A1+B1+SHEET2:${REF1}');
-  let dependencies = cellDef.dependencies;
+  let dependencies = cellDef.__dependencies;
   t.is(dependencies.length, 3);
   let dep = dependencies[0];
   t.is(dep.type, Token.VARIABLE);

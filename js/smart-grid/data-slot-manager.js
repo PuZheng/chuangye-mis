@@ -41,7 +41,7 @@ class DataSlotManager {
       var slots = this._data[idx];
       for (let tag in sheet.cells) {
         let cell = sheet.cells[tag];
-        if (!cell.primitive || this.stickyTags.has(tag)) {
+        if (!cell.__primitive || this.stickyTags.has(tag)) {
           this._reserved.add(idx + '-' + tag);
           slots[tag] = this.makeSlot(cell, sheet.idx, tag);
         }
@@ -88,7 +88,7 @@ class DataSlotManager {
    * */
   makeSlot(cell, currentSheetIdx, tag) {
     let slot = this.get(currentSheetIdx, tag);
-    if (cell.primitive)  {
+    if (cell.__primitive)  {
       if (!slot) {
         return $$(cell.val, `cell-${tag}`);
       } else {
@@ -121,7 +121,7 @@ class DataSlotManager {
               refMaps[sheet][label] = val;
             }
           }
-          let lexer = new Lexer(cell.script);
+          let lexer = new Lexer(cell.__script);
           let parser = new Parser(lexer);
           return new Interpreter(parser.expr, env, refMaps).eval();
         }
@@ -130,7 +130,7 @@ class DataSlotManager {
   }
   getDependencies(cellDef, currentSheetIdx) {
     let dependentSlots = [];
-    for (let token of cellDef.dependencies || []) {
+    for (let token of cellDef.__dependencies || []) {
       if (token.type != Token.REF && token.type != Token.VARIABLE) {
         throw new Error('dependent token type must be reference or variable');
       }
@@ -155,7 +155,7 @@ class DataSlotManager {
       // I meet this cell
       this._reserved.add(sheetIdx + '-' + tag);
       this._data[sheetIdx][tag] = this.makeSlot(this.analyzer.getCellDef(sheetIdx, tag) || {
-        primitive: true,
+        __primitive: true,
         val: '',
       }, sheetIdx, tag);
       dependentSlots.push({
@@ -182,7 +182,7 @@ class DataSlotManager {
       }
       let cellDef = this.analyzer.getCellDef(sheetIdx, tag) || {
         tag,
-        primitive: true,
+        __primitive: true,
       };
       slot = this._data[sheetIdx][tag] = this.makeSlot(cellDef, sheetIdx);
     }

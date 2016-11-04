@@ -153,9 +153,9 @@ class Analyzer {
       script = val.slice(1);
     }
     return Object.assign(cellDef, {
-      primitive,
-      dependencies,
-      script,
+      __primitive: primitive,
+      __dependencies: dependencies,
+      __script: script,
     });
   }
   getTagByLabel(sheetIdx, label) {

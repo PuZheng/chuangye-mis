@@ -246,9 +246,11 @@ a {
         height: 100%;
         width: 12rem;
         float: left;
+        z-index: 2;
     }
 
     & > .content {
+        z-index: 1;
         padding-left: calc(12rem + 5px);
         height: 100%;
         position: relative;

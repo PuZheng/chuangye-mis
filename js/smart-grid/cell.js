@@ -137,7 +137,7 @@ class Cell {
             slots.push(cell.$$envSlot);
           }
           cell.$$view.connect(slots, cell._vf).refresh();
-          cell.def.onchange && cell.def.onchange.apply(cell);
+          cell.def.__onchange && cell.def.__onchange.apply(cell);
         }
         $$.update(...updates);
         return false;
@@ -158,7 +158,7 @@ class Cell {
           }
         }
         cell.mode = newMode;
-        return cell.def && cell.def.makeVNode? cell.def.makeVNode(cell, val): cell.makeVNode(val);
+        return cell.def && cell.def.__makeVNode? cell.def.__makeVNode(cell, val): cell.makeVNode(val);
       };
     }(this);
     this.$$view = $$(null, `cell-${row}-${col}`);

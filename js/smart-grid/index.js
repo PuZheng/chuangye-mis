@@ -493,7 +493,7 @@ export class SmartGrid {
     });
     return true;
   }
-  onUpdated () {
+  onUpdated() {
     let focusedCell = this.$$focusedCell.val();
     if (focusedCell && focusedCell.mode == CellMode.EDIT) {
       let {row, col} = focusedCell;
@@ -504,6 +504,15 @@ export class SmartGrid {
         focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
       }
     }
+  }
+  getRawCellDef(cellDef) {
+    let ret = {};
+    for (let k in cellDef) {
+      if (!k.startsWith('__')) {
+        ret[k] = cellDef[k];
+      }
+    }
+    return ret;
   }
 }
 
