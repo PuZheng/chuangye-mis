@@ -157,48 +157,50 @@ class Cell {
             return this.value;
           }
         }
-        if (val === void 0) {
-          val = cell.def && cell.def.val || '';
-        }
-        let className = ['cell', cell.tag];
-        if (cell.def && cell.def.readOnly) {
-          className.push('readonly');
-        }
         cell.mode = newMode;
-        // let mode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
-        let selected = cell.mode == CellMode.SELECTED;
-        if (selected) {
-          className.push('selected');
-        }
-        let editing = cell.mode == CellMode.EDIT;
-        if (editing) {
-          className.push('editing');
-        }
-        let properties = {
-          attributes: {
-            class: className.join(' '),
-            style: stringifyStyle(cell.def? cell.def.style: {}),
-          },
-          hook: cell.hook,
-        };
-        let ret = new VNode('div', properties, [
-          cell.makeContentVnode(cell.def, val, editing),
-          cell.makeEditorVnode(cell.def, editing),
-        ]);
-        // reset the input element's value, since VNode won't reset value
-        // for you
-        if (cell.inputEl) {
-          cell.inputEl.value = cell.inputEl.getAttribute('value');
-        }
-        return ret;
+        return cell.def && cell.def.makeVNode? cell.def.makeVNode(cell, val): cell.makeVNode(val);
       };
     }(this);
     this.$$view = $$(null, `cell-${row}-${col}`);
     this.resetView(0, 0);
   }
+  makeVNode(val) {
+    if (val === void 0) {
+      val = this.def && this.def.val || '';
+    }
+    let className = ['cell', this.tag];
+    if (this.def && this.def.readOnly) {
+      className.push('readonly');
+    }
+    let selected = this.mode == CellMode.SELECTED;
+    if (selected) {
+      className.push('selected');
+    }
+    let editing = this.mode == CellMode.EDIT;
+    if (editing) {
+      className.push('editing');
+    }
+    let properties = {
+      attributes: {
+        class: className.join(' '),
+        style: stringifyStyle(this.def? this.def.style: {}),
+      },
+      hook: this.hook,
+    };
+    let ret = new VNode('div', properties, [
+      this.makeContentVnode(this.def, val, editing),
+      this.makeEditorVnode(this.def, editing),
+    ]);
+    // reset the input element's value, since VNode won't reset value
+    // for you
+    if (this.inputEl) {
+      this.inputEl.value = this.inputEl.getAttribute('value');
+    }
+    return ret;
+  }
   resetView(topmostRow, leftmostCol) {
     this.tag = makeTag(this.row + topmostRow,
-                      this.col + leftmostCol);
+                       this.col + leftmostCol);
     this.def = this.sg.getCellDef(this.tag);
     this.$$envSlot = this.sg.getCellSlot(this.tag);
     let slots = [this.sg.$$focusedCell];

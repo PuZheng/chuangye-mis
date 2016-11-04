@@ -105,9 +105,18 @@ export default {
                 onchange: onCellChange,
               };
             }),
-            '=' + meterType.meterReadings.map(function (mr) {
-              return '${' + meter.id + '-' + mr.name + '}*' + '${setting-' + mr.priceSetting.name + '}';
-            }).join('+'),
+            {
+              val: '=' + meterType.meterReadings.map(function (mr) {
+                return '${' + meter.id + '-' + mr.name + '}*' + '${setting-' + mr.priceSetting.name + '}';
+              }).join('+'),
+              makeVNode(cell, val) {
+                let vNode = cell.makeVNode(val);
+                if (!val) {
+                  vNode.properties.attributes.class += ' unfullfilled';
+                }
+                return vNode;
+              }
+            }
           ];
         });
         def.sheets.push({

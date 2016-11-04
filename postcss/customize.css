@@ -272,6 +272,9 @@ a {
 
         & .smart-grid {
           height: 100%;
+          & .cell.unfullfilled {
+            border: 1px solid color(var(--color-accent) s(+20%));
+          }
         }
     }
 
