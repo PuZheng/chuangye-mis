@@ -165,6 +165,7 @@ a {
 
 #toast {
     width: 100%;
+    z-index: 10000;
 }
 
 #invoice-list {
