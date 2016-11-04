@@ -137,6 +137,7 @@ class Cell {
             slots.push(cell.$$envSlot);
           }
           cell.$$view.connect(slots, cell._vf).refresh();
+          cell.def.onchange && cell.def.onchange.apply(cell);
         }
         $$.update(...updates);
         return false;

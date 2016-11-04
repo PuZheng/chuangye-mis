@@ -475,7 +475,7 @@ export class SmartGrid {
    * edit a given position
    * */
   edit(row, col) {
-    if (row === undefined || col === undefined) {
+    if (row === void 0 || col === void 0) {
       var focusedCell = this.$$focusedCell.val();
       if (focusedCell) {
         return this.edit(focusedCell.row, focusedCell.col);
@@ -493,26 +493,24 @@ export class SmartGrid {
     });
     return true;
   }
-}
-
-SmartGrid.prototype.onUpdated = function () {
-  let focusedCell = this.$$focusedCell.val();
-  if (focusedCell && focusedCell.mode == CellMode.EDIT) {
-    let {row, col} = focusedCell;
-    row -= this.$$topmostRow.val();
-    if (row >= 0) {
-      col -= this.$$leftmostCol.val();
-      focusedCell = this.cells[row][col];
-      focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
+  onUpdated () {
+    let focusedCell = this.$$focusedCell.val();
+    if (focusedCell && focusedCell.mode == CellMode.EDIT) {
+      let {row, col} = focusedCell;
+      row -= this.$$topmostRow.val();
+      if (row >= 0) {
+        col -= this.$$leftmostCol.val();
+        focusedCell = this.cells[row][col];
+        focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
+      }
     }
   }
-};
+}
 
 const LEFT = 37;
 const UP = 38;
 const RIGHT = 39;
 const DOWN = 40;
-
 
 /**
  * invoke this method if you want support up/down/left/right keyboard shortcuts

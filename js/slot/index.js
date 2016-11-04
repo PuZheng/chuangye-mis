@@ -47,7 +47,7 @@ Slot.prototype.offChange = function (proc) {
   this.onChangeCbs = this.onChangeCbs.filter(cb => cb != proc);
 };
 Slot.prototype.val = function (newValue) {
-  if (newValue === undefined) {
+  if (newValue === void 0) {
     return this.value;
   } else {
     if (this.changed && !this.changed(this.value, newValue)) {

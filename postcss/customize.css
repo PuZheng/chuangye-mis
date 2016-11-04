@@ -253,13 +253,13 @@ a {
         height: 100%;
         position: relative;
 
-        & button.save {
+        & button {
           position: absolute;
           bottom: 10%;
           right: 10%;
           border: none;
           color: white;
-          background: var(--color-accent);
+          background: color(var(--color-accent) a(+20%));
           width: 4rem;
           height: 4rem;
           border-radius: 4em;

@@ -3,6 +3,7 @@ import meterStore from 'store/meter-store';
 import sg from 'smart-grid';
 import virtualDom from 'virtual-dom';
 import accountTermStore from 'store/account-term-store';
+import tenantStore from 'store/tenant-store';
 import classNames from '../class-names';
 import R from 'ramda';
 import Scrollable from 'scrollable';
@@ -13,6 +14,11 @@ var h = virtualDom.h;
 var smartGrid;
 var $$loading = $$(false, 'loading');
 var $$view = $$.connect([], () => h('.charge-bills'));
+var $$dirty = $$(false, 'dirty');
+
+var onCellChange = function () {
+  $$dirty.val(true);
+};
 
 export default {
   page: {
@@ -26,9 +32,10 @@ export default {
     $$loading.val(true);
     Promise.all([
       accountTermStore.list,
-      meterStore.list
+      meterStore.list,
+      tenantStore.list,
     ])
-    .then(function ([accountTerms, meters]) {
+    .then(function ([accountTerms, meters, tenants]) {
       if (accountTermName == 'latest') {
         accountTerms[0].active = true;
       } else {
@@ -68,6 +75,8 @@ export default {
           {
             val: '车间',
           }, {
+            val: '承包人',
+          }, {
             val: '表设备',
           }, ...meterType.meterReadings.map(function (it) {
             return {
@@ -85,12 +94,15 @@ export default {
               val: meter.department.name,
               readOnly: true
             }, {
+              val: R.find(R.propEq('id', meter.departmentId))(tenants).entity.name,
+            }, {
               // B(idx + 1)
               val: meter.name,
               readOnly: true
             }, ...meterType.meterReadings.map(function (mr) {
               return {
-                label: meter.id + '-' + mr.name
+                label: meter.id + '-' + mr.name,
+                onchange: onCellChange,
               };
             }),
             '=' + meterType.meterReadings.map(function (mr) {
@@ -119,19 +131,21 @@ export default {
         });
       }
       smartGrid = new sg.SmartGrid(def);
-      $$view.connect([sidebar.$$view, smartGrid.$$view], function ([sidebar, smartGrid]) {
-        return h('#charge-bills', [
-          sidebar,
-          h('.content', [
-            h('button.save', '保存'),
-            smartGrid,
-          ]),
-        ]);
-      }).refresh();
+      $$view.connect(
+        [sidebar.$$view, smartGrid.$$view, $$dirty],
+        function ([sidebar, smartGrid, dirty]) {
+          return h('#charge-bills', [
+            sidebar,
+            h('.content', [
+              h('button', dirty? '保存': '生成支付记录'),
+              smartGrid,
+            ]),
+          ]);
+        }
+      ).refresh();
       sidebar.setupLayout();
       smartGrid.setupLayout();
       smartGrid.registerShortcus();
-
     });
   }
 };
