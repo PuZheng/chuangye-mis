@@ -1,4 +1,4 @@
-import $$ from '../slot/';
+import $$ from 'slot';
 
 var objectValues = obj => (Object.values?  obj => Object.values(obj): function (obj) {
   var values = [];

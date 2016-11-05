@@ -73,18 +73,16 @@ class Analyzer {
     this.sheets = def.sheets.map(function ({label, grids=[]}, idx) {
       var cells = {};
       let [cellDef, i, j] = getNextCellDef(grids, 0, 0);
-      let sheet = ('SHEET' + (idx + 1));
+      let sheet = 'SHEET' + (idx + 1);
       while (cellDef != void(0)) {
         let tag = makeTag(i, j);
         cellDef = analyzer.normalize(cellDef);
-        cellDef.tag = tag;
-        cellDef.sheet = sheet;
         cells[tag] = cellDef;
         if (cellDef.label) {
           if (!analyzer.labelMaps[idx]) {
             analyzer.labelMaps[idx] = {};
           }
-          analyzer.labelMaps[idx][cellDef.label] = tag;
+          analyzer.labelMaps[idx][cellDef.label.toUpperCase()] = tag;
         }
         j++;
         if (j == grids[i].length) {
@@ -113,7 +111,7 @@ class Analyzer {
    *    * tag
    *    * def
    * */
-  getCellDefs(test) {
+  searchCells(test) {
     let ret = [];
     for (let sheet of this.sheets) {
       let {idx: sheetIdx, cells} = sheet;
@@ -139,7 +137,7 @@ class Analyzer {
         val: cellDef,
       };
     }
-    let val = cellDef.val || '';
+    let val = cellDef.val = cellDef.val || '';
     let primitive = val[0] != '=';
     let dependencies = [];
     let script;
@@ -155,13 +153,13 @@ class Analyzer {
       script = val.slice(1);
     }
     return Object.assign(cellDef, {
-      primitive,
-      dependencies,
-      script,
+      __primitive: primitive,
+      __dependencies: dependencies,
+      __script: script,
     });
   }
   getTagByLabel(sheetIdx, label) {
-    return (this.labelMaps[sheetIdx] || {})[label];
+    return (this.labelMaps[sheetIdx] || {})[label.toUpperCase()];
   }
   getCellDef(sheetIdx, tag) {
     let sheet = this.sheets[sheetIdx];
@@ -178,9 +176,7 @@ class Analyzer {
     if (sheet.cells == void(0)) {
       sheet.cells = {};
     }
-    return sheet.cells[tag] = Object.assign(this.normalize(def), {
-      tag,
-    });
+    return sheet.cells[tag] = this.normalize(def);
   }
   getSheet(sheetIdx) {
     return this.sheets[sheetIdx];

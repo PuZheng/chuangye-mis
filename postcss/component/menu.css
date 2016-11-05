@@ -6,6 +6,11 @@
     box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
     border-radius: .28571429rem;
 
+    &.borderless {
+        border: none;
+        box-shadow: none;
+    }
+
     &.tabular {
         border: none;
         box-shadow: none;
@@ -23,6 +28,29 @@
             font-weight: 700;
             box-shadow: none;
             border-radius: .28571429rem .28571429rem 0 0!important;
+        }
+    }
+
+    &.vertical {
+        &.fluid {
+            width: 100%;
+            & .item {
+                width: 100%;
+            }
+        }
+        & .item {
+
+            &.active {
+                background: var(--color-gray-light);
+                border: none;
+            }
+
+            display: block;
+            color: var(--color-gray-dark);
+            & a {
+                text-decoration: none;
+                color: var(--color-gray-dark);
+            }
         }
     }
     

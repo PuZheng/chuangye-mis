@@ -26,6 +26,9 @@ export default {
     return request.get('/meter/list?' + object2qs(qo))
     .then(R.prop('data'));
   },
+  get list() {
+    return request.get('/meter/list').then(R.path(['data', 'data']));
+  },
   save(obj) {
     if (!obj.id) {
       return request.post('/meter/object', obj)

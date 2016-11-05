@@ -1,15 +1,5 @@
-import {
-  Lexer,
-  Token
-} from './engine/lexer.js';
-import {
-  Parser,
-  Num,
-  BinOp,
-  UnaryOp,
-  Var,
-  Ref
-} from './engine/parser.js';
+import { Lexer, Token } from './engine/lexer.js';
+import { Parser, Num, BinOp, UnaryOp, Var, Ref } from './engine/parser.js';
 import {
   Interpreter,
   types

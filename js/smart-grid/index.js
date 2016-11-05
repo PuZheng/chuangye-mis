@@ -26,6 +26,7 @@ var toColumnIdx = function (idx) {
   return columnIdx.map(i => String.fromCharCode(i)).join('');
 };
 
+
 export class SmartGrid {
   /**
    * @constructor
@@ -69,44 +70,50 @@ export class SmartGrid {
     this.$$left = $$(0, 'left');
     this.$$top = $$(0, 'top');
     this.$$activeSheetIdx = $$(0, 'active-tab');
-    let topmostRowVf = function ($$activeSheetIdx) {
-      return function ([top, actualHeight], initiators) {
-        if (!actualHeight) return 0;
-        if (initiators && initiators.length) {
-          if (~initiators.indexOf($$activeSheetIdx)) {
-            return 0;
-          }
-        }
-        return Math.floor(top * actualHeight / sg.cellHeight);
-      };
-    }(this.$$activeSheetIdx);
+    let topmostRowVf = function ([top, actualHeight]) {
+      if (!actualHeight) return 0;
+      return Math.floor(top * actualHeight / sg.cellHeight);
+    };
     this.$$topmostRow = $$.connect(
-      [this.$$top, this.$$actualHeight, this.$$activeSheetIdx],
+      [this.$$top, this.$$actualHeight],
       topmostRowVf,
       'topmost',
       function (oldVal, newVal) {
         return oldVal != newVal;
       }
     );
-    let leftmostColVf = function ($$activeSheetIdx) {
-      return function ([top, actualWidth], initiators) {
-        if (!actualWidth) return 0;
-        if (initiators && initiators.length) {
-          if (~initiators.indexOf($$activeSheetIdx)) {
-            return 0;
-          }
-        }
-        return Math.floor(top * actualWidth / sg.cellWidth);
-      };
-    }(this.$$activeSheetIdx);
+    let leftmostColVf = function ([left, actualWidth]) {
+      if (!actualWidth) return 0;
+      return Math.floor(left * actualWidth / sg.cellWidth);
+    };
     this.$$leftmostCol = $$.connect(
-      [this.$$left, this.$$actualWidth, this.$$activeSheetIdx],
+      [this.$$left, this.$$actualWidth],
       leftmostColVf,
       'leftmost',
       function (oldVal, newVal) {
         return oldVal != newVal;
       }
     );
+    let onScreenScroll = function (sg) {
+      return function () {
+        for (let row of sg.cells) {
+          for (let cell of row) {
+            cell.resetView(sg.$$topmostRow.val(), sg.$$leftmostCol.val());
+          }
+        }
+      };
+    }(this);
+    this.$$topmostRow.change(onScreenScroll);
+    this.$$leftmostCol.change(onScreenScroll);
+    this.$$activeSheetIdx.change(function (sg) {
+      return function () {
+        $$.update(
+          [sg.$$leftmostCol, 0],
+          [sg.$$topmostRow, 0]
+        );
+        onScreenScroll();
+      };
+    }(this));
     this.$$focusedCell = $$.connect(
       [this.$$activeSheetIdx],
       function () {
@@ -195,23 +202,43 @@ export class SmartGrid {
       return h(classNames, '' + (topmostRow + row + 1));
     });
   }
-  getCellDefs(test) {
-    return this.analyzer.getCellDefs(test);
+  searchCells(test) {
+    return this.analyzer.searchCells(test);
   }
-  getCellSlot(tag) {
-    return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
+  getCellSlot(tag, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    return this.dataSlotManager.get(sheetIdx, tag);
   }
   createCellSlot(sheetIdx, tag) {
     return this.dataSlotManager.create(sheetIdx, tag);
   }
-  getTagByLabel(sheetIdx, tag) {
-    return this.analyzer.getTagByLabel(sheetIdx, tag);
+  getTagByLabel(sheetIdx, label) {
+    return this.analyzer.getTagByLabel(sheetIdx, label);
   }
-  getCellDef(tag) {
-    return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
+  getCellDef(tag, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    return this.analyzer.getCellDef(sheetIdx, tag);
   }
-  setCellDef(tag, def) {
-    return this.analyzer.setCellDef(this.$$activeSheetIdx.val(), tag, def);
+  setCellDef(tag, def, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    return this.analyzer.setCellDef(sheetIdx, tag, def);
+  }
+  getCellValue(tag, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    let $$slot = this.getCellSlot(tag, sheetIdx);
+    if ($$slot) {
+      return $$slot.val();
+    }
+    let def = this.getCellDef(tag, sheetIdx);
+    return def? def.val: '' ;
   }
   $$createRow(row) {
     let sg = this;
@@ -219,7 +246,7 @@ export class SmartGrid {
       [sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)),
       function ([leftTagHeader, ...cells]) {
         return h('.row', [leftTagHeader].concat(cells));
-      }, 'row-${row}');
+      }, `row-${row}`);
   }
   $$createDataGrid() {
     var sg = this;
@@ -237,7 +264,7 @@ export class SmartGrid {
           onwheel(e) {
             let actualHeight = smartGrid.$$actualHeight.val();
             let viewportHeight = smartGrid.$$viewportHeight.val();
-            var top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
+            let top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
             if (top < 0) {
               top = 0;
             }
@@ -468,7 +495,7 @@ export class SmartGrid {
    * edit a given position
    * */
   edit(row, col) {
-    if (row === undefined || col === undefined) {
+    if (row === void 0 || col === void 0) {
       var focusedCell = this.$$focusedCell.val();
       if (focusedCell) {
         return this.edit(focusedCell.row, focusedCell.col);
@@ -486,26 +513,33 @@ export class SmartGrid {
     });
     return true;
   }
-}
-
-SmartGrid.prototype.onUpdated = function () {
-  let focusedCell = this.$$focusedCell.val();
-  if (focusedCell && focusedCell.mode == CellMode.EDIT) {
-    let {row, col} = focusedCell;
-    row -= this.$$topmostRow.val();
-    if (row >= 0) {
-      col -= this.$$leftmostCol.val();
-      focusedCell = this.cells[row][col];
-      focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
+  onUpdated() {
+    let focusedCell = this.$$focusedCell.val();
+    if (focusedCell && focusedCell.mode == CellMode.EDIT) {
+      let {row, col} = focusedCell;
+      row -= this.$$topmostRow.val();
+      if (row >= 0) {
+        col -= this.$$leftmostCol.val();
+        focusedCell = this.cells[row][col];
+        focusedCell && focusedCell.el.getElementsByTagName('input')[0].focus();
+      }
     }
   }
-};
+  getRawCellDef(cellDef) {
+    let ret = {};
+    for (let k in cellDef) {
+      if (!k.startsWith('__')) {
+        ret[k] = cellDef[k];
+      }
+    }
+    return ret;
+  }
+}
 
 const LEFT = 37;
 const UP = 38;
 const RIGHT = 39;
 const DOWN = 40;
-
 
 /**
  * invoke this method if you want support up/down/left/right keyboard shortcuts
@@ -537,4 +571,7 @@ const range = function (start, end) {
   return a;
 };
 
-export default SmartGrid;
+export default {
+  SmartGrid,
+  toColumnIdx,
+};

@@ -1,5 +1,17 @@
+:root {
+    --main-padding-top: calc(2.2rem + 1px);
+}
+html {
+    height: 100%;
+}
 body {
     color: var(--color-gray-dark);
+    height: 100%;
+}
+
+#main {
+    padding-top: var(--main-padding-top);
+    height: 100%;
 }
 
 a {
@@ -24,7 +36,7 @@ a {
                 content: '*';
             }
         }
-        
+
     }
 
     & .form {
@@ -49,7 +61,7 @@ a {
                 border-color: var(--color-primary);
             }
         }
-        
+
         & hr {
             border-color: var(--color-accent);
             margin-bottom: 2rem;
@@ -124,7 +136,7 @@ a {
     position: absolute;
     width: 100%;
     height: 100%;
-    
+
     & > .box {
         position: absolute;
         left: 50%;
@@ -153,6 +165,7 @@ a {
 
 #toast {
     width: 100%;
+    z-index: 10000;
 }
 
 #invoice-list {
@@ -226,4 +239,46 @@ a {
     & .role:after {
         content: ')';
     }
+}
+
+#charge-bills {
+    height: 100%;
+    & > aside {
+        height: 100%;
+        width: 12rem;
+        float: left;
+        z-index: 2;
+    }
+
+    & > .content {
+        z-index: 1;
+        padding-left: calc(12rem + 5px);
+        height: 100%;
+        position: relative;
+
+        & button {
+          position: absolute;
+          bottom: 10%;
+          right: 10%;
+          border: none;
+          color: white;
+          background: color(var(--color-accent) a(+20%));
+          width: 4rem;
+          height: 4rem;
+          border-radius: 4em;
+          z-index: 9999;
+          outline: none;
+          &:hover {
+            background: color(var(--color-accent) l(+10%));
+          }
+        }
+
+        & .smart-grid {
+          height: 100%;
+          & .cell.unfullfilled {
+            border: 1px solid color(var(--color-accent) s(+20%));
+          }
+        }
+    }
+
 }
