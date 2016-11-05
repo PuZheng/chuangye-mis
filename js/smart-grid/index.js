@@ -202,23 +202,43 @@ export class SmartGrid {
       return h(classNames, '' + (topmostRow + row + 1));
     });
   }
-  getCellDefs(test) {
-    return this.analyzer.getCellDefs(test);
+  searchCells(test) {
+    return this.analyzer.searchCells(test);
   }
-  getCellSlot(tag) {
-    return this.dataSlotManager.get(this.$$activeSheetIdx.val(), tag);
+  getCellSlot(tag, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    return this.dataSlotManager.get(sheetIdx, tag);
   }
   createCellSlot(sheetIdx, tag) {
     return this.dataSlotManager.create(sheetIdx, tag);
   }
-  getTagByLabel(sheetIdx, tag) {
-    return this.analyzer.getTagByLabel(sheetIdx, tag);
+  getTagByLabel(sheetIdx, label) {
+    return this.analyzer.getTagByLabel(sheetIdx, label);
   }
-  getCellDef(tag) {
-    return this.analyzer.getCellDef(this.$$activeSheetIdx.val(), tag);
+  getCellDef(tag, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    return this.analyzer.getCellDef(sheetIdx, tag);
   }
-  setCellDef(tag, def) {
-    return this.analyzer.setCellDef(this.$$activeSheetIdx.val(), tag, def);
+  setCellDef(tag, def, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    return this.analyzer.setCellDef(sheetIdx, tag, def);
+  }
+  getCellValue(tag, sheetIdx) {
+    if (sheetIdx === void 0) {
+      sheetIdx = this.$$activeSheetIdx.val();
+    }
+    let $$slot = this.getCellSlot(tag, sheetIdx);
+    if ($$slot) {
+      return $$slot.val();
+    }
+    let def = this.getCellDef(tag, sheetIdx);
+    return def? def.val: '' ;
   }
   $$createRow(row) {
     let sg = this;

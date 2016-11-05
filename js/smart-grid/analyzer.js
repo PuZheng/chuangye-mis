@@ -111,7 +111,7 @@ class Analyzer {
    *    * tag
    *    * def
    * */
-  getCellDefs(test) {
+  searchCells(test) {
     let ret = [];
     for (let sheet of this.sheets) {
       let {idx: sheetIdx, cells} = sheet;

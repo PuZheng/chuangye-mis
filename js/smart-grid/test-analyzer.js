@@ -155,3 +155,23 @@ test('getTagByLabel', function (t) {
   t.is(analyzer.getTagByLabel(0, 'foo'), 'A1');
   t.is(analyzer.getTagByLabel(0, 'bar'), 'D1');
 });
+
+
+test('searchCells', function (t) {
+  let analyzer = new Analyzer({
+    sheets: [
+      {
+        grids: [
+          ['1', '2', {
+            label: 'abc',
+            val: '3'
+          }]
+        ]
+      }
+    ]
+  });
+  let cells = analyzer.searchCells(function (cellDef) {
+    return cellDef.val == '1'  || cellDef.label == 'abc';
+  });
+  t.is(cells.length, 2);
+});

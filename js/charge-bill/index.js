@@ -8,6 +8,7 @@ import classNames from '../class-names';
 import R from 'ramda';
 import Scrollable from 'scrollable';
 import chargeBillStore from 'store/charge-bill-store';
+import paymentRecordStore from 'store/payment-record-store';
 import co from 'co';
 import { $$toast } from '../toast';
 import page from 'page';
@@ -105,7 +106,7 @@ var makeDef = function (meters, tenants) {
           }).join('+'),
           __makeVNode: makeSumVNode,
           readOnly: true,
-          label: meter.department.name + '总费用',
+          label: 'sum-of-' + meter.department.id,
         },
       ];
     });
@@ -166,7 +167,7 @@ export default {
               if (!cellDef.readOnly) {
                 cellDef.__onchange = onCellChange;
               }
-              if ((cellDef.label || '').endsWith('总费用')) {
+              if ((cellDef.label || '').startsWith('sum-of')) {
                 cellDef.__makeVNode = makeSumVNode;
               }
             }
@@ -229,20 +230,46 @@ export default {
                         $$loading.val(false);
                       }
                     });
-                    // smartGrid.def.sheets.map(function (sheet) {
-                    //   let meterType = R.find(R.propEq('name', sheet.label))(meterTypes);
-                    //   let keys = sheet.grids[1].map(R.prop('val'));
-                    //   return {
-                    //     meterType: sheet.label,
-                    //     data: sheet.grids.slice(2).map(function (row) {
-                    //       return R.zip(keys, row.map(R.prop('val')));
-                    //   };
-                    // });
                   }
                 }, '保存'),
                 () => h('button', {
                   onclick() {
+                    let paymentRecords = [];
+                    for (let { sheetIdx, tag, def: cellDef } of smartGrid.searchCells(function (cellDef) {
+                      return cellDef.label && cellDef.label.startsWith('sum-of');
+                    })) {
+                      let amount = smartGrid.getCellValue(sheetIdx, tag);
+                      if (!amount) {
+                        $$toast.val({
+                          type: 'warning',
+                          message: '请输入完整的费用信息',
+                        });
+                        return false;
+                      }
+                      paymentRecords.push({
+                        departmentId: cellDef.label.replace('sum-of-', ''),
+                        amount,
+                        reason: obj.def.sheets[sheetIdx].label + '费用',
+                        accountTermId: activeAccountTermId,
+                      });
+                    }
 
+                    co(function *() {
+                      try {
+                        $$loading.val(true);
+                        yield paymentRecordStore.save(paymentRecords);
+                        $$toast.val({
+                          type: 'success',
+                          message: '预支付记录已创建',
+                        });
+                      } catch (e) {
+                        console.error(e);
+                      } finally {
+                        $$loading.val(false);
+                      }
+                    });
+
+                    return false;
                   }
                 }, '生成支付记录')
               )(dirty),
