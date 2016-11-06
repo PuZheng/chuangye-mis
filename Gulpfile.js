@@ -3,8 +3,8 @@ var gulp = require('gulp-npm-run')(require('gulp'), {
 });
 var connect = require('gulp-connect');
 var fs = require('mz/fs');
-var rev = require("gulp-rev");
-var revReplace = require("gulp-rev-replace");
+var rev = require('gulp-rev');
+var revReplace = require('gulp-rev-replace');
 var rollup = require('rollup').rollup;
 var nodeResolve = require('rollup-plugin-node-resolve');
 var babel = require('rollup-plugin-babel');
@@ -52,7 +52,7 @@ gulp.task('collect-dist', ['rollup'], function (cb) {
     filenames.push('index.html');
     // fonts
     var fontsFiles = yield new Promise(function (resolve) {
-      glob('semantic/dist/themes/default/assets/**/*', function (err, filenames) {
+      glob('node_modules/font-awesome/fonts/**/*', function (err, filenames) {
         resolve(filenames);
       });
     });
@@ -63,28 +63,28 @@ gulp.task('collect-dist', ['rollup'], function (cb) {
         fse.copy(filename, 'dist/' + filename, function () {
           resolve();
         });
-      }); 
+      });
     }
     cb();
   });
 });
 
-gulp.task('dist', ['rollup', 'collect-dist', 'rev', 'rev-replace'], 
+gulp.task('dist', ['rollup', 'collect-dist', 'rev', 'rev-replace'],
           function () {
-});
+          });
 
 gulp.task('default', ['css', 'rollup', 'connect', 'watch']);
 
 gulp.task('rollup', function () {
   var plugins = [
     jsx({
-      factory: 'virtualDom.h', 
+      factory: 'virtualDom.h',
       include: ['js/**/*.jsx']
     }),
     nodeResolve({
       jsnext: true,
       browser: true,
-      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot', 
+      skip: ['moment', 'slot', 'smart-grid', 'throttle-slot', 'pipe-slot',
         'validate-obj', 'checkers', 'store', 'toast', 'widget', 'scrollable']
     }),
     commonjs({
@@ -112,9 +112,9 @@ gulp.task('rollup', function () {
   ];
   if (process.env.ENV === 'production') {
     plugins.push(babel({
-      presets: [["es2015", { modules: false }]],
+      presets: [['es2015', { modules: false }]],
       plugins: [
-        "external-helpers"
+        'external-helpers'
       ],
       exclude: ['node_modules/**']
     }));
@@ -147,7 +147,7 @@ gulp.task('rev', ['collect-dist'], function(){
 
 gulp.task('rev-replace', ['rev'], function(){
   var manifest = gulp.src('dist/js/rev-manifest.json');
- 
+
   return gulp.src('dist/index.html')
     .pipe(revReplace({manifest: manifest}))
     .pipe(gulp.dest('dist'));
@@ -159,14 +159,14 @@ var uploadDir = function * (client, dir, opts) {
       resolve(filenames);
     });
   });
-  for (var filename of filenames) {
+  for (let filename of filenames) {
     if ((yield fs.stat(filename)).isFile()) {
       var key = path.relative(opts.base, filename);
       console.log('deploy ' + key);
       var result = yield client.put(key, filename);
       console.log(result);
     }
-  };
+  }
 };
 
 gulp.task('deploy', ['dist'], function () {
@@ -179,13 +179,14 @@ gulp.task('deploy', ['dist'], function () {
     });
     client.useBucket(config.bucket);
     yield * uploadDir(client, 'dist', { base: 'dist' });
-  }).catch(console.error);
+  })
+  .catch(console.error);
 });
 
 gulp.task('css', function () {
-    return gulp.src('postcss/main.css')
+  return gulp.src('postcss/main.css')
     .pipe( sourcemaps.init() )
-    .pipe( postcss([ 
+    .pipe( postcss([
       require('postcss-import'),
       require('postcss-custom-media'),
       require('postcss-calc'),
@@ -194,7 +195,7 @@ gulp.task('css', function () {
       require('postcss-discard-comments'),
       require('postcss-extend'),
       require('postcss-nesting'),
-      require('autoprefixer'), 
+      require('autoprefixer'),
     ]) )
     .pipe( sourcemaps.write('.') )
     .pipe( gulp.dest('css/') ).pipe(connect.reload());
