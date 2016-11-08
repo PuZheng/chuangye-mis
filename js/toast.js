@@ -10,6 +10,7 @@ var $$view = $$.connect([$$toast], function ([toast]) {
   let ret = h(classNames('toast', 'bg-' + toast.type || 'info', 'p2', 'center'), {
     hook: new class Hook {
       hook(el) {
+        // we must setTimeout here, otherwise dom is not inserted into dom tree
         setTimeout(function () {
           el.className = el.className.replace(/\bfade-out\b/, '');
           if (!el.className.match(/\bfade-in\b/)) {
@@ -18,7 +19,7 @@ var $$view = $$.connect([$$toast], function ([toast]) {
           setTimeout(function () {
             el.className = el.className.replace(/\bfade-in\b/, 'fade-out');
           }, 2000);
-        }, 100);
+        }, 0);
       }
     },
     style: {

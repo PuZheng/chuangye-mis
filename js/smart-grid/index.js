@@ -51,6 +51,10 @@ export class SmartGrid {
       hook: new class Hook {
         hook(node) {
           sg.gridContainerEl = node;
+          setTimeout(function () {
+            sg.setupLayout();
+            sg.registerShortcus();
+          }, 0);
         }
       },
     }, [
@@ -101,10 +105,12 @@ export class SmartGrid {
             cell.resetView(sg.$$topmostRow.val(), sg.$$leftmostCol.val());
           }
         }
+        sg.cells[0][0].$$view.refresh(void 0, true);
       };
     }(this);
     this.$$topmostRow.change(onScreenScroll);
     this.$$leftmostCol.change(onScreenScroll);
+    this.$$leftmostCol.debug = true;
     this.$$activeSheetIdx.change(function (sg) {
       return function () {
         $$.update(

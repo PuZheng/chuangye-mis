@@ -67,8 +67,6 @@ $$settings.change(function (settings) {
     return h('#settings-app', sg);
   })
   .refresh();
-  sg.setupLayout();
-  sg.registerShortcus();
   for (let sheetIdx = 0; sheetIdx < groups.length; ++sheetIdx) {
     let [, settings] = groups[sheetIdx];
     for (let setting of settings) {

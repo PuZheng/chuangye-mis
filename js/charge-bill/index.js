@@ -278,9 +278,6 @@ export default {
           ]);
         }
       ).refresh();
-      sidebar.setupLayout();
-      smartGrid.setupLayout();
-      smartGrid.registerShortcus();
     });
   }
 };

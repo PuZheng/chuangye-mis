@@ -17,7 +17,7 @@ class Scrollable {
   get $$view() {
     let scrollable = this;
     return $$.connect(
-      [this.$$content, this.$$height, this.$$contentHeight, this.$$top, this.$$grabbing], 
+      [this.$$content, this.$$height, this.$$contentHeight, this.$$top, this.$$grabbing],
       function ([content, height, contentHeight, top, grabbing]) {
         var withScrollbar = height < contentHeight;
         return h(function () {
@@ -30,6 +30,9 @@ class Scrollable {
           hook: new class Hook {
             hook(el) {
               scrollable.el = el;
+              setTimeout(function () {
+                scrollable.setupLayout();
+              }, 0);
             }
           },
         }, [
@@ -100,6 +103,6 @@ class Scrollable {
       [this.$$contentHeight, this.el.querySelector('.container').offsetHeight]
     );
   }
-};
+}
 
 export default Scrollable;

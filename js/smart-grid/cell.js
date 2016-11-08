@@ -69,8 +69,6 @@ class EditorHook {
     };
   }
   hook(el) {
-    this.cell.inputEl = el;
-    el.value = (this.cell.def && this.cell.def.val) || '';
     el.onfocus = this.moveCaretAtEnd;
     el.addEventListener('keydown', this.onkeydown);
     el.addEventListener('blur', this.onblur);
@@ -193,9 +191,6 @@ class Cell {
     ]);
     // reset the input element's value, since VNode won't reset value
     // for you
-    if (this.inputEl) {
-      this.inputEl.value = this.inputEl.getAttribute('value');
-    }
     return ret;
   }
   resetView(topmostRow, leftmostCol) {
@@ -228,7 +223,7 @@ class Cell {
         style: editing? 'display: none': '',
       }
     };
-    return new VNode('div', properties, [new VText(String(val))]);
+    return new VNode('div', properties, [new VText(String(val || ''))]);
   }
   select() {
     let focusedCell = this.sg.$$focusedCell;
