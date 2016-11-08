@@ -21,6 +21,7 @@ var json = require('rollup-plugin-json');
 var eslint = require('gulp-eslint');
 var includePaths = require('rollup-plugin-includepaths');
 var jsx = require('rollup-plugin-jsx');
+var beautify = require('js-beautify');
 
 gulp.task('connect', function() {
   connect.server({
@@ -39,6 +40,52 @@ gulp.task('watch', function () {
   gulp.watch(['smart-grid/**/*', 'js/**/*.js', 'js/**/*.jsx', '!js/bundle.js'], ['rollup']);
   gulp.watch(['./*.html', 'js/bundle.js', 'js/plugins.js'], ['reload']);
   gulp.watch(['./postcss/**/*.css'], ['css']) ;
+});
+
+var collectConfig = function (cb) {
+  let backend = process.env.BACKEND || 'http://127.0.0.1:5000';
+  let pageSize = process.env.PAGE_SIZE || 16;
+  let config = {
+    backend,
+    pageSize,
+  };
+  let env = process.env.ENV || 'development';
+  fs.readFile(env + '.json', function (err, data) {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        cb(config);
+        return;
+      }
+      throw err;
+    }
+    Object.assign(config, JSON.parse(data));
+    cb(config);
+  });
+};
+
+// make config file, configuration "backend" and "pageSize" could be specified
+// by environment variables, and overriden by <ENV>.json
+gulp.task('config', function (cb) {
+  collectConfig(function (config) {
+    config = JSON.stringify(config, null, 4);
+    fs.writeFile(
+      'js/config.js',
+      beautify(
+        `
+        // this file generated automatically, don't MODIFY this file
+        var _config = eval((${config}));
+        export default Object.assign(_config, {
+          getPageSize(type) {
+            return _config[type + 'PageSize'] || _config.pageSize;
+          },
+        });
+      `, {
+        indent_size: 2
+      }),
+      function () {
+        cb();
+      });
+  });
 });
 
 gulp.task('collect-dist', ['rollup'], function (cb) {
@@ -69,7 +116,7 @@ gulp.task('collect-dist', ['rollup'], function (cb) {
   });
 });
 
-gulp.task('dist', ['rollup', 'collect-dist', 'rev', 'rev-replace'],
+gulp.task('dist', ['config', 'rollup', 'collect-dist', 'rev', 'rev-replace'],
           function () {
           });
 

@@ -1,8 +1,8 @@
-import { backend } from './config.json';
+import config from './config.js';
 
-var myBackend = backend;
-if (myBackend.endsWith('/')) {
-  myBackend = myBackend.slice(0, backend.length - 1);
+let { backend } = config;
+if (backend.endsWith('/')) {
+  backend = backend.slice(0, backend.length - 1);
 }
 
 export var backendURL = function (path) {
