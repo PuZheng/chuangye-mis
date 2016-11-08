@@ -270,13 +270,15 @@ var update = function (...slotValuePairs) {
   slotValuePairs.forEach(function ([slot, value]) {
     slot.debug && console.info(`slot ${slot.tag} changed`, slot.value, value);
     let oldValue = slot.value;
-    slot.value = value;
-    if (slot.changed && !slot.changed(oldValue, value)) {
-      cleanSlots[slot.id] = slot;
-      return;
+    if (value !== void 0) {
+      slot.value = value;
+      if (slot.changed && !slot.changed(oldValue, value)) {
+        cleanSlots[slot.id] = slot;
+        return;
+      }
     }
     for (var cb of slot.onChangeCbs) {
-      cb.call(slot, value, oldValue);
+      cb.call(slot, slot.value, oldValue);
     }
   });
   let relatedSlots = {};

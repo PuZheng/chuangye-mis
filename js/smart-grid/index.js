@@ -100,12 +100,15 @@ export class SmartGrid {
     );
     let onScreenScroll = function (sg) {
       return function () {
+        let $$views = [];
         for (let row of sg.cells) {
           for (let cell of row) {
             cell.resetView(sg.$$topmostRow.val(), sg.$$leftmostCol.val());
+            $$views.push([cell.$$view]);
           }
         }
-        sg.cells[0][0].$$view.refresh(void 0, true);
+        // force update cells (remember resetView won't update)
+        $$.update.apply(null, $$views);
       };
     }(this);
     this.$$topmostRow.change(onScreenScroll);
