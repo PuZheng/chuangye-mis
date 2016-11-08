@@ -168,6 +168,23 @@ a {
     z-index: 10000;
 }
 
+.toast {
+    opacity: 0;
+    visibility: hidden;
+
+    &.fade-in {
+        opacity: 1;
+        transition: opacity .5s linear;
+        visibility: visible;
+    }
+
+    &.fade-out {
+        opacity: 0;
+        visible: hidden;
+        transition: visibility 0s 1.5s, opacity 1.5s linear;
+    }
+}
+
 #invoice-list {
     min-height: 8rem;
 }

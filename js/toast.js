@@ -5,21 +5,29 @@ var h = virtualDom.h;
 
 export var $$toast = $$(null, 'toast');
 
-$$toast.change(function (toast) {
-  if (toast) {
-    setTimeout(function () {
-      $$toast.val(null);
-    }, 3000);
-  }
-});
-
 var $$view = $$.connect([$$toast], function ([toast]) {
-  return toast? h(classNames('bg-' + toast.type || 'info', 'p2', 'center'), {
+  if (!toast) return h('div');
+  let ret = h(classNames('toast', 'bg-' + toast.type || 'info', 'p2', 'center'), {
+    hook: new class Hook {
+      hook(el) {
+        setTimeout(function () {
+          el.className = el.className.replace(/\bfade-out\b/, '');
+          if (!el.className.match(/\bfade-in\b/)) {
+            el.className += ' fade-in';
+          }
+          setTimeout(function () {
+            el.className = el.className.replace(/\bfade-in\b/, 'fade-out');
+          }, 2000);
+        }, 100);
+      }
+    },
     style: {
       color: 'white',
     }
-  }, toast.message): h('');
+  }, toast.message);
+  return ret;
 });
+
 
 export default {
   page: {
