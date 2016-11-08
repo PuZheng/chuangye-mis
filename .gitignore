@@ -7,6 +7,10 @@ config.json
 /dist/
 js/bundle*
 js/rev-manifest.json
+development.json
+test.json
+product.json
+
 #### joe made this: http://goel.io/joe
 
 #####=== Vim ===#####
