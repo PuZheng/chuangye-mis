@@ -2,8 +2,7 @@ import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import { $$loading, $$voucherTypes, $$voucherSubjects } from './data-slots';
 import classNames from '../class-names';
-import oth from '../oth';
-import getColOrder from '../get-col-order';
+import $$myOth from '../widget/my-oth';
 import $$queryObj from '../query-obj';
 import page from 'page';
 import config from '../config';
@@ -48,7 +47,7 @@ var $$dateFilter = $$dropdown({
     { value: 'in_30_days', text: '30日内' },
     { value: 'in_90_days', text: '90日内' },
   ], 'options'),
-  $$value: $$queryObj.trans(qo => qo.date_span, 
+  $$value: $$queryObj.trans(qo => qo.date_span,
                             'date_span'),
 });
 
@@ -67,7 +66,7 @@ var $$typeFilter = $$dropdown({
       };
     }));
   }),
-  $$value: $$queryObj.trans(qo => qo.voucher_type_id, 
+  $$value: $$queryObj.trans(qo => qo.voucher_type_id,
                            'voucher-type'),
 });
 
@@ -93,7 +92,7 @@ var $$entities = $$([], 'entities');
 
 var $$payerFilter = $$searchDropdown({
   defaultText: '请选择支付方',
-  $$value: $$queryObj.trans(qo => qo.payer_id, 
+  $$value: $$queryObj.trans(qo => qo.payer_id,
                            'payer'),
   $$options: $$entities.trans(
     list => [{ value: '', text: '不限支付方' }].concat(list.map(e => ({
@@ -111,7 +110,7 @@ var $$payerFilter = $$searchDropdown({
 
 var $$recipientFilter = $$searchDropdown({
   defaultText: '请选择收入方',
-  $$value: $$queryObj.trans(qo => qo.recipient_id, 
+  $$value: $$queryObj.trans(qo => qo.recipient_id,
                            'recipient'),
   $$options: $$entities.trans(
     list => [{ value: '', text: '不限收入方' }].concat(list.map(e => ({
@@ -138,50 +137,21 @@ var filtersVf = function ([
     subjectFilter,
     payerFilter,
     recipientFilter
-  ]); 
+  ]);
 };
 
 var $$filters = $$.connect([
-  $$numberFilter, $$dateFilter, $$typeFilter, 
-  $$subjectFilter, $$payerFilter, $$recipientFilter], 
+  $$numberFilter, $$dateFilter, $$typeFilter,
+  $$subjectFilter, $$payerFilter, $$recipientFilter],
 filtersVf);
 
-var $$idOth = function () {
-  let vf = function ([queryObj]) {
-    return oth({
-      label: '编号', 
-      order: getColOrder('id', queryObj), 
-      onchange(order) {
-        $$queryObj.patch({
-          sort_by: 'id.' + order,
-        });
-      }
-    });
-  };
-  return $$.connect([$$queryObj], vf);
-}();
-
-var $$dateOth = function () {
-  let vf = function ([queryObj]) {
-    return oth({
-      label: '日期',
-      order: getColOrder('date', queryObj),
-      onchange(order) {
-        $$queryObj.patch({
-          sort_by: 'date.' + order,
-        });
-      }
-    });
-  };
-  return $$.connect([$$queryObj], vf);
-}();
-
-var tableVf = function ([vouchers, idOth, dateOth]) {
+var tableVf = function ([vouchers, idOth, dateOth, amountOth]) {
   return h('table.table.striped.compact', [
     h('thead', [
       h('tr', [
-        idOth, 
+        idOth,
         h('th', '凭证号'),
+        amountOth,
         dateOth,
         h('th', '类型'),
         h('th', '项目'),
@@ -202,6 +172,7 @@ var tableVf = function ([vouchers, idOth, dateOth]) {
           }, v.id),
         ]),
         h('td', v.number),
+        h('td', '' + v.amount),
         h('td', v.date),
         h('td', v.voucherType.name),
         h('td', v.voucherSubject.name),
@@ -214,12 +185,20 @@ var tableVf = function ([vouchers, idOth, dateOth]) {
   ]);
 };
 
-var $$table = $$.connect([$$vouchers, $$idOth, $$dateOth], tableVf);
+var $$table = $$.connect(
+  [
+    $$vouchers,
+    $$myOth({ label: '编号', column: 'id' }),
+    $$myOth({ label: '日期', column: 'date' }),
+    $$myOth({ label: '金额(元)', column: 'amount' }),
+  ],
+  tableVf
+);
 
 var $$totalCnt = $$(0, 'totalCnt');
 
 
-var viewVf = function ([loading, table, paginator, tableHints, 
+var viewVf = function ([loading, table, paginator, tableHints,
                       filters]) {
   return h(classNames('.list-app', loading && 'loading'), [
     h('.header', [

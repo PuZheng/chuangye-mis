@@ -10,14 +10,14 @@ import voucherStore from 'store/voucher-store';
 
 const valueFunc = function ([voucher, form]) {
   return h('.object-app', [
-      h('.header', voucher.id? `编辑凭证-${voucher.number}`: '创建新凭证'),
-      form,
+    h('.header', voucher.id? `编辑凭证-${voucher.number}`: '创建新凭证'),
+    form,
   ]);
 };
 
 const $$view = $$.connect(
-  [$$voucher, $$form], 
-  valueFunc, 
+  [$$voucher, $$form],
+  valueFunc,
   'voucher-object-app');
 
 export default {
