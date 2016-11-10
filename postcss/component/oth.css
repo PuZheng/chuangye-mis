@@ -1,10 +1,11 @@
 
-th.oth {
+.oth {
+    cursor: pointer;
     & i {
         padding: 0 .5rem;
         &.fa-sort-asc, &.fa-sort-desc {
             color: var(--color-accent);
         }
     }
-    
+
 }
