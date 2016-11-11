@@ -10,7 +10,7 @@ var h = virtualDom.h;
 
 export var $$dropdown = function (
   {
-    $$options, $$value, defaultText, onchange, 
+    $$options, $$value, defaultText, onchange,
     $$disabled=$$(false, 'disabled'),
     optionContent=function (o) {
       if (typeof o === 'object') {
@@ -36,7 +36,10 @@ export var $$dropdown = function (
     disabled && classNames.push('disabled');
     classNames = classNames.map( c => '.' + c ).join('');
     let selectedOption;
-    if (value != 'undefined') {
+    // this is a little tricky, we assume 'void 0' as 'no value', so if an
+    // option without value (namely, void 0), is considered to be a clear
+    // action
+    if (value !== void 0) {
       for (var option of options) {
         if (optionValue(option) == value) {
           selectedOption = option;

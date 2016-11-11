@@ -54,7 +54,7 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
           });
           id && page('/voucher-subject/' + id);
         } catch (e) {
-          console.error(e);;
+          console.error(e);
           if ((e.response || {}).status == 400) {
             $$errors.val(e.response.data.fields || {});
           }
@@ -67,12 +67,12 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
     }
   }, [
     field({
-      key: 'name', 
-      label: '名称', 
+      key: 'name',
+      label: '名称',
       input: h('input', {
         value: obj.name,
         onchange() {
-          $$obj.patch({ 
+          $$obj.patch({
             name: this.value,
             acronym: pinyin(this.value, {
               style: pinyin.STYLE_NORMAL,
@@ -84,14 +84,14 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
       required: true
     }),
     field({
-      key: 'acronym', 
-      label: '缩写', 
+      key: 'acronym',
+      label: '缩写',
       input: h('input', {
         value: obj.acronym,
         onchange() {
           $$obj.patch({ acronym: this.value });
         }
-      }), 
+      }),
       errors,
       required: true
     }),
@@ -118,15 +118,15 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
       }, '是否进入总账'),
     ]),
     field({
-      key: 'payerType', 
-      label: '支付方类型', 
-      input: payerTypeDropdown, 
+      key: 'payerType',
+      label: '支付方类型',
+      input: payerTypeDropdown,
       errors,
     }),
     field({
-      key: 'purchaserType', 
-      label: '收入方类型', 
-      input: recipientTypeDropdown, 
+      key: 'purchaserType',
+      label: '收入方类型',
+      input: recipientTypeDropdown,
       errors,
     }),
     h('hr'),
@@ -146,7 +146,9 @@ var $$payerTypeDropdown = $$dropdown({
     $$obj.patch({ payerType: value });
   },
   $$value: $$obj.trans(R.prop('payerType')),
-  $$options: $$entityTypes.trans(entityTypes => R.values(entityTypes)),
+  $$options: $$entityTypes.trans(R.pipe(R.values, R.concat([{
+    text: '-- 无支付方 --',
+  }]))),
 });
 
 var $$recipientTypeDropdown = $$dropdown({
@@ -155,7 +157,9 @@ var $$recipientTypeDropdown = $$dropdown({
     $$obj.patch({ recipientType: value });
   },
   $$value: $$obj.trans(R.prop('recipientType')),
-  $$options: $$entityTypes.trans(entityTypes => R.values(entityTypes)),
+  $$options: $$entityTypes.trans(R.pipe(R.values, R.concat([{
+    text: '-- 无收入方 --',
+  }]))),
 });
 
 var $$form = $$.connect(
@@ -167,7 +171,7 @@ var vf = function ([loading, obj, form]) {
     h(classNames('header', dirty(obj) && 'dirty'), R.ifElse(
       R.prop('id'),
       R.always(`编辑凭证项目-${obj.name}`),
-      R.always(`创建凭证项目`)
+      R.always('创建凭证项目')
     )(obj)),
     form,
   ]);
