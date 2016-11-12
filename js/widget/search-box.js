@@ -27,11 +27,11 @@ var getAcronym = function (option) {
 
 export var $$searchBox = function (
   {
-    defaultText, 
-    $$searchText, 
-    onsearch, 
-    getHints, 
-    minLen=1, 
+    defaultText,
+    $$searchText,
+    onsearch,
+    getHints,
+    minLen=1,
     optionContent=function (o, searchText) {
       let text = getText(o).toUpperCase();
       searchText = searchText.toUpperCase();
@@ -75,7 +75,6 @@ export var $$searchBox = function (
           if (searchText && searchText.length >= minLen) {
             $$loading.val(true);
             getHints(searchText).then(function (hints) {
-              console.log(hints);
               $$.update(
                 [$$selection, -1],
                 [$$options, hints],
@@ -98,7 +97,7 @@ export var $$searchBox = function (
           );
           if (this.value.length < minLen) {
             $$options.val([]);
-            return;   
+            return;
           }
           $$loading.toggle();
           getHints(this.value).then(function (hints) {
@@ -148,11 +147,11 @@ export var $$searchBox = function (
         let children;
         // only when search box is:
         //     1. active
-        //     2. length of search text > minimum required. 
+        //     2. length of search text > minimum required.
         //     3. no options
         // we will show "no hints"
         if (!options || options.length == 0) {
-          if (searchText.length > minLen && active) {
+          if (searchText.length >= minLen && active) {
             classNames += '.visible';
             children = h('.message', '没有搜索结果...');
           }
@@ -178,7 +177,7 @@ export var $$searchBox = function (
       }(),
     ]);
   };
-  return $$.connect([$$searchText, $$loading, $$options, $$selection, 
+  return $$.connect([$$searchText, $$loading, $$options, $$selection,
                     $$active], valueFunc);
 };
 

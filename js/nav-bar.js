@@ -58,25 +58,29 @@ var $$store = function () {
         '仓储管理',
         h('i.fa.fa-caret-down'),
         h('.sub.menu', [
-          h('a' + classNames(
-            'item', (currentMod == 'store.order') && 'active'), {
-            onclick(e) {
-              e.preventDefault();
-              page('/store-order-list');
-              $$expanded.val(false);
-              return false;
-            }
-          }, '单据管理'),
-          h('a' + classNames(
-            'item', (currentMod == 'store.checkbook' && 'active')
-          ), {
-            onclick(e) {
-              e.preventDefault();
-              page('/store-checkbook');
-              $$expanded.val(false);
-              return false;
-            }
-          }, '账目'),
+          h(
+            'a' + classNames('item', (currentMod == 'store.order') && 'active'),
+            {
+              onclick(e) {
+                e.preventDefault();
+                page('/store-order-list');
+                $$expanded.val(false);
+                return false;
+              }
+            },
+            '单据管理'
+          ),
+          h(
+            'a' + classNames('item', (currentMod == 'store.checkbook' && 'active')),
+            {
+              onclick(e) {
+                e.preventDefault();
+                page('/store-checkbook');
+                $$expanded.val(false);
+                return false;
+              }
+            }, '账目'
+          ),
         ])
       ]),
       R.always('')
@@ -282,10 +286,27 @@ var $$chargeBill = $$.connect(
   }
 );
 
+var $$storeSubject = $$.connect(
+  [$$currentMod, $$mods],
+  function ([currentMod, mods]) {
+    return R.ifElse(
+      R.prop('editStoreSubject'),
+      () => h('a' + classNames('item', (currentMod === 'store_subject') && 'active'), {
+        href: '/store-subject-list',
+        onclick(e) {
+          e.preventDefault();
+          page('/store-subject-list');
+        }
+      }, '仓储科目'),
+      () => ''
+    )(mods);
+  }
+);
+
 
 var vf = function vf([
   home, invoice, store, voucher, department, tenant, settings, meter,
-  accountTerm, invoiceType, voucherSubject, user, chargeBill,
+  accountTerm, invoiceType, voucherSubject, user, chargeBill, storeSubject,
 ]) {
   return h('.menu.top', [
     home,
@@ -301,6 +322,7 @@ var vf = function vf([
     voucherSubject,
     user,
     chargeBill,
+    storeSubject,
     R.ifElse(
       R.prop('user'),
       () => h('.right.color-gray', [
@@ -329,8 +351,11 @@ var vf = function vf([
 };
 
 export var $$navBar = $$.connect(
-  [$$home, $$invoice, $$store, $$voucher, $$department, $$tenant,
-    $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user, $$chargeBill],
+  [
+    $$home, $$invoice, $$store, $$voucher, $$department, $$tenant,
+    $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user,
+    $$chargeBill, $$storeSubject
+  ],
   vf,
   'nav-bar'
 );
@@ -355,11 +380,12 @@ export var setupNavBar = function (mod) {
     .could('edit.user')
     .could('manage.store')
     .could('edit.charge_bill')
+    .could('edit.store_subject')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editMeter, editMeterType,
       editAccountTerm, editInvoiceType, editVoucherSubject,
-      editUser, manageStore, editChargeBill
+      editUser, manageStore, editChargeBill, editStoreSubject
     ) {
       $$.update(
         [$$mods, {
@@ -376,6 +402,7 @@ export var setupNavBar = function (mod) {
           editUser,
           manageStore,
           editChargeBill,
+          editStoreSubject
         }],
         [$$currentMod, mod]
       );
