@@ -83,10 +83,6 @@ var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
           h('td', [
             h('a', {
               href: '/invoice/' + it.id,
-              onclick: function () {
-                page('/invoice/' + it.id);
-                return false;
-              },
             }, it.id),
           ]),
           h('td', it.invoiceType.name),

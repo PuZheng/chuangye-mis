@@ -166,9 +166,6 @@ var tableVf = function ([vouchers, idOth, dateOth, amountOth]) {
         h('td', [
           h('a', {
             href: '/voucher/' + v.id,
-            onclick() {
-              page('/voucher/' + v.id);
-            }
           }, v.id),
         ]),
         h('td', v.number),

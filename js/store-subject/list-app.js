@@ -37,10 +37,6 @@ var tableVf = function ([list]) {
       return h('tr', [
         h('td', h('a', {
           href: '/store-subject/' + it.id,
-          onclick(e) {
-            e.preventDefault();
-            page(this.href);
-          }
         }, it.name)),
         h('td', it.unit),
         h('td', it.acronym),

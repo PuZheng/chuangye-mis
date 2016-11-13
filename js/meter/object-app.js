@@ -7,7 +7,7 @@ import R from 'ramda';
 import meterStore from '../store/meter-store';
 import constStore from '../store/const-store';
 import meterTypeStore from 'store/meter-type-store';
-import { $$toast } from '../toast.js';
+import { $$toast } from '../toast';
 import page from 'page';
 import departmentStore from '../store/department-store';
 import co from 'co';
@@ -32,14 +32,14 @@ var dirty = function (obj) {
 
 var vf = function ([obj, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
-    h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑表设备-${obj.name}`: 
+    h('.header' + (dirty(obj)? '.dirty': ''), obj.id? `编辑表设备-${obj.name}`:
       '创建表设备'),
     form,
   ]);
 };
 
 var formVf = function (
-  [obj, errors, statusDropdown, 
+  [obj, errors, statusDropdown,
     parentMeterDropdown, departmentDropdown, meterTypeDropdown]
 ) {
   return h('form.form', {
@@ -51,7 +51,7 @@ var formVf = function (
         } catch (e) {
           $$errors.val(e);
           return;
-        } 
+        }
         if (obj.id && !dirty(obj)) {
           $$toast.val({
             type: 'info',
@@ -83,8 +83,8 @@ var formVf = function (
     }
   }, [
     field({
-      key: 'name', 
-      label: '名称', 
+      key: 'name',
+      label: '名称',
       input: h('input', {
         value: obj.name || '',
         oninput() {
@@ -92,14 +92,14 @@ var formVf = function (
             name: this.value,
           });
         }
-      }), 
+      }),
       errors,
       required: true
     }),
     field({
-      key: 'meterTypeId', 
-      label: '类型', 
-      input: meterTypeDropdown, 
+      key: 'meterTypeId',
+      label: '类型',
+      input: meterTypeDropdown,
       errors,
       required: true
     }),
@@ -118,15 +118,15 @@ var formVf = function (
       }, '是否总线'),
     ]),
     field({
-      key: 'status', 
-      label: '状态', 
-      input: statusDropdown, 
+      key: 'status',
+      label: '状态',
+      input: statusDropdown,
       errors,
       required: true
     }),
     field({
-      key: 'times', 
-      label: '倍数', 
+      key: 'times',
+      label: '倍数',
       input: h('input', {
         type: 'number',
         placeholder: '请输入倍数',
@@ -134,16 +134,16 @@ var formVf = function (
         onchange() {
           $$obj.patch({ times: this.value });
         }
-      }), 
+      }),
       errors,
       required: true
     }),
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
       () => field({
-        key: 'parentMeterId', 
-        label: '线路', 
-        input: parentMeterDropdown, 
+        key: 'parentMeterId',
+        label: '线路',
+        input: parentMeterDropdown,
         errors,
         required: true
       }),
@@ -152,9 +152,9 @@ var formVf = function (
     R.ifElse(
       R.compose(R.not, R.propEq('isTotal', true)),
       () => field({
-        key: 'departmentId', 
-        label: '部门', 
-        input: departmentDropdown, 
+        key: 'departmentId',
+        label: '部门',
+        input: departmentDropdown,
         errors,
         required: true
       }),
@@ -245,7 +245,7 @@ var $$departmentDropdown = $$searchDropdown({
 
 var $$form = $$.connect(
   [$$obj, $$errors, $$statusDropdown, $$parentMeterDropdown,
-    $$departmentDropdown, $$meterTypeDropdown], 
+    $$departmentDropdown, $$meterTypeDropdown],
   formVf
 );
 

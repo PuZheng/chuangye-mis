@@ -2,7 +2,7 @@ import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import classNames from '../class-names';
 import field from '../field';
-import pinyin from 'pinyin';
+import acronym from '../utils/acronym';
 import $$dropdown from 'widget/dropdown';
 import constStore from 'store/const-store';
 import voucherSubjectStore from 'store/voucher-subject-store';
@@ -71,12 +71,10 @@ var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) 
       label: '名称',
       input: h('input', {
         value: obj.name,
-        onchange() {
+        oninput() {
           $$obj.patch({
             name: this.value,
-            acronym: pinyin(this.value, {
-              style: pinyin.STYLE_NORMAL,
-            }).map(i => i[0][0]).join(''),
+            acronym: acronym(this.value),
           });
         }
       }),
