@@ -7,14 +7,14 @@ import meterStore from '../store/meter-store';
 import $$paginator from '../widget/paginator';
 import $$tableHints from '../widget/table-hints';
 import config from '../config';
-import constStore from '../store/const-store';
+import meterTypeStore from '../store/meter-type-store';
 import R from 'ramda';
 import { $$dropdown } from '../widget/dropdown';
 
 var $$list = $$([], 'list');
 var $$loading = $$(false, 'loading');
 var $$totalCnt = $$(0, 'total-cnt');
-var $$meterTypes = $$({}, 'type-list');
+var $$meterTypes = $$([], 'type-list');
 
 var $$nameFilter = $$searchBox({
   defaultText: '输入表名称',
@@ -62,7 +62,7 @@ let vf = function ([nameFilter, typeFilter, list, loading, tableHints, paginator
           h('td', h('a', {
             href: '/meter/' + a.id,
           }, a.name)),
-          h('td', a.type),
+          h('td', a.meterType.name),
           h('td', (a.department || {}).name || '--'),
           h('td', (a.parentElectricMeter || {}).name || '--'),
           h('td', '' + a.times),
@@ -72,22 +72,25 @@ let vf = function ([nameFilter, typeFilter, list, loading, tableHints, paginator
     ]),
     tableHints,
     h('.paginator-container', paginator),
-  ]); 
+  ]);
 };
 
 var $$typeFilter = $$dropdown({
   defaultText: '请选择设备分类',
   $$value: $$queryObj.trans(qo => qo.type),
   $$options: $$meterTypes.trans(function (meterTypes) {
+    console.log(meterTypes);
     return R.concat([{
-      value: '',
       text: '不限分类'
-    }], R.values(meterTypes));
+    }], meterTypes.map(function (it) {
+      return {
+        value: it.id,
+        text: it.name
+      };
+    }));
   }),
-  onchange(value) {
-    $$queryObj.patch({
-      type: value
-    });
+  onchange(type) {
+    $$queryObj.patch({ type });
   }
 });
 
@@ -105,15 +108,18 @@ export default {
         $$queryObj,
         pageSize: config.getPageSize('meter'),
       })
-    ], vf, 'list-app'), 
+    ], vf, 'list-app'),
   },
-  init() {
-    $$loading.toggle(); 
+  init(ctx) {
+    $$loading.toggle();
+    let q = ctx.query || {};
+    q.page = q.page || 1;
+    q.page_size = q.page_size || config.getPageSize('meter');
     Promise.all([
-      meterStore.fetchList($$queryObj.val()),
-      constStore.get(),
+      meterStore.fetchList(q),
+      meterTypeStore.list,
     ])
-    .then(function ([{totalCnt, data}, { meterTypes }]) {
+    .then(function ([{totalCnt, data}, meterTypes]) {
       $$.update(
         [$$loading, false],
         [$$list, data],
