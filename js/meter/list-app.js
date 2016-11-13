@@ -8,6 +8,7 @@ import $$paginator from '../widget/paginator';
 import $$tableHints from '../widget/table-hints';
 import config from '../config';
 import meterTypeStore from '../store/meter-type-store';
+import departmentStore from '../store/department-store';
 import R from 'ramda';
 import { $$dropdown } from '../widget/dropdown';
 
@@ -15,6 +16,7 @@ var $$list = $$([], 'list');
 var $$loading = $$(false, 'loading');
 var $$totalCnt = $$(0, 'total-cnt');
 var $$meterTypes = $$([], 'type-list');
+var $$departments = $$([], 'departments');
 
 var $$nameFilter = $$searchBox({
   defaultText: '输入表名称',
@@ -31,7 +33,23 @@ var $$nameFilter = $$searchBox({
 
 var h = virtualDom.h;
 
-let vf = function ([nameFilter, typeFilter, list, loading, tableHints, paginator]) {
+var $$departmentFilter = $$dropdown({
+  defaultText: '请选择部门',
+  $$value: $$queryObj.trans(R.prop('department')),
+  $$options: $$departments.trans(departments => R.concat([{
+    text: '不限部门',
+  }])(departments.map(it => ({
+    value: it.id,
+    text: it.name
+  })))),
+  onchange(department) {
+    $$queryObj.patch({ department });
+  }
+});
+
+let vf = function ([
+  nameFilter, typeFilter, departmentFilter, list, loading,
+  tableHints, paginator]) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '表设备列表'),
@@ -45,7 +63,7 @@ let vf = function ([nameFilter, typeFilter, list, loading, tableHints, paginator
       ]),
       h('.search', nameFilter),
     ]),
-    h('.filters', typeFilter),
+    h('.filters', [typeFilter, departmentFilter]),
     h('table.table.compact.striped', [
       h('thead', [
         h('tr', [
@@ -97,7 +115,7 @@ var $$typeFilter = $$dropdown({
 export default {
   page: {
     $$view: $$.connect([
-      $$nameFilter, $$typeFilter, $$list, $$loading,
+      $$nameFilter, $$typeFilter, $$departmentFilter, $$list, $$loading,
       $$tableHints({
         $$totalCnt,
         $$queryObj,
@@ -118,13 +136,15 @@ export default {
     Promise.all([
       meterStore.fetchList(q),
       meterTypeStore.list,
+      departmentStore.list,
     ])
-    .then(function ([{totalCnt, data}, meterTypes]) {
+    .then(function ([{totalCnt, data}, meterTypes, departments]) {
       $$.update(
         [$$loading, false],
         [$$list, data],
         [$$totalCnt, totalCnt],
-        [$$meterTypes, meterTypes]
+        [$$meterTypes, meterTypes],
+        [$$departments, departments]
       );
     });
   }
