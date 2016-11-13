@@ -11,7 +11,6 @@ import chargeBillStore from 'store/charge-bill-store';
 import paymentRecordStore from 'store/payment-record-store';
 import co from 'co';
 import { $$toast } from '../toast';
-import page from 'page';
 
 var h = virtualDom.h;
 
@@ -182,11 +181,6 @@ export default {
             accountTerms.map(function (at) {
               return h('a' + classNames('item', at.id == activeAccountTermId && 'active'), {
                 href: '/charge-bill/' + at.name,
-                onclick(e) {
-                  e.preventDefault();
-                  page('/charge-bill/' + at.name);
-                  return false;
-                }
               }, at.name);
             })), 'content'),
       });

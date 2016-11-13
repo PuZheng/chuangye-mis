@@ -25,9 +25,6 @@ var tableVf = function ([tenants]) {
       return h('tr', [
         h('td', h('a', {
           href: '/tenant/' + t.id,
-          onclick() {
-            page('/tenant/' + t.id);
-          }
         }, t.entity.name)),
         h('td', t.department.name),
         h('td', t.contact),

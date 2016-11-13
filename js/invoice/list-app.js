@@ -83,10 +83,6 @@ var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
           h('td', [
             h('a', {
               href: '/invoice/' + it.id,
-              onclick: function () {
-                page('/invoice/' + it.id);
-                return false;
-              },
             }, it.id),
           ]),
           h('td', it.invoiceType.name),
@@ -121,34 +117,29 @@ var $$table = $$.connect([$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$l
 var $$numberSearchBox = $$searchBox({
   minLen: 2,
   defaultText: '搜索编号',
-  $$searchText: $$.connect([$$queryObj], function ([qo]) {
-    return qo.number__like || ''; 
-  }),
-  onsearch(searchText) {
-    $$queryObj.patch({
-      number__like: searchText,
-    });
+  $$searchText: $$queryObj.trans(R.propOr('', 'number__like')),
+  onsearch(number__like) {
+    $$queryObj.patch({ number__like });
   },
   getHints(text) {
     return invoiceStore.getHints(text);
   }
 });
 
-
 var $$view = $$.connect([
-  $$loading, 
+  $$loading,
   $$paginator({
     $$totalCnt,
     $$queryObj,
     pageSize: config.getPageSize('invoice'),
-  }), 
+  }),
   $$tableHints({
     $$totalCnt,
     $$queryObj,
     pageSize: config.getPageSize('invoice'),
   }), $$filters, $$table, $$numberSearchBox,
-  ], 
-  vf);
+],
+vf);
 
 export default {
   page: { $$view },

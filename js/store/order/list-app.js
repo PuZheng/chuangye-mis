@@ -56,7 +56,7 @@ var $$dateSpanDropdown = $$dropdown({
     {
       text: '不限日期范围',
       value: '',
-    }, { 
+    }, {
       text: '一周内',
       value: 'in_7_days',
     }, {
@@ -124,7 +124,7 @@ var $$createdOth = $$myOth({
   column: 'created'
 });
 
-var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown, 
+var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown,
                            $$tenantDropdown], filtersVf);
 
 var tableVf = function ([totalPriceOth, createdOth, list]) {
@@ -145,11 +145,6 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
       return h('tr', [
         h('td', h('a', {
           href: '/store-order/' + record.id,
-          onclick(e) {
-            e.preventDefault();
-            page('/store-order/' + record.id);
-            return false;
-          }
         }, '' + record.id)),
         h('td', record.storeSubject.name),
         h('td', `${record.quantity}(${record.storeSubject.unit})`),
@@ -180,13 +175,13 @@ var $$table = $$.connect(
 );
 
 var $$tabNames = $$.connect(
-  [$$storeOrderDirections, $$storeOrderTypes], 
+  [$$storeOrderDirections, $$storeOrderTypes],
   function ([storeOrderDirections, storeOrderTypes]) {
     return R.flatten(R.values(storeOrderTypes).map(function (type) {
       return R.values(storeOrderDirections).map(function (direction) {
         return `${type}(${direction})`;
       });
-    })); 
+    }));
   },
   'tab-names'
 );

@@ -5,10 +5,10 @@ import $$searchDropdown from '../widget/search-dropdown';
 import tenantStore from '../store/tenant-store.js';
 import { $$toast } from '../toast.js';
 import page from 'page';
-import pinyin from 'pinyin';
 import R from 'ramda';
 import departmentStore from '../store/department-store';
 import co from 'co';
+import acronym from '../utils/acronym';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -50,7 +50,7 @@ var formVf = function ([errors, departmentDropdown, obj]) {
         } catch (e) {
           $$errors.val(e);
           return;
-        } 
+        }
         if (!dirty(obj)) {
           $$toast.val({
             type: 'info',
@@ -68,31 +68,28 @@ var formVf = function ([errors, departmentDropdown, obj]) {
           });
           obj.id && page('/tenant/' + id);
         } catch (e) {
-          debugger;
           console.error(e);
           if (e.response && e.response.status == 400)  {
             $$errors.val(e.response.data.fields || {});
             return;
           }
         } finally {
-          $$loading.val(false); 
+          $$loading.val(false);
         }
       });
       return false;
     }
   }, [
     field({
-      key: 'name', 
-      label: '姓名', 
+      key: 'name',
+      label: '姓名',
       input: h('input', {
         value: (obj.entity || {}).name,
         oninput() {
           $$obj.patch({
             entity: Object.assign(obj.entity || {}, {
-              name: this.value, 
-              acronym: pinyin(this.value, {
-                style: pinyin.STYLE_NORMAL,
-              }).map(i => i[0][0]).join(''),
+              name: this.value,
+              acronym: acronym(this.value)
             }),
           });
         }
@@ -102,7 +99,7 @@ var formVf = function ([errors, departmentDropdown, obj]) {
     }),
     field({
       key: 'acronym',
-      label: '缩写', 
+      label: '缩写',
       input: h('input', {
         value: (obj.entity || {}).acronym,
         oninput() {
@@ -114,11 +111,11 @@ var formVf = function ([errors, departmentDropdown, obj]) {
         }
       }),
       errors,
-      required: true, 
+      required: true,
     }),
     field({
-      key: 'contact', 
-      label: '联系方式', 
+      key: 'contact',
+      label: '联系方式',
       input: h('input', {
         value: obj.contact,
         oninput() {
@@ -130,9 +127,9 @@ var formVf = function ([errors, departmentDropdown, obj]) {
       errors,
     }),
     field({
-      key: 'departmentId', 
-      label: '车间', 
-      input: departmentDropdown, 
+      key: 'departmentId',
+      label: '车间',
+      input: departmentDropdown,
       errors,
       required: true
     }),

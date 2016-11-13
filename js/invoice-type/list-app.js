@@ -42,10 +42,6 @@ var tableVf = function ([list]) {
       return h('tr', [
         h('td', h('a', {
           href: '/invoice-type/' + obj.id,
-          onclick(e) {
-            e.preventDefault();
-            page('/invoice-type/' + obj.id);
-          }
         }, '' + obj.id)),
         h('td', obj.name),
         h('td', obj.vendorType || '--'),
@@ -60,21 +56,21 @@ var tableVf = function ([list]) {
 var $$table = $$.connect([$$list], tableVf);
 
 let vf = function ([loading, nameSearchBox, table, filters]) {
-    return h('.list-app' + (loading? '.loading': ''), [
-      h('.header', [
-        h('.title', '发票类型列表'),
-        h('button.new-btn', {
-          onclick() {
-            page('/invoice-type');
-          }
-        }, [
-          h('i.fa.fa-plus'),
-        ]),
-        h('.search', nameSearchBox)
+  return h('.list-app' + (loading? '.loading': ''), [
+    h('.header', [
+      h('.title', '发票类型列表'),
+      h('button.new-btn', {
+        onclick() {
+          page('/invoice-type');
+        }
+      }, [
+        h('i.fa.fa-plus'),
       ]),
-      filters,
-      table,
-    ]);
+      h('.search', nameSearchBox)
+    ]),
+    filters,
+    table,
+  ]);
 };
 
 var filtersVf = function (
@@ -146,8 +142,8 @@ var $$materialTypeDropdown = $$dropdown({
 });
 
 var $$filters = $$.connect(
-  [$$vendorTypeDropdown, $$purchaserTypeDropdown, $$isVatFilter, 
-    $$materialTypeDropdown], 
+  [$$vendorTypeDropdown, $$purchaserTypeDropdown, $$isVatFilter,
+    $$materialTypeDropdown],
   filtersVf
 );
 
@@ -162,7 +158,7 @@ export default {
     Promise.all([
       invoidTypeStore.fetchList(ctx.query),
       constStore.get()
-    ]) 
+    ])
     .then(function ([list, { materialTypes, entityTypes }]) {
       $$.update(
         [$$loading, false],

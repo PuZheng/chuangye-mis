@@ -59,14 +59,10 @@ var tableVf = function ([list]) {
       return h('tr', [
         h('td', h('a', {
           href: '/voucher-subject/' + obj.id,
-          onclick(e) {
-            e.preventDefault();
-            page('/voucher-subject/' + obj.id);
-          }
         }, '' + obj.id)),
         h('td', obj.name),
         h('td', R.ifElse(
-          o => o.isPublic, 
+          o => o.isPublic,
           R.always(h('i.fa.fa-check.color-success')),
           R.always(h('i.fa.fa-remove'))
         )(obj)),
@@ -129,7 +125,7 @@ var filtersVf = function ([payerTypeDropdown, recipientTypeDropdown, isPublicChe
 };
 
 var $$filters = $$.connect(
-  [$$payerTypeDropdown, $$recipientTypeDropdown, $$isPublicCheckbox], 
+  [$$payerTypeDropdown, $$recipientTypeDropdown, $$isPublicCheckbox],
   filtersVf
 );
 
