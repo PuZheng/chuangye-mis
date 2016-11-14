@@ -119,10 +119,14 @@ const valueFunc = function valueFunc([
         type: 'checkbox',
         checked: voucher.isPublic,
         onchange() {
-          $$voucher.patch({isPublic: this.checked});
+          $$voucher.patch({ isPublic: this.checked });
         }
       }),
-      h('label', '是否进入总账'),
+      h('label', {
+        onclick() {
+          $$voucher.patch({ isPublic: !$$voucher.val().isPublic });
+        }
+      }, '是否进入总账'),
     ]),
     field({
       key: 'payerId',

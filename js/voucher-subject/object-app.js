@@ -144,9 +144,7 @@ var $$payerTypeDropdown = $$dropdown({
     $$obj.patch({ payerType: value });
   },
   $$value: $$obj.trans(R.prop('payerType')),
-  $$options: $$entityTypes.trans(R.pipe(R.values, R.concat([{
-    text: '-- 无支付方 --',
-  }]))),
+  $$options: $$entityTypes.trans(R.values),
 });
 
 var $$recipientTypeDropdown = $$dropdown({
@@ -155,9 +153,7 @@ var $$recipientTypeDropdown = $$dropdown({
     $$obj.patch({ recipientType: value });
   },
   $$value: $$obj.trans(R.prop('recipientType')),
-  $$options: $$entityTypes.trans(R.pipe(R.values, R.concat([{
-    text: '-- 无收入方 --',
-  }]))),
+  $$options: $$entityTypes.trans(R.values),
 });
 
 var $$form = $$.connect(

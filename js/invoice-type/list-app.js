@@ -35,7 +35,9 @@ var tableVf = function ([list]) {
         h('th', '销售方类型'),
         h('th', '购买方类型'),
         h('th', '是否增值税'),
-        h('th', '相关物料类型'),
+        h('th', '仓储类型'),
+        h('th', '仓储方向'),
+        h('th', '相关凭证科目')
       ])
     ]),
     h('tbody', list.map(function (obj) {
@@ -47,7 +49,9 @@ var tableVf = function ([list]) {
         h('td', obj.vendorType || '--'),
         h('td', obj.purchaserType || '--'),
         h('td', obj.isVat? h('i.fa.fa-check.color-success'): h('i.fa.fa-remove')),
-        h('td', obj.materialType || '--'),
+        h('td', obj.storeOrderType || '--'),
+        h('td', obj.storeOrderDirections || '--'),
+        h('td', (obj.relatedVoucherSubject || {}).name || '--'),
       ]);
     }))
   ]);

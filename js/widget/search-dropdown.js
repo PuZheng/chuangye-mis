@@ -10,10 +10,10 @@ const ESC = 27;
 
 export var $$searchDropdown = function (
   {
-    defaultText, 
-    $$value, 
-    $$options, 
-    onchange, 
+    defaultText,
+    $$value,
+    $$options,
+    onchange,
     optionGroup,
     optionContent=dropdownUtils.optionContent,
   }
@@ -41,7 +41,10 @@ export var $$searchDropdown = function (
     }
     classNames = classNames.map(c => '.' + c).join('');
     let selectedOption;
-    if (value != 'undefined') {
+    // this is a little tricky, we assume 'void 0' as 'no value', so if an
+    // option without value (namely, void 0), is considered to be a clear
+    // action
+    if (value !== void 0) {
       for (var option of options) {
         if (option.value == value) {
           selectedOption = option;
@@ -99,18 +102,27 @@ export var $$searchDropdown = function (
       });
     }
 
-  
+
     if (optionElms.length == 0) {
       optionElms = [h('.message', '没有可选项')];
     }
     return h(classNames, {
       // a div with tabIndex could be focused/blured
     }, [
-      h('i.icon.fa.fa-caret-down', {
-        onclick() {
-          inputEl.focus();
-        }
-      }),
+      h('.icons', [
+        selectedOption? h('i.icon.clear.fa.fa-remove', {
+          onmousedown(e) {
+            e.stopPropagation();
+            onchange(null);
+            return false;
+          }
+        }): '',
+        h('i.icon.fa.fa-caret-down', {
+          onclick() {
+            inputEl.focus();
+          }
+        }),
+      ]),
       h('input.search', {
         tabIndex: 0,
         hook: new class Hook {
@@ -177,7 +189,7 @@ export var $$searchDropdown = function (
       h('.menu', optionElms)
     ]);
   };
-  return $$.connect([$$activated, $$searchText, $$options, $$value, $$selection], 
+  return $$.connect([$$activated, $$searchText, $$options, $$value, $$selection],
                     valueFunc);
 };
 

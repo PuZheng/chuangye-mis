@@ -97,7 +97,6 @@ var $$typeFilter = $$dropdown({
   defaultText: '请选择设备分类',
   $$value: $$queryObj.trans(qo => qo.type),
   $$options: $$meterTypes.trans(function (meterTypes) {
-    console.log(meterTypes);
     return R.concat([{
       text: '不限分类'
     }], meterTypes.map(function (it) {
