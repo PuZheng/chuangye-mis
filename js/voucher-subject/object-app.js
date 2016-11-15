@@ -144,9 +144,7 @@ var $$payerTypeDropdown = $$dropdown({
     $$obj.patch({ payerType: value });
   },
   $$value: $$obj.trans(R.prop('payerType')),
-  $$options: $$entityTypes.trans(R.pipe(R.values, R.concat([{
-    text: '-- 无支付方 --',
-  }]))),
+  $$options: $$entityTypes.trans(R.values),
 });
 
 var $$recipientTypeDropdown = $$dropdown({
@@ -155,9 +153,7 @@ var $$recipientTypeDropdown = $$dropdown({
     $$obj.patch({ recipientType: value });
   },
   $$value: $$obj.trans(R.prop('recipientType')),
-  $$options: $$entityTypes.trans(R.pipe(R.values, R.concat([{
-    text: '-- 无收入方 --',
-  }]))),
+  $$options: $$entityTypes.trans(R.values),
 });
 
 var $$form = $$.connect(
@@ -168,8 +164,8 @@ var vf = function ([loading, obj, form]) {
   return h(classNames('object-app', loading && 'loading'), [
     h(classNames('header', dirty(obj) && 'dirty'), R.ifElse(
       R.prop('id'),
-      R.always(`编辑凭证项目-${obj.name}`),
-      R.always('创建凭证项目')
+      R.always(`编辑凭证科目-${obj.name}`),
+      R.always('创建凭证科目')
     )(obj)),
     form,
   ]);

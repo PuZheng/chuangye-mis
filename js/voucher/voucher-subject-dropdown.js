@@ -6,22 +6,22 @@ import entityStore from '../store/entity-store.js';
 
 
 export var $$voucherSubjectDropdown = $$searchDropdown({
-    defaultText: '请选择凭证项目',
-    $$value: $$.connect([$$voucher], function ([o]) {
-      return o.voucherSubjectId;
-    }),
-    $$options: $$.connect([$$voucherSubjects], function ([l]) {
-      return l.map(vs => (
-        {
-          value: vs.id,
-          text: vs.name,
-          acronym: vs.acronym,
-        }
-      ));
-    }),
-    onchange(value) {
-      onVoucherSubjectChange(value);
-    },
+  defaultText: '请选择凭证科目',
+  $$value: $$.connect([$$voucher], function ([o]) {
+    return o.voucherSubjectId;
+  }),
+  $$options: $$.connect([$$voucherSubjects], function ([l]) {
+    return l.map(vs => (
+      {
+        value: vs.id,
+        text: vs.name,
+        acronym: vs.acronym,
+      }
+    ));
+  }),
+  onchange(value) {
+    onVoucherSubjectChange(value);
+  },
 });
 
 export var onVoucherSubjectChange = function (value) {
@@ -42,7 +42,7 @@ export var onVoucherSubjectChange = function (value) {
       type: voucherSubject.payerType,
     }),
     entityStore.fetchList({
-      type: voucherSubject.recipientType, 
+      type: voucherSubject.recipientType,
     }),
   ]).then(function ([payers, recipients]) {
     $$.update(

@@ -28,7 +28,7 @@ var $$nameSearchBox = $$searchBox({
 var vf = function ([loading, nameSearchBox, filters, table]) {
   return h(classNames('list-app', loading && 'loading'), [
     h('.header', [
-      h('.title', '凭证项目列表'),
+      h('.title', '凭证科目列表'),
       h('button.new-btn', {
         onclick(e) {
           e.preventDefault();

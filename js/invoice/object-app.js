@@ -14,6 +14,7 @@ import $$storeOrderEditor from './store-order-editor';
 import storeSubjectStore from 'store/store-subject-store';
 import co from 'co';
 import { $$toast } from '../toast';
+import object2qs from '../utils/object2qs';
 
 var h = virtualDom.h;
 
@@ -34,7 +35,7 @@ $$storeOrders.change(function (storeOrders) {
   let args = { storeOrders };
   if (relateStoreOrders) {
     args.amount = R.sum(storeOrders.map(function ({ unitPrice, quantity }) {
-      return unitPrice * quantity; 
+      return unitPrice * quantity;
     }));
   }
   $$obj.patch(args);
@@ -46,17 +47,17 @@ var dirty = function (obj) {
 
 var vf = function ([loading, obj, form]) {
   return h(classNames('object-app', loading && 'loading'), [
-    h(classNames('header', dirty(obj) && 'dirty'), 
+    h(classNames('header', dirty(obj) && 'dirty'),
       obj.id? `编辑发票-${obj.number}`: '创建新发票'),
     form
   ]);
 };
 
 var formVf = function ([
-  errors, obj, typeDropdown, accountTermDropdown, vendorDropdown, 
+  errors, obj, typeDropdown, accountTermDropdown, vendorDropdown,
   purchaserDropdown, storeOrderEditor
 ]) {
-  let relateStoreOrders = R.and(R.path(['invoiceType', 'storeOrderType']), 
+  let relateStoreOrders = R.and(R.path(['invoiceType', 'storeOrderType']),
                                 R.path(['invoiceType', 'storeOrderDirection']))(obj);
   return h('form.form', {
     onsubmit() {
@@ -67,7 +68,7 @@ var formVf = function ([
         } catch (e) {
           $$errors.val(e);
           return;
-        } 
+        }
         try {
           $$loading.toggle();
           let { id } = yield invoiceStore.save(obj);
@@ -88,27 +89,27 @@ var formVf = function ([
   }, [
     h('.col.col-6', [
       field({
-        key: 'invoiceType', 
-        label: '发票类型', 
-        input: typeDropdown, 
+        key: 'invoiceType',
+        label: '发票类型',
+        input: typeDropdown,
         errors,
         required: true
       }),
       field({
-        key: 'date', 
-        label: '发票日期', 
+        key: 'date',
+        label: '发票日期',
         input: h('input', {
           type: 'date',
           value: obj.date? obj.date: moment().format('YYYY-MM-DD'),
           oninput() {
             $$obj.patch({ date: this.value });
           }
-        }), 
+        }),
         errors,
       }),
       field({
-        key: 'number', 
-        label: '发票号码', 
+        key: 'number',
+        label: '发票号码',
         input: h('input', {
           type: 'text',
           placeholder: '请输入发票号码',
@@ -116,14 +117,14 @@ var formVf = function ([
           oninput() {
             $$obj.patch({ number: this.value, });
           }
-        }), 
+        }),
         errors,
         required: true
       }),
       field({
-        key: 'accountTermId', 
-        label: '会计帐期', 
-        input: accountTermDropdown, 
+        key: 'accountTermId',
+        label: '会计帐期',
+        input: accountTermDropdown,
         errors,
         required: true
       }),
@@ -131,9 +132,9 @@ var formVf = function ([
         R.path(['invoiceType', 'vendorType']),
         function () {
           return field({
-            key: 'vendorId', 
-            label: '销售方', 
-            input: vendorDropdown, 
+            key: 'vendorId',
+            label: '销售方',
+            input: vendorDropdown,
             errors,
             required: true
           });
@@ -144,9 +145,9 @@ var formVf = function ([
         R.path(['invoiceType', 'purchaserType']),
         function () {
           return field({
-            key: 'purchaserId', 
-            label: '购买方', 
-            input: purchaserDropdown, 
+            key: 'purchaserId',
+            label: '购买方',
+            input: purchaserDropdown,
             errors,
             required: true
           });
@@ -202,7 +203,7 @@ var formVf = function ([
           oninput() {
             $$obj.patch({ amount: this.value });
           },
-          disabled: relateStoreOrders, 
+          disabled: relateStoreOrders,
         }),
         errors,
         required: true,
@@ -219,20 +220,29 @@ var formVf = function ([
     h('.clearfix'),
     h('hr'),
     h('button.primary', '提交'),
-    h('button', {
-      onclick(e) {
-        e.preventDefault();
-        page('/invoice-list');
-        return false;
-      }
+    h('a.btn.btn-outline', {
+      href: '/invoice-list',
     }, '返回'),
+    R.ifElse(
+      R.prop('isVat'),
+      () => h('a.btn.btn-outline', {
+        href: '/voucher?' + object2qs({
+          amount: obj.amount,
+          voucher_subject_id: obj.invoiceType.relatedVoucherSubjectId,
+          payer_id: obj.purchaserId,
+          recipient_id: obj.vendorId,
+          is_public: 1,
+        }),
+      }, '创建凭证'),
+      () => ''
+    )(obj)
   ]);
 };
 
 var $$typeDropdown = $$dropdown({
   defaultText: '请选择发票类型',
   onchange(invoiceTypeId) {
-    $$obj.patch({ 
+    $$obj.patch({
       invoiceTypeId,
       invoiceType: R.find(R.propEq('id', invoiceTypeId))($$invoiceTypes.val()),
       amount: '',
@@ -300,7 +310,7 @@ var $$purchaserDropdown = $$dropdown({
 
 
 var $$form = $$.connect(
-  [$$errors, $$obj, $$typeDropdown, $$accountTermDropdown, $$vendorDropdown, 
+  [$$errors, $$obj, $$typeDropdown, $$accountTermDropdown, $$vendorDropdown,
     $$purchaserDropdown, $$storeOrderEditor($$storeSubjects, $$storeOrders)],
   formVf
 );
@@ -313,7 +323,7 @@ export default {
     let { id } = ctx.params;
     let promises = [
       entityStore.list,
-      invoiceTypeStore.list, 
+      invoiceTypeStore.list,
       accountTermStore.list,
       id? invoiceStore.get(id): {
         date: moment().format('YYYY-MM-DD'),

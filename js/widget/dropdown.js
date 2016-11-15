@@ -114,7 +114,16 @@ export var $$dropdown = function (
         }
       },
     }, [
-      h('i.icon.fa.fa-caret-down'),
+      h('.icons', [
+        selectedOption? h('i.icon.clear.fa.fa-remove', {
+          onmousedown(e) {
+            e.stopPropagation();
+            onchange(null);
+            return false;
+          }
+        }): '',
+        h('i.icon.fa.fa-caret-down'),
+      ]),
       h('.text' + (selectedOption? '': '.default'), selectedOption? optionContent(selectedOption): defaultText),
       h('.menu', optionElms)
     ]);

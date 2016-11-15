@@ -3,8 +3,10 @@ import virtualDom from 'virtual-dom';
 import invoiceTypeStore from 'store/invoice-type-store';
 import field from '../field';
 import $$dropdown from 'widget/dropdown';
+import $$searchDropdown from 'widget/search-dropdown';
 import R from 'ramda';
 import constStore from 'store/const-store';
+import voucherSujectStore from 'store/voucher-subject-store';
 import page from 'page';
 import { $$toast } from '../toast';
 import classNames from '../class-names';
@@ -15,7 +17,9 @@ var $$obj = $$({}, 'obj');
 var $$loading = $$(false, 'loading');
 var $$errors = $$({}, 'errors');
 var $$entityTypes = $$({}, 'entity-types');
-var $$materialTypes = $$({}, 'material-types');
+var $$voucherSubjects = $$([], 'voucher-subjects');
+var $$storeOrderTypes = $$({}, 'store-order-types');
+var $$storeOrderDirections = $$({}, 'store-order-directions');
 
 var copy = {};
 
@@ -24,7 +28,8 @@ var dirty = function (obj) {
 };
 
 var formVf = function (
-  [obj, errors, vendorDropdown, purchaserDropdown, materialTypeDropdown]
+  [obj, errors, vendorDropdown, purchaserDropdown, storeOrderTypeDropdown,
+    storeOrderDirectionDropdown, voucherSubjectDropdown]
 ) {
   return h('form.form', {
     onsubmit() {
@@ -67,14 +72,14 @@ var formVf = function (
     }
   }, [
     field({
-      key: 'name', 
-      label: '名称', 
+      key: 'name',
+      label: '名称',
       input: h('input', {
         value: obj.name,
         onchange() {
           $$obj.patch({ name: this.value });
         }
-      }), 
+      }),
       errors,
       required: true,
     }),
@@ -93,21 +98,41 @@ var formVf = function (
       }, '是否增值税'),
     ]),
     field({
-      key: 'vendorType', 
-      label: '销售方类型', 
-      input: vendorDropdown, 
+      key: 'vendorType',
+      label: '销售方类型',
+      input: vendorDropdown,
       errors,
     }),
     field({
-      key: 'purchaserType', 
-      label: '购买方类型', 
-      input: purchaserDropdown, 
+      key: 'purchaserType',
+      label: '购买方类型',
+      input: purchaserDropdown,
       errors,
     }),
     field({
-      key: 'materialType', 
-      label: '相关物料单类型', 
-      input: materialTypeDropdown, 
+      key: 'storeOrderType',
+      label: '相关仓单类型',
+      input: storeOrderTypeDropdown,
+      errors,
+    }),
+    field({
+      key: 'storeOrderDirection',
+      label: '仓单方向',
+      input: storeOrderDirectionDropdown,
+      errors,
+    }),
+    field({
+      key: 'store'
+    }),
+    field({
+      key: 'relatedVoucherSubjectId',
+      label: [
+        h('span', '相关凭证科目'),
+        h('i.fa.fa-question-circle', {
+          title: '可以基于本发票类型的发票，生成属于该科目的凭证',
+        }),
+      ],
+      input: voucherSubjectDropdown,
       errors,
     }),
     h('hr'),
@@ -140,18 +165,43 @@ var $$purchaserDropdown = $$dropdown({
   }
 });
 
-var $$materialTypeDropdown = $$dropdown({
-  defaultText: '选择物料单类型',
-  $$value: $$obj.trans(o => o.materialType || ''),
-  $$options: $$materialTypes.trans(materialTypes => R.values(materialTypes)),
-  onchange(value) {
-    $$obj.patch({ materialType: value });
+var $$voucherSubjectDropdown = $$searchDropdown({
+  defaultText: '选择相关凭证科目',
+  $$value: $$obj.trans(R.propOr('', 'relatedVoucherSubjectId')),
+  $$options: $$voucherSubjects.trans(R.map(
+    it => ({
+      value: it.id,
+      text: it.name,
+      acronym: it.acronym,
+    }))
+  ),
+  onchange(relatedVoucherSubjectId) {
+    $$obj.patch({ relatedVoucherSubjectId, });
+  }
+});
+
+var $$storeOrderTypeDropdown = $$dropdown({
+  defaultText: '请选择仓单类型',
+  $$value: $$obj.trans(R.propOr('', 'storeOrderType')),
+  $$options: $$storeOrderTypes.trans(R.values),
+  onchange(storeOrderType) {
+    $$obj.patch({ storeOrderType });
+  }
+});
+
+var $$storeOrderDirectionDropdown = $$dropdown({
+  defaultText: '请选择仓单方向',
+  $$value: $$obj.trans(R.propOr('', 'storeOrderDirection')),
+  $$options: $$storeOrderDirections.trans(R.values),
+  onchange(storeOrderDirection) {
+    $$obj.patch({ storeOrderDirection });
   }
 });
 
 var $$form = $$.connect(
-  [$$obj, $$errors, $$vendorDropdown, $$purchaserDropdown, 
-    $$materialTypeDropdown], 
+  [$$obj, $$errors, $$vendorDropdown, $$purchaserDropdown,
+    $$storeOrderTypeDropdown, $$storeOrderDirectionDropdown,
+    $$voucherSubjectDropdown],
   formVf
 );
 
@@ -174,15 +224,20 @@ export default {
     );
     Promise.all([
       ctx.params.id? invoiceTypeStore.get(ctx.params.id): {},
-      constStore.get()
+      constStore.get(),
+      voucherSujectStore.list
     ])
-    .then(function ([obj, { materialTypes, entityTypes }]) {
+    .then(function (
+      [obj, { storeOrderTypes, storeOrderDirections, entityTypes}, voucherSubjects]
+    ) {
       copy = R.clone(obj);
       $$.update(
         [$$loading, false],
         [$$obj, obj],
-        [$$materialTypes, materialTypes],
-        [$$entityTypes, entityTypes]
+        [$$storeOrderTypes, storeOrderTypes],
+        [$$storeOrderDirections, storeOrderDirections],
+        [$$entityTypes, entityTypes],
+        [$$voucherSubjects, voucherSubjects]
       );
     });
   },
