@@ -212,7 +212,7 @@ var $$voucherSubject = $$.connect(
       R.prop('editVoucherSubject'),
       () => h('a' + classNames('item', (currentMod === 'voucher_subject') && 'active'), {
         href: '/voucher-subject-list',
-      }, '凭证项目'),
+      }, '凭证科目'),
       R.always('')
     )(mods);
   }

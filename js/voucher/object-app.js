@@ -7,6 +7,7 @@ import voucherTypeStore from 'store/voucher-type-store';
 import voucherSubjectStore from 'store/voucher-subject-store';
 import moment from 'moment';
 import voucherStore from 'store/voucher-store';
+import casing from 'casing';
 
 const valueFunc = function ([voucher, form]) {
   return h('.object-app', [
@@ -30,9 +31,9 @@ export default {
     let promises = [
       voucherTypeStore.list,
       voucherSubjectStore.list,
-      id? voucherStore.get(id): {
+      id? voucherStore.get(id): Object.assign({
         date: moment().format('YYYY-MM-DD')
-      }
+      }, casing.camelize(ctx.query)),
     ];
     Promise.all(promises)
     .then(function ([voucherTypes, voucherSubjects, voucher]) {

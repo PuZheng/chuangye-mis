@@ -14,6 +14,7 @@ import $$storeOrderEditor from './store-order-editor';
 import storeSubjectStore from 'store/store-subject-store';
 import co from 'co';
 import { $$toast } from '../toast';
+import object2qs from '../utils/object2qs';
 
 var h = virtualDom.h;
 
@@ -225,7 +226,13 @@ var formVf = function ([
     R.ifElse(
       R.prop('isVat'),
       () => h('a.btn.btn-outline', {
-        href: `/voucher?amount=${obj.amount}&is_public=1`
+        href: '/voucher?' + object2qs({
+          amount: obj.amount,
+          voucher_subject_id: obj.invoiceType.relatedVoucherSubjectId,
+          payer_id: obj.purchaserId,
+          recipient_id: obj.vendorId,
+          is_public: 1,
+        }),
       }, '创建凭证'),
       () => ''
     )(obj)

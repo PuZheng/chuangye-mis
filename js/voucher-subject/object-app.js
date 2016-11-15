@@ -164,8 +164,8 @@ var vf = function ([loading, obj, form]) {
   return h(classNames('object-app', loading && 'loading'), [
     h(classNames('header', dirty(obj) && 'dirty'), R.ifElse(
       R.prop('id'),
-      R.always(`编辑凭证项目-${obj.name}`),
-      R.always('创建凭证项目')
+      R.always(`编辑凭证科目-${obj.name}`),
+      R.always('创建凭证科目')
     )(obj)),
     form,
   ]);
