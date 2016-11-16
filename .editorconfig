@@ -11,16 +11,15 @@ end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 
-[*.{js}]
+[*.{js,md}]
 indent_size = 2
+max_char=80
 
-[*.{css}]
+[*.css]
 indent_size = 4
 
 [*.html]
 indent_style = space
-
-[*.{py,html,md}]
 indent_size = 2
 
 [*.md]

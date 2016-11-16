@@ -1,6 +1,5 @@
 import $$ from 'slot';
 import virtualDom from 'virtual-dom';
-import { $$loading, $$voucherTypes, $$voucherSubjects } from './data-slots';
 import classNames from '../class-names';
 import $$myOth from '../widget/my-oth';
 import $$queryObj from '../query-obj';
@@ -18,7 +17,10 @@ import entityStore from 'store/entity-store';
 
 var h = virtualDom.h;
 
-var $$vouchers = $$([], 'vouchers');
+var $$list = $$([], 'list');
+var $$loading = $$(false, 'loading');
+var $$voucherTypes = $$([], 'voucher-types');
+var $$voucherSubjects = $$([], 'voucher-subjects');
 
 var $$numberFilter = $$searchBox({
   defaultText: '请输入凭证号',
@@ -145,7 +147,7 @@ var $$filters = $$.connect([
   $$subjectFilter, $$payerFilter, $$recipientFilter],
 filtersVf);
 
-var tableVf = function ([vouchers, idOth, dateOth, amountOth]) {
+var tableVf = function ([list, idOth, dateOth, amountOth]) {
   return h('table.table.striped.compact', [
     h('thead', [
       h('tr', [
@@ -161,7 +163,7 @@ var tableVf = function ([vouchers, idOth, dateOth, amountOth]) {
         h('th', '经办人'),
       ]),
     ]),
-    h('tbody', vouchers.map(function (v) {
+    h('tbody', list.map(function (v) {
       return h('tr', [
         h('td', [
           h('a', {
@@ -173,7 +175,11 @@ var tableVf = function ([vouchers, idOth, dateOth, amountOth]) {
         h('td', v.date),
         h('td', v.voucherType.name),
         h('td', v.voucherSubject.name),
-        h('td', v.isPublic? h('i.fa.fa-check.color-success'): h('i.fa.fa-remove.color-gray')),
+        h(
+          'td',
+          v.isPublic? h('i.fa.fa-check.color-success'):
+            h('i.fa.fa-remove.color-gray')
+        ),
         h('td', v.payer.name),
         h('td', v.recipient.name),
         h('td', v.creator.username)
@@ -184,7 +190,7 @@ var tableVf = function ([vouchers, idOth, dateOth, amountOth]) {
 
 var $$table = $$.connect(
   [
-    $$vouchers,
+    $$list,
     $$myOth({ label: '编号', column: 'id' }),
     $$myOth({ label: '日期', column: 'date' }),
     $$myOth({ label: '金额(元)', column: 'amount' }),
@@ -215,16 +221,17 @@ var viewVf = function ([loading, table, paginator, tableHints,
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$table, $$paginator({
-      $$totalCnt,
-      $$queryObj,
-      pageSize: config.getPageSize('voucher'),
-    }),
-    $$tableHints({
-      $$totalCnt,
-      $$queryObj,
-      pageSize: config.getPageSize('voucher'),
-    }), $$filters], viewVf)
+    $$view: $$.connect([
+      $$loading, $$table, $$paginator({
+        $$totalCnt,
+        $$queryObj,
+        pageSize: config.getPageSize('voucher'),
+      }),
+      $$tableHints({
+        $$totalCnt,
+        $$queryObj,
+        pageSize: config.getPageSize('voucher'),
+      }), $$filters], viewVf)
   },
   init() {
     $$loading.toggle();
@@ -235,7 +242,7 @@ export default {
       entityStore.fetchList(),
     ]).then(function ([data, voucherTypes, voucherSubjects, entities]) {
       $$.update(
-        [$$vouchers, data.data],
+        [$$list, data.data],
         [$$totalCnt, data.totalCnt],
         [$$voucherTypes, voucherTypes],
         [$$voucherSubjects, voucherSubjects],
