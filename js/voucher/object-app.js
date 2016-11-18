@@ -214,8 +214,8 @@ const formVf = function formVf([
     }),
     h('.clearfix'),
     h('hr'),
-    readonly && obj.id? void 0: h('button.primary', '提交'),
-    readonly? void 0: h('a.btn.btn-outline.ca', {
+    readonly? void 0: h('button.primary', '提交'),
+    readonly || !obj.id? void 0 : h('a.btn.btn-outline.ca', {
       onclick() {
         overlay.$$content.val({
           type: 'warning',
@@ -371,6 +371,7 @@ default {
     ];
     Promise.all(promises)
       .then(function([voucherTypes, voucherSubjects, entities, obj]) {
+        console.log(obj);
         copy = R.clone(obj);
         $$.update(
           [$$voucherTypes, voucherTypes],
