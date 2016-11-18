@@ -3,22 +3,26 @@ import { validateObj } from '../validate-obj';
 import { notEmpty } from '../checkers';
 import config from '../config';
 import request from '../request';
+import object2qs from '../utils/object2qs';
 
-var rules = {
+export var validate = R.partialRight(validateObj, [{
   voucherTypeId: notEmpty('凭证类型'),
   voucherSubjectId: notEmpty('项目'),
   date: notEmpty(),
   number: notEmpty(),
   payerId: notEmpty(),
   recipientId: notEmpty(),
-};
-
-export var validate = R.partialRight(validateObj, [rules]);
+}]);
 
 export default {
   validate,
-  save: function (data) {
-    return request.post('/voucher/object', data)
+  save: function (obj) {
+    console.log(obj);
+    return R.ifElse(
+      R.prop('id'),
+      () => request.put('/voucher/object/' + obj.id, obj),
+      () => request.post('/voucher/object', obj)
+    )(obj)
     .then(R.prop('data'));
   },
   get: function (id) {
@@ -28,7 +32,7 @@ export default {
   fetchList: function (queryObj) {
     queryObj.page = queryObj.page || 1;
     queryObj.page_size = queryObj.page_size || config.getPageSize('voucher');
-    return request.get('/voucher/list?' + R.toPairs(queryObj).map(p => p.join('=')).join('&'))
+    return request.get('/voucher/list?' + object2qs(queryObj))
     .then(R.prop('data'));
   },
   getHints(text) {
