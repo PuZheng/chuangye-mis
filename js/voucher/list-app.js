@@ -14,6 +14,8 @@ import voucherStore from 'store/voucher-store';
 import voucherTypeStore from 'store/voucher-type-store';
 import voucherSubjectStore from 'store/voucher-subject-store';
 import entityStore from 'store/entity-store';
+import moment from 'moment';
+import R from 'ramda';
 
 var h = virtualDom.h;
 
@@ -157,7 +159,6 @@ var tableVf = function ([list, idOth, dateOth, amountOth]) {
         dateOth,
         h('th', '类型'),
         h('th', '项目'),
-        h('th', '是否进入总账'),
         h('th', '支付方'),
         h('th', '收入方'),
         h('th', '经办人'),
@@ -170,16 +171,14 @@ var tableVf = function ([list, idOth, dateOth, amountOth]) {
             href: '/voucher/' + v.id,
           }, v.id),
         ]),
-        h('td', v.number),
+        h('td', [
+          R.path(['accountTerm', 'closed'])(v)? h('i.fa.fa-lock'): void 0,
+          v.number
+        ]),
         h('td', '' + v.amount),
-        h('td', v.date),
+        h('td', moment(v.date).format('YYYY-MM-DD')),
         h('td', v.voucherType.name),
         h('td', v.voucherSubject.name),
-        h(
-          'td',
-          v.isPublic? h('i.fa.fa-check.color-success'):
-            h('i.fa.fa-remove.color-gray')
-        ),
         h('td', v.payer.name),
         h('td', v.recipient.name),
         h('td', v.creator.username)

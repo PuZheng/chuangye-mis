@@ -14,6 +14,7 @@ import { $$dropdown } from '../widget/dropdown';
 import R from 'ramda';
 import { $$searchDropdown } from '../widget/search-dropdown';
 import entityStore from '../store/entity-store';
+import classNames from '../class-names';
 
 var $$obj = $$({}, 'obj');
 var $$voucherTypes = $$([], 'voucher-types');
@@ -22,11 +23,24 @@ var $$voucherSubjects = $$([], 'voucher-subjects');
 var $$errors = $$({}, 'errors');
 var $$entities = $$([], 'entities');
 var $$currentVoucherSubject = $$(null, 'current-voucher-subject');
+// why bother make these 2 slots? to avoid refresh
+// payerDropdown/recipientDropdown whenever obj changed
+var $$currentPayerId = $$(null, 'current-payer-id');
+var $$currentRecipientId = $$(null, 'current-recipient-id');
 
+var copy = {};
+
+var dirty = function (obj) {
+  return !R.equals(obj, copy);
+};
 
 const vf = function([obj, form]) {
+  let readonly = R.path(['accountTerm', 'closed'])(obj);
   return h('.object-app', [
-    h('.header', obj.id ? `编辑凭证-${obj.number}` : '创建新凭证'),
+    h(
+      classNames('header', dirty(obj) && 'dirty'),
+      obj.id? `编辑凭证-${obj.number}` + (readonly? '(已锁定)': ''): '创建新凭证'
+    ),
     form,
   ]);
 };
@@ -39,9 +53,18 @@ const formVf = function formVf([
   let classNames = ['form', 'relative'];
   loading && classNames.push('loading');
   classNames = classNames.map(c => '.' + c).join('');
+  let readonly = R.path(['accountTerm', 'closed'])(obj);
   return h('form' + classNames, {
     onsubmit() {
       co(function*() {
+        if (!dirty(obj)) {
+          $$toast.val({
+            type: 'info',
+            message: '您没有做出任何修改',
+          });
+          return;
+        }
+        $$errors.val({});
         try {
           yield voucherStore.validate(obj);
         } catch (e) {
@@ -50,17 +73,19 @@ const formVf = function formVf([
         }
         try {
           $$loading.val(true);
-          let {
-            id
-          } =
-          yield voucherStore.save(obj);
+          let { id } = obj;
+          Object.assign(obj, yield voucherStore.save(obj));
+          copy = R.clone(obj);
           $$toast.val({
             type: 'success',
-            message: '凭证创建成功',
+            message: '提交成功',
           });
-          !obj.id && page('/voucher/' + id);
+          !id && page('/voucher/' + obj.id);
         } catch (e) {
           console.error(e);
+          if (e.response && e.response.status == 400) {
+            $$errors.val(e.response.data);
+          }
         } finally {
           $$loading.val(false);
         }
@@ -68,6 +93,28 @@ const formVf = function formVf([
       return false;
     }
   }, [
+    obj.id? field({
+      label: '经办人',
+      input: h('.text', R.path(['creator', 'username'])(obj)),
+    }): void 0,
+    obj.id? field({
+      label: '创建于',
+      input: h('.text', moment(obj.created).format('YYYY-MM-DD HH:mm')),
+    }): void 0,
+    obj.id? field({
+      label: '账期',
+      input: h('.text', h('span', [
+        R.path(['accountTerm', 'name'])(obj),
+        ...readonly?
+          [h('span', '('), h('i.fa.fa-lock'), h('span', '已关闭'), h('span', ')')]:
+          []
+      ])),
+    }): void 0,
+    readonly?
+    field({
+      label: '凭证类型',
+      input: h('.text', R.path(['voucherType', 'name'])(obj))
+    }):
     field({
       key: 'voucherTypeId',
       label: '凭证类型',
@@ -75,34 +122,48 @@ const formVf = function formVf([
       errors,
       required: true,
     }),
+    readonly?
+    field({
+      label: '科目',
+      input: h('.text', R.path(['voucherSubject', 'name'])(obj))
+    }):
     field({
       key: 'voucherSubjectId',
-      label: '项目',
+      label: '科目',
       input: voucherSubjectDropdown,
       errors,
       required: true,
     }),
+    readonly?
+    field({
+      label: '金额',
+      input: h('.text', '' + obj.amount),
+    }):
     field({
       key: 'amount',
       label: '金额(元)',
       input: h('input', {
-        onchange() {
-          $$obj.patch({
-            amount: this.value
-          });
+        type: 'number',
+        oninput() {
+          $$obj.patch({ amount: this.value });
         },
         value: obj.amount,
       }),
       errors,
-      require: true,
+      required: true,
     }),
+    readonly?
+    field({
+      label: '日期',
+      input: h('.text', obj.date)
+    }):
     field({
       key: 'date',
       label: '日期',
       input: h('input', {
         type: 'date',
         value: obj.date,
-        onchange() {
+        oninput() {
           $$obj.patch({
             date: this.value,
           });
@@ -111,39 +172,26 @@ const formVf = function formVf([
       errors,
       required: true
     }),
+    readonly?
+    field({ label: '凭证号', input: h('.text', obj.number) }):
     field({
       key: 'number',
       label: '凭证号',
       input: h('input', {
         placeholder: '请输入凭证号',
         value: obj.number,
-        onchange() {
-          $$obj.patch({
-            number: this.value
-          });
+        oninput() {
+          $$obj.patch({ number: this.value });
         }
       }),
       errors,
       required: true
     }),
-    h('.field.inline', [
-      h('input', {
-        type: 'checkbox',
-        checked: obj.isPublic,
-        onchange() {
-          $$obj.patch({
-            isPublic: this.checked
-          });
-        }
-      }),
-      h('label', {
-        onclick() {
-          $$obj.patch({
-            isPublic: !$$obj.val().isPublic
-          });
-        }
-      }, '是否进入总账'),
-    ]),
+    readonly?
+    field({
+      label: '(实际)支付方',
+      input: h('.text', R.path(['payer', 'name'])(obj)),
+    }):
     field({
       key: 'payerId',
       label: '(实际)支付方',
@@ -151,6 +199,11 @@ const formVf = function formVf([
       errors,
       required: true
     }),
+    readonly?
+    field({
+      label: '(实际)收入方',
+      input: h('.text', R.path(['recipient', 'name'])(obj))
+    }):
     field({
       key: 'recipientId',
       label: '(实际)收入方',
@@ -160,16 +213,13 @@ const formVf = function formVf([
     }),
     h('.clearfix'),
     h('hr'),
-    h('button.primary', '提交'),
-    h('button', {
-      onclick(e) {
-        e.preventDefault();
-        page('/voucher-list');
-        return false;
-      }
+    readonly? void 0: h('button.primary', '提交'),
+    h('a.btn.btn-outline', {
+      href: '/voucher-list',
     }, '返回'),
   ]);
 };
+
 
 var $$voucherTypeDropdown = $$dropdown({
   defaultText: '请选择凭证类型',
@@ -206,9 +256,8 @@ var $$voucherSubjectDropdown = $$searchDropdown({
 var $$payerDropdown = $$searchDropdown({
   defaultText: '请选择支付方',
   onchange(payerId) {
-    $$obj.patch({
-      payerId,
-    });
+    $$obj.patch({ payerId });
+    $$currentPayerId.val(payerId);
   },
   $$options: $$.connect(
     [$$currentVoucherSubject, $$entities],
@@ -224,13 +273,14 @@ var $$payerDropdown = $$searchDropdown({
       return [];
     }
   ),
-  $$value: $$obj.trans(R.prop('payerId'))
+  $$value: $$currentPayerId
 });
 
 var $$recipientDropdown = $$searchDropdown({
   defaultText: '请选择支付方',
   onchange(recipientId) {
     $$obj.patch({ recipientId });
+    $$currentRecipientId.val(recipientId);
   },
   $$options: $$.connect(
     [$$currentVoucherSubject, $$entities],
@@ -246,7 +296,7 @@ var $$recipientDropdown = $$searchDropdown({
       return [];
     }
   ),
-  $$value: $$obj.trans(R.prop('recipientId'))
+  $$value: $$currentRecipientId,
 });
 
 var $$form = $$.connect([
@@ -265,6 +315,9 @@ default {
   page: {
     $$view,
   },
+  get dirty() {
+    return dirty($$obj.val());
+  },
   init(ctx) {
     let {
       id
@@ -280,19 +333,21 @@ default {
     ];
     Promise.all(promises)
       .then(function([voucherTypes, voucherSubjects, entities, obj]) {
+        copy = R.clone(obj);
         $$.update(
           [$$voucherTypes, voucherTypes],
           // why not R.propEq, since it use '===' instead of '=='
-          [$$currentVoucherSubject,
-            R.find(it => it.id == obj.voucherSubjectId)(voucherSubjects)],
+          [
+            $$currentVoucherSubject,
+            R.find(it => it.id == obj.voucherSubjectId)(voucherSubjects)
+          ],
+          [$$currentPayerId, obj.payerId],
+          [$$currentRecipientId, obj.recipientId],
           [$$loading, false],
           [$$voucherSubjects, voucherSubjects],
           [$$obj, obj],
           [$$entities, entities]
         );
-        console.log(obj.voucherSubjectId);
-        console.log(voucherSubjects);
-        console.log($$currentVoucherSubject.val());
       });
   }
 };

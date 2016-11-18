@@ -24,7 +24,9 @@ var dirty = function (obj) {
   return !R.equals(obj, copy);
 };
 
-var formVf = function ([obj, errors, payerTypeDropdown, recipientTypeDropdown]) {
+var formVf = function (
+  [obj, errors, payerTypeDropdown, recipientTypeDropdown]
+) {
   return h('form.form', {
     onsubmit() {
       co(function *() {

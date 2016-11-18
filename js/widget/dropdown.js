@@ -124,11 +124,16 @@ export var $$dropdown = function (
         }): '',
         h('i.icon.fa.fa-caret-down'),
       ]),
-      h('.text' + (selectedOption? '': '.default'), selectedOption? optionContent(selectedOption): defaultText),
+      h(
+        '.text' + (selectedOption? '': '.default'),
+        selectedOption? optionContent(selectedOption): defaultText
+      ),
       h('.menu', optionElms)
     ]);
   };
-  return $$.connect([$$activated, $$options, $$value, $$selection, $$disabled], vf);
+  return $$.connect(
+    [$$activated, $$options, $$value, $$selection, $$disabled], vf
+  );
 };
 
 export default $$dropdown;

@@ -27,9 +27,11 @@ ThrottleSlot.prototype.val = function (newValue) {
   if (newValue === undefined) {
     return this.value;
   } else {
-    opt.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
+    opt.debug && console.info(
+      `slot: slot ${this.tag} updated -- `, this.value, '->', newValue
+    );
     var oldValue = this.value;
-    this.value = newValue; 
+    this.value = newValue;
     this.dirty = true;
     return oldValue;
   }
