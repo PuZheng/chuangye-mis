@@ -15,6 +15,7 @@ import R from 'ramda';
 import { $$searchDropdown } from '../widget/search-dropdown';
 import entityStore from '../store/entity-store';
 import classNames from '../class-names';
+import overlay from '../overlay';
 
 var $$obj = $$({}, 'obj');
 var $$voucherTypes = $$([], 'voucher-types');
@@ -213,7 +214,44 @@ const formVf = function formVf([
     }),
     h('.clearfix'),
     h('hr'),
-    readonly? void 0: h('button.primary', '提交'),
+    readonly && obj.id? void 0: h('button.primary', '提交'),
+    readonly? void 0: h('a.btn.btn-outline.ca', {
+      onclick() {
+        overlay.$$content.val({
+          type: 'warning',
+          title: '您确认要删除该凭证?',
+          message: [
+            h('.ca.pt4.pb4', '该操作将不可逆!'),
+            h('a.btn.btn-outline', {
+              onclick() {
+                overlay.$$content.val(null);
+                return false;
+              }
+            }, '取消'),
+            h('a.btn.btn-outline.ca', {
+              onclick() {
+                voucherStore.del(obj.id)
+                .then(function () {
+                  overlay.$$content.val({
+                    type: 'success',
+                    title: '删除成功!',
+                    message: h('a.btn.btn-outline', {
+                      onclick() {
+                        overlay.$$content.val(null);
+                        page('/voucher-list');
+                        return false;
+                      }
+                    }, 'OK')
+                  });
+                });
+                return false;
+              }
+            }, '确认')
+          ],
+        });
+        return false;
+      }
+    }, '删除'),
     h('a.btn.btn-outline', {
       href: '/voucher-list',
     }, '返回'),

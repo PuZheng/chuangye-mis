@@ -17,7 +17,6 @@ export var validate = R.partialRight(validateObj, [{
 export default {
   validate,
   save: function (obj) {
-    console.log(obj);
     return R.ifElse(
       R.prop('id'),
       () => request.put('/voucher/object/' + obj.id, obj),
@@ -25,7 +24,7 @@ export default {
     )(obj)
     .then(R.prop('data'));
   },
-  get: function (id) {
+  get(id) {
     return request.get('/voucher/object/' + id)
     .then(R.prop('data'));
   },
@@ -38,5 +37,8 @@ export default {
   getHints(text) {
     return request.get('/voucher/hints/' + text)
     .then(R.path(['data', 'data']));
+  },
+  del(id) {
+    return request.delete('/voucher/object/' + id);
   }
 };

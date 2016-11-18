@@ -21,6 +21,13 @@
         }
     }
 
+    &.success {
+        background: color(var(--white) a(+30%));
+        & .title {
+            color: var(--color-success);
+        }
+    }
+
     &.warning {
         background: color(var(--color-warning) l(+50%));
         & .title {
@@ -33,14 +40,13 @@
     }
 
     & .close-btn {
-        float: right; 
+        float: right;
         padding: 1rem;
         background: transparent;
         border: none;
         color: var(--color-gray);
         outline: none;
     }
-
 
     & .title {
         font-size: 1.8rem;
