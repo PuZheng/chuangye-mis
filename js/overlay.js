@@ -4,20 +4,25 @@ import R from 'ramda';
 import classNames from './class-names';
 
 var h = virtualDom.h;
-var $$content = $$({}, 'content'); 
+var $$content = $$({}, 'content');
 let vf = function (content) {
   content = content || {};
-  return h(classNames('overlay', !R.isEmpty(content) && 'open', content.type || '', content.className || ''), [
-    h('button.close-btn', {
-      onclick() {
-        $$content.val({});
-      }
-    }, [
-      h('i.fa.fa-remove.fa-4x'),
-    ]),
-    h('.title', content.title),
-    h('.message', content.message),
-  ]);  
+  return h(
+    classNames('overlay',
+               !R.isEmpty(content) && 'open', content.type || '',
+               content.className || ''),
+    [
+      h('button.close-btn', {
+        onclick() {
+          $$content.val({});
+        }
+      }, [
+        h('i.fa.fa-remove.fa-4x'),
+      ]),
+      h('.title', content.title),
+      h('.message', content.message),
+    ]
+  );
 };
 
 const ESC = 27;
