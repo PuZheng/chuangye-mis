@@ -42,19 +42,6 @@
         }
     }
 
-    /* & > .icon { */
-    /*     cursor: pointer; */
-    /*     position: absolute; */
-    /*     width: auto; */
-    /*     height: auto; */
-    /*     line-height: 1.2142em; */
-    /*     top: .78571429em; */
-    /*     right: 1em; */
-    /*     z-index: 3; */
-    /*     margin: -.78571429em; */
-    /*     padding: .78571429em; */
-    /*     opacity: .8; */
-    /* } */
     & > .text {
         display: inline-block;
         color: var(--color-primary-text);
@@ -75,8 +62,8 @@
         border-top-right-radius: 0;
         border: 1px solid var(--color-primary);
         box-shadow: 0 2px 3px 0 rgba(34,36,38,.15);
-        overflow-x: hidden;
-        overflow-y: auto;
+        /* overflow-x: hidden; */
+        /* overflow-y: auto; */
         backface-visibility: hidden;
         border-top-width: 0;
         outline: 0;
@@ -98,7 +85,6 @@
         box-shadow: 0 2px 3px 0 rgba(34,36,38,.15);
         border-radius: .28571429rem;
         z-index: 11;
-        max-height: 16rem;
 
         & .group {
             display: none;
@@ -130,13 +116,48 @@
         & .message {
             color: var(--color-secondary);
         }
-        & .item:hover, & .item.selected {
+        & .item:hover {
             background: var(--color-gray-light);
+        }
+
+        & .item.selected {
+            background: color(var(--color-gray-light) l(-20%));
         }
 
         & .current-value {
             font-weight: bold;
             color: var(--color-primary);
+        }
+
+        & .scrollbar {
+            position: absolute;
+            background: var(--color-gray-light);
+            border-radius: var(--scrollbar-width);
+            cursor: grab;
+
+            &.grabbing {
+                cursor: grabbing;
+            }
+
+            &.hidden {
+                display: none;
+            }
+
+            & .bar {
+                position: absolute;
+                background: var(--color-gray-dark);
+                border-radius: var(--scrollbar-width);
+                -webkit-user-select: none;
+            }
+            &.vertical {
+                top: 0;
+                right: 0;
+                height: 100%;
+                width: var(--scrollbar-width);
+                & .bar {
+                    width: 100%;
+                }
+            }
         }
     }
 

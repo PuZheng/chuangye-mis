@@ -2,7 +2,7 @@ import $$ from 'slot';
 import * as dropdownUtils from '../dropdown-utils';
 import virtualDom from 'virtual-dom';
 
-var h = virtualDom.h;
+var { h } = virtualDom;
 const UP = 38;
 const DOWN = 40;
 const ENTER = 13;
@@ -15,14 +15,33 @@ export var $$searchDropdown = function (
     $$options,
     onchange,
     optionGroup,
+    maxOptions=8,
     optionContent=dropdownUtils.optionContent,
   }
 ) {
+  let optionHeight;
+  let myHook = new class MyHook {
+    hook(el) {
+      setTimeout(function () {
+        optionHeight = el.querySelector('.item').offsetHeight;
+        console.log(optionHeight);
+        $$view.connect(
+          [$$activated, $$searchText, $$options, $$value, $$selection, $$top,
+            $$grabbing],
+          valueFunc
+        ).refresh();
+      }, 0);
+    }
+  };
   let $$searchText = $$('', 'search-text');
   let $$activated = $$(false, 'activated');
   let $$selection = $$(-1, 'selection');
   let inputEl;
-  let valueFunc = function ([activated, searchText, options, value, selection]) {
+  let $$top = $$(0, 'top');
+  let $$grabbing = $$(false, 'grabbing');
+  let valueFunc = function (
+    [activated, searchText, options, value, selection, top, grabbing]
+  ) {
     options = options.map(function (o) {
       if (typeof o === 'string') {
         return {
@@ -52,6 +71,10 @@ export var $$searchDropdown = function (
         }
       }
     }
+    let menuHeight = Math.min(options.length, maxOptions) * optionHeight;
+    let menuContentHeight = options.length * optionHeight;
+    let topRow = Math.round(top * menuContentHeight / optionHeight);
+
     options = options.filter(function (o) {
       return dropdownUtils.match(o, searchText);
     });
@@ -77,7 +100,8 @@ export var $$searchDropdown = function (
             (optionCounter + idx == selection) && classNames.push('selected');
             classNames = classNames.map( c => '.' + c ).join('');
             return h(classNames, {
-              // note!!!, don't use onclick, since onclick event fired after input.search's onblur
+              // note!!!, don't use onclick, since onclick event fired after
+              // input.search's onblur
               onmousedown: function () {
                 onchange(o.value, o);
               },
@@ -88,13 +112,15 @@ export var $$searchDropdown = function (
         optionCounter += subOptions.length;
       }
     } else {
-      optionElms = options.map(function (o, idx) {
+      optionElms = options.slice(topRow, topRow + maxOptions)
+      .map(function (o, idx) {
         let classNames = ['item'];
         (o.value == value) && classNames.push('current-value');
-        (idx == selection) && classNames.push('selected');
+        (topRow + idx == selection) && classNames.push('selected');
         classNames = classNames.map( c => '.' + c ).join('');
         return h(classNames, {
-          // note!!!, don't use onclick, since onclick event fired after input.search's onblur
+          // note!!!, don't use onclick, since onclick event fired after
+          // input.search's onblur
           onmousedown: function () {
             onchange(o.value, o);
           },
@@ -102,13 +128,11 @@ export var $$searchDropdown = function (
       });
     }
 
-
     if (optionElms.length == 0) {
       optionElms = [h('.message', '没有可选项')];
     }
-    return h(classNames, {
-      // a div with tabIndex could be focused/blured
-    }, [
+
+    return h(classNames, [
       h('.icons', [
         selectedOption? h('i.icon.clear.fa.fa-remove', {
           onmousedown(e) {
@@ -160,12 +184,19 @@ export var $$searchDropdown = function (
             if (selection > 0) {
               $$selection.val(selection - 1);
             }
+            if ($$selection.val() >= 0 && $$selection.val() < topRow) {
+              $$top.dec(1 / options.length);
+            }
+            return false;
           }
           if (e.which === DOWN || e.keyCode === DOWN) {
             if (selection < options.length - 1) {
               $$selection.val(Number(selection) + 1);
-              return false;
             }
+            if ($$selection.val() >= topRow + maxOptions) {
+              $$top.inc(1 / options.length);
+            }
+            return false;
           }
           if (e.which === ENTER || e.keyCode === ENTER) {
             selection = options[selection];
@@ -186,11 +217,85 @@ export var $$searchDropdown = function (
         }
         return classNames;
       }(), selectedOption? selectedOption.text: defaultText),
-      h('.menu', optionElms)
+      h('.menu', {
+        onwheel(e) {
+          if (maxOptions >= options.length) {
+            return false;
+          }
+          let top = (
+            ($$top.val() * menuContentHeight + e.deltaY / 2) / menuContentHeight
+          );
+          if (top < 0) {
+            top = 0;
+          }
+          if (top * menuContentHeight + menuHeight >= menuContentHeight) {
+            top = (menuContentHeight - menuHeight) / menuContentHeight;
+          }
+          $$top.val(top);
+          return false;
+        },
+        style: {
+          height: menuHeight,
+        }
+      }, [
+        h('.items', optionElms),
+        maxOptions < options.length? h(
+          '.scrollbar.vertical' + (grabbing? '.grabbing': ''),
+          h('.bar', {
+            onmousedown(e) {
+              $$grabbing.val(true);
+              let lastY = e.clientY;
+              let onmouseup = function () {
+                $$grabbing.val(false);
+                document.removeEventListener('mouseup', onmouseup);
+                document.removeEventListener('mousemove', onmousemove);
+              };
+              let onmousemove = function (e) {
+                top = (top * menuHeight + e.clientY - lastY) / menuHeight;
+                lastY = e.clientY;
+                if (top < 0) {
+                  top = 0;
+                }
+                if (top * menuContentHeight + menuHeight >= menuContentHeight) {
+                  top = (menuContentHeight - menuHeight) / menuContentHeight;
+                }
+                $$top.val(top);
+              };
+              document.addEventListener('mouseup', onmouseup);
+              document.addEventListener('mousemove', onmousemove);
+            },
+            style: (function() {
+              // 为了防止滚动条太短， 我们保证其长度至少是.5 / maxOptions
+              let minHeight = .5 / maxOptions;
+              let height = maxOptions / options.length;
+              // 如果滚动条太短，将滚动条的实际映射区域居中
+              if (height < minHeight) {
+                top = top - (minHeight - height) / 2;
+                height = minHeight;
+              }
+              return {
+                top: top * 100 + '%',
+                height: height * 100 + '%'
+              };
+            }())
+          })
+        ): void 0,
+      ])
     ]);
   };
-  return $$.connect([$$activated, $$searchText, $$options, $$value, $$selection],
-                    valueFunc);
+  let $$view = $$.connect([], function () {
+    return h('.search.dropdown.activated', {
+      myHook
+    }, [
+      h('.icons', h('i.icon.fa.fa-caret-down')),
+      h('input.search'),
+      h('.text.default', defaultText),
+      h('.menu', [
+        h('.items', h('.item', 'option1')),
+      ]),
+    ]);
+  });
+  return $$view;
 };
 
 export default $$searchDropdown;

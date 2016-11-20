@@ -17,7 +17,8 @@ class Scrollable {
   get $$view() {
     let scrollable = this;
     return $$.connect(
-      [this.$$content, this.$$height, this.$$contentHeight, this.$$top, this.$$grabbing],
+      [this.$$content, this.$$height,
+        this.$$contentHeight, this.$$top, this.$$grabbing],
       function ([content, height, contentHeight, top, grabbing]) {
         var withScrollbar = height < contentHeight;
         return h(function () {
@@ -44,7 +45,8 @@ class Scrollable {
               if (height >= contentHeight) {
                 return false;
               }
-              let top = (scrollable.$$top.val() * contentHeight + e.deltaY / 2) / contentHeight;
+              let top = ((scrollable.$$top.val() * contentHeight + e.deltaY / 2)
+              / contentHeight);
               if (top < 0) {
                 top = 0;
               }

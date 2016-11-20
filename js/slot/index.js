@@ -5,15 +5,18 @@ var _uniqueId = function () {
   };
 }();
 
-var objectValues = obj => (Object.values?  obj => Object.values(obj): function (obj) {
+var objectValues = function (obj) {
+  if (Object.values) {
+    return Object.values(obj);
+  }
   var values = [];
-  for (var key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+  for (let key in obj){
+    if (obj.hasOwnProperty(key)) {
       values.push(obj[key]);
     }
   }
   return values;
-})(obj);
+};
 
 var Slot = function (initial, tag, changed) {
   if (!(this instanceof Slot)) {
@@ -53,7 +56,9 @@ Slot.prototype.val = function (newValue) {
     if (this.changed && !this.changed(this.value, newValue)) {
       return this.value;
     }
-    this.debug && console.info(`slot: slot ${this.tag} updated -- `, this.value, '->', newValue);
+    this.debug && console.info(
+      `slot: slot ${this.tag} updated -- `, this.value, '->', newValue
+    );
     var oldValue = this.value;
     this.value = newValue;
     this.onChangeCbs.forEach(function (cb) {
@@ -72,14 +77,16 @@ Slot.prototype.val = function (newValue) {
       for (var slot of level) {
         let dirty = slot.parents.some(function (parent) {
           // parent is updateRoot or (is in this update and dirty)
-          return (parent.id == updateRoot.id) || (updateRoot.offsprings[parent.id] && !cleanSlots[parent.id]);
+          return (parent.id == updateRoot.id) ||
+            (updateRoot.offsprings[parent.id] && !cleanSlots[parent.id]);
         });
         if (!dirty) {
           cleanSlots[slot.id] = slot;
           continue;
         }
         let initiators = slot.parents.filter(function (parent) {
-          return parent.id === updateRoot.id || updateRoot.offsprings[parent.id];
+          return parent.id === updateRoot.id ||
+            updateRoot.offsprings[parent.id];
         });
         slot.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
         if (!slot.refresh(initiators)) {
@@ -153,7 +160,8 @@ Slot.prototype.calcOffsprings = function () {
   this.offspringsByLevels = [];
   let currentLevel = 0;
   var slots;
-  for (let { slot, level } of objectValues(this.offsprings).sort((a, b) => a.level - b.level)) {
+  for (let { slot, level } of objectValues(this.offsprings)
+       .sort((a, b) => a.level - b.level)) {
     if (level > currentLevel) {
       slots = [];
       this.offspringsByLevels.push(slots);
@@ -188,7 +196,9 @@ Slot.prototype.refresh = function (initiators, propogation=false) {
 };
 
 Slot.prototype.patch = function (obj) {
-  this.debug && console.info(`slot: slot ${this.tag} is about to be patched`, obj);
+  this.debug && console.info(
+    `slot: slot ${this.tag} is about to be patched`, obj
+  );
   this.val(Object.assign(this.val(), obj));
 };
 
@@ -260,7 +270,9 @@ Slot.prototype.connect = function (slots, valueFunc) {
 /**
  * note! a child has only one chance to setup its parents
  * */
-var connect = function connect(slots, valueFunc, tag, changed, parentsCalcOffsprings=false) {
+var connect = function connect(
+  slots, valueFunc, tag, changed, parentsCalcOffsprings=false
+) {
   var self = new Slot(null, tag, changed);
   return self.connect(slots, valueFunc, parentsCalcOffsprings);
 };
@@ -284,7 +296,8 @@ var update = function (...slotValuePairs) {
   let relatedSlots = {};
   let addToRelatedSlots = function (slot, level) {
     if (slot.id in relatedSlots) {
-      relatedSlots[slot.id].level = Math.max(level, relatedSlots[slot.id].level);
+      relatedSlots[slot.id].level = Math.max(level,
+                                             relatedSlots[slot.id].level);
     } else {
       relatedSlots[slot.id] = {
         slot,
@@ -305,7 +318,8 @@ var update = function (...slotValuePairs) {
   let levels = [];
   let slots;
   let currentLevel = 0;
-  objectValues(relatedSlots).sort((a, b) => a.level - b.level).forEach(function ({slot, level}) {
+  objectValues(relatedSlots).sort((a, b) => a.level - b.level)
+  .forEach(function ({slot, level}) {
     if (level > currentLevel) {
       slots = [];
       levels.push(slots);
@@ -332,7 +346,9 @@ var update = function (...slotValuePairs) {
       let initiators = slot.parents.filter(function (parent) {
         return relatedSlots[parent.id];
       });
-      slot.debuggable && console.info(`slot: slot ${slot.tag} will be refreshed`);
+      slot.debuggable && console.info(
+        `slot: slot ${slot.tag} will be refreshed`
+      );
       if (!slot.refresh(initiators)) {
         cleanSlots[slot.id] = slot;
       }
