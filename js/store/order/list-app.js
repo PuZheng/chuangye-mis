@@ -27,7 +27,9 @@ var $$loading = $$(false, 'loading');
 var $$tenants = $$([], 'tenants');
 
 
-var contentVf = function ([qo, loading, filters, table, tableHints, paginator]) {
+var contentVf = function (
+  [qo, loading, filters, table, tableHints, paginator]
+) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '单据列表'),
@@ -54,9 +56,6 @@ var $$dateSpanDropdown = $$dropdown({
   $$value: $$queryObj.trans(R.prop('date_span')),
   $$options: $$([
     {
-      text: '不限日期范围',
-      value: '',
-    }, {
       text: '一周内',
       value: 'in_7_days',
     }, {
@@ -72,18 +71,11 @@ var $$subjectDropdown = $$searchDropdown({
     $$queryObj.patch({ subject_id });
   },
   $$value: $$queryObj.trans(R.prop('subject_id')),
-  $$options: $$storeSubjects.trans(function (list) {
-    return R.concat([{
-      text: '不限科目',
-      value: '',
-    }], list.map(function (o) {
-      return {
-        text: o.name,
-        value: o.id,
-        acronym: o.acronym,
-      };
-    }));
-  })
+  $$options: $$storeSubjects.trans(R.map(it => ({
+    text: it.name,
+    value: it.id,
+    acronym: it.acronym,
+  }))),
 });
 
 var $$tenantDropdown = $$searchDropdown({
@@ -92,18 +84,11 @@ var $$tenantDropdown = $$searchDropdown({
     $$queryObj.patch({ tenant_id });
   },
   $$value: $$queryObj.trans(R.prop('tenant_id')),
-  $$options: $$tenants.trans(function (list) {
-    return R.concat([{
-      text: '不限承包人',
-      value: '',
-    }], list.map(function ({ id, entity }) {
-      return {
-        text: entity.name,
-        value: id,
-        acronym: entity.acronym,
-      };
-    }));
-  })
+  $$options: $$tenants.trans(R.map(({ id, entity: { name, acronym } }) => ({
+    value: id,
+    text: name,
+    acronym,
+  }))),
 });
 
 var filtersVf = function ([dateSpanDropdown, subjectDropdown, tenantDropdown]) {
@@ -124,8 +109,9 @@ var $$createdOth = $$myOth({
   column: 'created'
 });
 
-var $$filters = $$.connect([$$dateSpanDropdown, $$subjectDropdown,
-                           $$tenantDropdown], filtersVf);
+var $$filters = $$.connect(
+  [$$dateSpanDropdown, $$subjectDropdown, $$tenantDropdown], filtersVf
+);
 
 var tableVf = function ([totalPriceOth, createdOth, list]) {
   return h('table.table.compact.striped', [
@@ -190,9 +176,11 @@ export default {
   page: {
     $$view: $$tabs({
       $$tabNames: $$tabNames,
-      $$activeIdx: $$.connect([$$queryObj, $$tabNames], function ([qo, tabNames]) {
-        return tabNames.indexOf(`${qo.type}(${qo.direction})`);
-      }),
+      $$activeIdx: $$.connect(
+        [$$queryObj, $$tabNames], function ([qo, tabNames]) {
+          return tabNames.indexOf(`${qo.type}(${qo.direction})`);
+        }
+      ),
       onchange(idx, tabName) {
         let re = /(.+)\((.+)\)/;
         let m = tabName.match(re);
@@ -200,15 +188,17 @@ export default {
           $$queryObj.patch({ type: m[1], direction: m[2] });
         }
       },
-      $$content: $$.connect([$$queryObj, $$loading, $$filters, $$table, $$tableHints({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('storeOrder'),
-      }), $$paginator({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('invoice'),
-      })], contentVf),
+      $$content: $$.connect(
+        [$$queryObj, $$loading, $$filters, $$table, $$tableHints({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('storeOrder'),
+        }), $$paginator({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('invoice'),
+        })], contentVf
+      ),
     }),
   },
   init(ctx) {
@@ -219,7 +209,10 @@ export default {
       storeOrderStore.fetchList(ctx.query),
       tenantStore.list,
     ])
-    .then(function ([{ storeOrderDirections, storeOrderTypes }, storeSubjects, { totalCnt, data }, tenants]) {
+    .then(function (
+      [{ storeOrderDirections, storeOrderTypes }, storeSubjects,
+        { totalCnt, data }, tenants]
+    ) {
       $$.update(
         [$$loading, false],
         [$$storeOrderTypes, storeOrderTypes],

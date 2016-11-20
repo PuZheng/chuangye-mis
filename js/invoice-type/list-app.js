@@ -13,7 +13,6 @@ var h = virtualDom.h;
 var $$list = $$([], 'list');
 var $$loading = $$(false, 'loading');
 var $$entityTypes = $$({}, 'entity-types');
-var $$materialTypes = $$({}, 'material-types');
 
 var $$nameSearchBox = $$searchBox({
   defaultText: '输入名称搜索',
@@ -48,7 +47,8 @@ var tableVf = function ([list]) {
         h('td', obj.name),
         h('td', obj.vendorType || '--'),
         h('td', obj.purchaserType || '--'),
-        h('td', obj.isVat? h('i.fa.fa-check.color-success'): h('i.fa.fa-remove')),
+        h('td',
+          obj.isVat? h('i.fa.fa-check.color-success'): h('i.fa.fa-remove')),
         h('td', obj.storeOrderType || '--'),
         h('td', obj.storeOrderDirections || '--'),
         h('td', (obj.relatedVoucherSubject || {}).name || '--'),
@@ -78,22 +78,18 @@ let vf = function ([loading, nameSearchBox, table, filters]) {
 };
 
 var filtersVf = function (
-  [vendorTypeDropdown, purchaserTypeDropdown, isVatFilter, materialTypeDropdown]
+  [vendorTypeDropdown, purchaserTypeDropdown, isVatFilter]
 ) {
   return h('.filters', [
     vendorTypeDropdown,
     purchaserTypeDropdown,
     isVatFilter,
-    materialTypeDropdown,
   ]);
 };
 
 var $$vendorTypeDropdown = $$dropdown({
   defaultText: '选择销售方类型',
-  $$options: $$entityTypes.trans(entityTypes => R.concat([{
-    value: '',
-    text: '不限销售方类型',
-  }], R.values(entityTypes))),
+  $$options: $$entityTypes.trans(R.values),
   $$value: $$queryObj.trans(qo => qo.vendor_type),
   onchange(value) {
     $$queryObj.patch({ vendor_type: value });
@@ -102,10 +98,7 @@ var $$vendorTypeDropdown = $$dropdown({
 
 var $$purchaserTypeDropdown = $$dropdown({
   defaultText: '选择购买方类型',
-  $$options: $$entityTypes.trans(entityTypes => R.concat([{
-    value: '',
-    text: '不限购买方类型',
-  }], R.values(entityTypes))),
+  $$options: $$entityTypes.trans(R.values),
   $$value: $$queryObj.trans(qo => qo.purchaser_type),
   onchange(value) {
     $$queryObj.patch({ purchaser_type: value });
@@ -133,21 +126,9 @@ var $$isVatFilter = $$.connect([$$queryObj], function ([qo]) {
   ]);
 });
 
-var $$materialTypeDropdown = $$dropdown({
-  defaultText: '选择物料类型',
-  $$options: $$materialTypes.trans(materialTypes => R.concat([{
-    value: '',
-    text: '不限物料类型'
-  }], R.values(materialTypes))),
-  $$value: $$queryObj.trans(qo => qo.material_type),
-  onchange(value) {
-    $$queryObj.patch({ material_type: value });
-  }
-});
 
 var $$filters = $$.connect(
-  [$$vendorTypeDropdown, $$purchaserTypeDropdown, $$isVatFilter,
-    $$materialTypeDropdown],
+  [$$vendorTypeDropdown, $$purchaserTypeDropdown, $$isVatFilter],
   filtersVf
 );
 
@@ -163,11 +144,10 @@ export default {
       invoidTypeStore.fetchList(ctx.query),
       constStore.get()
     ])
-    .then(function ([list, { materialTypes, entityTypes }]) {
+    .then(function ([list, { entityTypes }]) {
       $$.update(
         [$$loading, false],
         [$$list, list],
-        [$$materialTypes, materialTypes],
         [$$entityTypes, entityTypes]
       );
     });

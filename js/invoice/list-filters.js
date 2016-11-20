@@ -4,29 +4,19 @@ import $$queryObj from '../query-obj';
 import $$dropdown from '../widget/dropdown';
 import $$searchDropdown from '../widget/search-dropdown';
 import virtualDom from 'virtual-dom';
+import R from 'ramda';
 var h = virtualDom.h;
 
 
 var $$invoiceTypeFilter = $$dropdown({
-  $$options: $$.connect([$$invoiceTypes], function ([list]) {
-    return [{
-      value: '',
-      text: '不限发票类型'
-    }].concat(list.map(function (t) {
-      return {
-        value: t.id,
-        text: t.name,
-      };
-    }));
-  }),
-  $$value: $$.connect([$$queryObj], function ([queryObj]) {
-    return queryObj.invoice_type_id;
-  }),
+  $$options: $$invoiceTypes.trans(R.map(it => ({
+    value: it.id,
+    text: it.name
+  }))),
+  $$value: $$queryObj.trans(R.prop('invoice_type_id')),
   defaultText: '请选择发票类型',
-  onchange(value) {
-    $$queryObj.patch({
-      invoice_type_id: value,
-    });
+  onchange(invoice_type_id) {
+    $$queryObj.patch({ invoice_type_id, });
   }
 });
 
@@ -34,80 +24,47 @@ var $$dateFilter = $$dropdown({
   $$options: $$([
     { value: 'in_7_days', text: '7天内' },
     { value: 'in_30_days', text: '30天内' },
-    { value: '', text: '不限日期' },
   ]),
-  $$value: $$.connect([$$queryObj], function ([queryObj]) {
-    return queryObj.date_span;
-  }),
+  $$value: $$queryObj.trans(R.prop('date_span')),
   defaultText: '请选择日期范围',
-  onchange(value) {
-    $$queryObj.patch({
-      date_span: value,
-    });
+  onchange(date_span) {
+    $$queryObj.patch({ date_span, });
   }
 });
 
 var $$accountTermFilter = $$searchDropdown({
   defaultText: '请选择账期',
-  $$value: $$.connect([$$queryObj], function ([queryObj]) {
-    return queryObj.account_term_id;
-  }),
-  $$options: $$.connect([$$accountTerms], function ([list]) {
-    return [
-      { value: '', text: '不限账期' }
-    ].concat(list.map(function (at) {
-      return {
-        value: at.id,
-        text: at.name,
-      };
-    })); 
-  }),
-  onchange(value) {
-    $$queryObj.patch({
-      account_term_id: value,
-    });
+  $$value: $$queryObj.trans(R.prop('account_term_id')),
+  $$options: $$accountTerms.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+  }))),
+  onchange(account_term_id) {
+    $$queryObj.patch({ account_term_id, });
   }
 });
 
 var $$vendorFilter = $$searchDropdown({
   defaultText: '请选择销售方',
-  $$value: $$.connect([$$queryObj], function ([q]) {
-    return q.vendor_id;
-  }),
-  $$options: $$.connect([$$entities], function ([entities]) {
-    return [
-      { value: '', text: '不限销售方' },
-    ].concat(entities.map(function (e) {
-      return {
-        value: e.id,
-        text: e.name,
-        acronym: e.acronym,
-      };
-    }));
-  }),
-  onchange(value) {
-    $$queryObj.patch({
-      vendor_id: value,
-    });
+  $$value: $$queryObj.trans(R.prop('vendor_id')),
+  $$options: $$entities.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
+  onchange(vendor_id) {
+    $$queryObj.patch({ vendor_id });
   }
 });
 
 var $$purchaserFilter = $$searchDropdown({
   defaultText: '请选择购买方',
-  $$value: $$.connect([$$queryObj], function ([q]) {
-    return q.purchaser_id;
-  }),
-  $$options: $$.connect([$$entities], function ([entities]) {
-    return [
-      { value: '', text: '不限销售方' },
-    ].concat(entities.map(function (e) {
-      return {
-        value: e.id,
-        text: e.name,
-        acronym: e.acronym,
-      };
-    }));
-  }),
+  $$value: $$queryObj.trans(R.prop('purchaser_id')),
+  $$options: $$entities.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
   onchange(value) {
     $$queryObj.patch({
       purchaser_id: value,
@@ -131,6 +88,6 @@ export var $$filters = $$.connect([
     accountTermFilter,
     vendorFilter,
     purchaserFilter,
-  ]); 
+  ]);
 });
 

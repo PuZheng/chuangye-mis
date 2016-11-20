@@ -36,12 +36,10 @@ var h = virtualDom.h;
 var $$departmentFilter = $$dropdown({
   defaultText: '请选择部门',
   $$value: $$queryObj.trans(R.prop('department')),
-  $$options: $$departments.trans(departments => R.concat([{
-    text: '不限部门',
-  }])(departments.map(it => ({
+  $$options: $$departments.trans(R.map(it => ({
     value: it.id,
     text: it.name
-  })))),
+  }))),
   onchange(department) {
     $$queryObj.patch({ department });
   }
@@ -96,16 +94,12 @@ let vf = function ([
 var $$typeFilter = $$dropdown({
   defaultText: '请选择设备分类',
   $$value: $$queryObj.trans(qo => qo.type),
-  $$options: $$meterTypes.trans(function (meterTypes) {
-    return R.concat([{
-      text: '不限分类'
-    }], meterTypes.map(function (it) {
-      return {
-        value: it.id,
-        text: it.name
-      };
-    }));
-  }),
+  $$options: $$meterTypes.trans(R.map(function (it) {
+    return {
+      value: it.id,
+      text: it.name
+    };
+  })),
   onchange(type) {
     $$queryObj.patch({ type });
   }

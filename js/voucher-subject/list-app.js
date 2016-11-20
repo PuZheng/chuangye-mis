@@ -81,10 +81,7 @@ var $$payerTypeDropdown = $$dropdown({
     $$queryObj.patch({ payer_type: value });
   },
   $$value: $$queryObj.trans(R.prop('payer_type')),
-  $$options: $$entityTypes.trans(entityTypes => R.concat([{
-    value: '',
-    text: '不限类型',
-  }], R.values(entityTypes))),
+  $$options: $$entityTypes.trans(R.values),
 });
 
 var $$recipientTypeDropdown = $$dropdown({
@@ -93,10 +90,7 @@ var $$recipientTypeDropdown = $$dropdown({
     $$queryObj.patch({ recipient_type: value });
   },
   $$value: $$queryObj.trans(R.prop('recipient_type')),
-  $$options: $$entityTypes.trans(entityTypes => R.concat([{
-    value: '',
-    text: '不限类型',
-  }], R.values(entityTypes))),
+  $$options: $$entityTypes.trans(R.values),
 });
 
 var $$isPublicCheckbox = $$.connect([$$queryObj], function ([qo]) {
@@ -116,7 +110,9 @@ var $$isPublicCheckbox = $$.connect([$$queryObj], function ([qo]) {
   ]);
 });
 
-var filtersVf = function ([payerTypeDropdown, recipientTypeDropdown, isPublicCheckbox]) {
+var filtersVf = function (
+  [payerTypeDropdown, recipientTypeDropdown, isPublicCheckbox]
+) {
   return h('.filters', [
     payerTypeDropdown,
     recipientTypeDropdown,

@@ -237,8 +237,8 @@ page(
   '/store-order-list', loginRequired,
   _setupNavBar('store.order'),
   _could('manage.store'), function (ctx, next) {
-    if (!ctx.query.date_span || !ctx.query.direction) {
-      page('/store-order-list?date_span=in_7_days&type=原材料&direction=入库');
+    if (!ctx.query.direction) {
+      page('/store-order-list?type=原材料&direction=入库');
       return;
     }
     next();

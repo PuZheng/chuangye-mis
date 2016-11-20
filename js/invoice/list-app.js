@@ -41,7 +41,9 @@ var $$amountOth = $$myOth({
   column: 'amount',
 });
 
-var vf = function vf([loading, paginator, tableHints, filters, table, numberSearchBox]) {
+var vf = function vf(
+  [loading, paginator, tableHints, filters, table, numberSearchBox]
+) {
   return h(classNames('list-app', loading && 'loading'), [
     h('.header', [
       h('.title', '发票列表'),
@@ -60,59 +62,65 @@ var vf = function vf([loading, paginator, tableHints, filters, table, numberSear
 };
 
 var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
-  return h('table#invoice-list' + classNames('striped', 'compact', 'color-gray-dark'), [
-    h('thead', [
-      h('tr', [
-        idOth,
-        h('th', '发票类型'),
-        dateOth,
-        h('th', '编号'),
-        amountOth,
-        h('th', '税率(百分比)'),
-        h('th', '税额(元)'),
-        accountTermOth,
-        h('th', '是否增值税'),
-        h('th', '销售方'),
-        h('th', '购买方'),
-        h('th', '经办人'),
+  return h(
+    'table#invoice-list' + classNames('striped', 'compact', 'color-gray-dark'),
+    [
+      h('thead', [
+        h('tr', [
+          idOth,
+          h('th', '发票类型'),
+          dateOth,
+          h('th', '编号'),
+          amountOth,
+          h('th', '税率(百分比)'),
+          h('th', '税额(元)'),
+          accountTermOth,
+          h('th', '是否增值税'),
+          h('th', '销售方'),
+          h('th', '购买方'),
+          h('th', '经办人'),
+        ]),
       ]),
-    ]),
-    h('tbody', [
-      list.map(function (it) {
-        return h('tr', [
-          h('td', [
-            h('a', {
-              href: '/invoice/' + it.id,
-            }, it.id),
-          ]),
-          h('td', it.invoiceType.name),
-          h('td', it.date),
-          h('td', it.number),
-          h('td', '' + it.amount),
-          h('td', R.ifElse(
-            R.identity,
-            R.concat(''),
-            R.always('--')
-          )(it.taxRate)),
-          h('td', R.ifElse(
-            R.prop('taxRate'),
-            it => it.taxRate * it.amount / 100 + '',
-            R.always('--')
-          )(it)),
-          h('td', it.accountTerm.name),
-          h('td', [
-            h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove', it.isVat? 'color-success': 'color-gray')),
-          ]),
-          h('td', (it.vendor || {}).name || '--'),
-          h('td', (it.purchaser || {}).name || '--'),
-          h('td', it.creator.username),
-        ]);
-      })
-    ]),
-  ]);
+      h('tbody', [
+        list.map(function (it) {
+          return h('tr', [
+            h('td', [
+              h('a', {
+                href: '/invoice/' + it.id,
+              }, it.id),
+            ]),
+            h('td', it.invoiceType.name),
+            h('td', it.date),
+            h('td', it.number),
+            h('td', '' + it.amount),
+            h('td', R.ifElse(
+              R.identity,
+              R.concat(''),
+              R.always('--')
+            )(it.taxRate)),
+            h('td', R.ifElse(
+              R.prop('taxRate'),
+              it => it.taxRate * it.amount / 100 + '',
+                R.always('--')
+            )(it)),
+            h('td', it.accountTerm.name),
+            h('td', [
+              h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove',
+                                 it.isVat? 'color-success': 'color-gray')),
+            ]),
+            h('td', (it.vendor || {}).name || '--'),
+            h('td', (it.purchaser || {}).name || '--'),
+            h('td', it.creator.username),
+          ]);
+        })
+      ]),
+    ]
+  );
 };
 
-var $$table = $$.connect([$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list], tableVf);
+var $$table = $$.connect(
+  [$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list], tableVf
+);
 
 var $$numberSearchBox = $$searchBox({
   minLen: 2,
