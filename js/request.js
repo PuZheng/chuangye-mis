@@ -28,7 +28,7 @@ var request = new Proxy(axios,  {
           ]
         ).catch(function (error) {
           if (!error.response || error.response.status == 500) {
-            overlay.$$content.val({
+            overlay.show({
               type: 'error',
               title: '很不幸, 出错了!',
               message: axiosError2Dom(error),
@@ -49,7 +49,7 @@ var request = new Proxy(axios,  {
           ]
         ).catch(function (error) {
           if (!error.response || error.response.status == 500) {
-            overlay.$$content.val({
+            overlay.show({
               type: 'error',
               title: '很不幸, 出错了!',
               message: axiosError2Dom(error),

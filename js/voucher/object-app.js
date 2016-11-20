@@ -217,14 +217,14 @@ const formVf = function formVf([
     readonly? void 0: h('button.primary', '提交'),
     readonly || !obj.id? void 0 : h('a.btn.btn-outline.ca', {
       onclick() {
-        overlay.$$content.val({
+        overlay.show({
           type: 'warning',
           title: '您确认要删除该凭证?',
           message: [
             h('.ca.pt4.pb4', '该操作将不可逆!'),
             h('a.btn.btn-outline', {
               onclick() {
-                overlay.$$content.val(null);
+                overlay.dismiss();
                 return false;
               }
             }, '取消'),
@@ -232,12 +232,13 @@ const formVf = function formVf([
               onclick() {
                 voucherStore.del(obj.id)
                 .then(function () {
-                  overlay.$$content.val({
+                  overlay.show({
+                    cancelable: false,
                     type: 'success',
                     title: '删除成功!',
                     message: h('a.btn.btn-outline', {
                       onclick() {
-                        overlay.$$content.val(null);
+                        overlay.dismiss();
                         page('/voucher-list');
                         return false;
                       }

@@ -34,9 +34,6 @@
             color: var(--color-warning);
             border-bottom: 2px solid white;
         }
-        & .close-btn {
-            color: white;
-        }
     }
 
     & .close-btn {
@@ -46,6 +43,7 @@
         border: none;
         color: var(--color-gray);
         outline: none;
+        visibility: hidden;
     }
 
     & .title {
@@ -68,5 +66,12 @@
         visibility: visible;
         transition: opacity 0.5s;
     }
+
+    &.cancelable {
+        & .close-btn {
+            visibility: visible;
+        }
+    }
+
 }
 
