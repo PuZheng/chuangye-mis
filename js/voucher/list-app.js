@@ -46,7 +46,6 @@ var $$dateFilter = $$dropdown({
     });
   },
   $$options: $$([
-    { value: '', text: '不限日期' },
     { value: 'in_7_days', text: '7日内' },
     { value: 'in_30_days', text: '30日内' },
     { value: 'in_90_days', text: '90日内' },
@@ -62,14 +61,10 @@ var $$typeFilter = $$dropdown({
       voucher_type_id: v,
     });
   },
-  $$options: $$voucherTypes.trans(function (list) {
-    return [{ value: '', text: '不限凭证类型' }].concat(list.map(function (vt) {
-      return {
-        value: vt.id,
-        text: vt.name,
-      };
-    }));
-  }),
+  $$options: $$voucherTypes.trans(R.map(it => ({
+    value: it.id,
+    text: it.name
+  }))),
   $$value: $$queryObj.trans(qo => qo.voucher_type_id,
                            'voucher-type'),
 });
@@ -78,13 +73,11 @@ var $$subjectFilter = $$searchDropdown({
   defaultText: '请选择项目',
   $$value: $$queryObj.trans(qo => qo.voucher_subject_id,
                            'voucher-subject'),
-  $$options: $$voucherSubjects.trans(
-    list => [{ value: '', text: '不限项目' }].concat(list.map(vs => ({
-      value: vs.id,
-      text: vs.name,
-      acronym: vs.acronym,
-    }))),
-  'voucher-subjects'),
+  $$options: $$voucherSubjects.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
   onchange(v) {
     $$queryObj.patch({
       voucher_subject_id: v,
@@ -98,13 +91,11 @@ var $$payerFilter = $$searchDropdown({
   defaultText: '请选择支付方',
   $$value: $$queryObj.trans(qo => qo.payer_id,
                            'payer'),
-  $$options: $$entities.trans(
-    list => [{ value: '', text: '不限支付方' }].concat(list.map(e => ({
-      value: e.id,
-      text: e.name,
-      acronym: e.acronym,
-    }))), 'entities'
-  ),
+  $$options: $$entities.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
   onchange(v) {
     $$queryObj.patch({
       payer_id: v,
@@ -116,13 +107,11 @@ var $$recipientFilter = $$searchDropdown({
   defaultText: '请选择收入方',
   $$value: $$queryObj.trans(qo => qo.recipient_id,
                            'recipient'),
-  $$options: $$entities.trans(
-    list => [{ value: '', text: '不限收入方' }].concat(list.map(e => ({
-      value: e.id,
-      text: e.name,
-      acronym: e.acronym,
-    }))), 'entities'
-  ),
+  $$options: $$entities.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
   onchange(v) {
     $$queryObj.patch({
       recipient_id: v,
