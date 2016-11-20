@@ -35,7 +35,7 @@ class DataSlotManager {
    * */
   reset() {
     // create slots for the cells
-    for (var [idx, sheet] of this.analyzer.sheets.entries()) {
+    for (let [idx, sheet] of this.analyzer.sheets.entries()) {
       // note, this._data[idx] may already created
       this._data[idx] = this._data[idx] || {};
       var slots = this._data[idx];
@@ -92,7 +92,8 @@ class DataSlotManager {
       if (!slot) {
         return $$(cell.val, `cell-${tag}`);
       } else {
-        return slot.connect([], () => cell.val);
+        slot.connect([], () => cell.val).refresh();
+        return slot;
       }
     } else {
       if (!slot) {
@@ -154,10 +155,12 @@ class DataSlotManager {
       }
       // I meet this cell
       this._reserved.add(sheetIdx + '-' + tag);
-      this._data[sheetIdx][tag] = this.makeSlot(this.analyzer.getCellDef(sheetIdx, tag) || {
-        __primitive: true,
-        val: '',
-      }, sheetIdx, tag);
+      this._data[sheetIdx][tag] = this.makeSlot(
+        this.analyzer.getCellDef(sheetIdx, tag) || {
+          __primitive: true,
+          val: '',
+        }, sheetIdx, tag
+      );
       dependentSlots.push({
         slot: this._data[sheetIdx][tag],
         sheet,

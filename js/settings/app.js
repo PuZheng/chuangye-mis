@@ -40,7 +40,7 @@ $$settings.change(function (settings) {
         val: '说明',
       }
     ].map(it => Object.assign(it, {
-      readOnly: true,
+      readonly: true,
       style: {
         background: 'teal',
         color: 'yellow',
@@ -49,13 +49,13 @@ $$settings.change(function (settings) {
     }));
     sheetDef.grids = [header].concat(settings.map(function (setting) {
       return [{
-        readOnly: true,
+        readonly: true,
         val: setting.name,
       }, {
         label: setting.name,
         val: setting.value,
       }, {
-        readOnly: true,
+        readonly: true,
         val: setting.comment || '',
       }];
     }));

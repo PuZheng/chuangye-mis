@@ -52,7 +52,7 @@ var getActiveAccountTermId = function (accountTermName, accountTerms) {
 
 var makeDef = function (meters, tenants) {
   let headerCellDef = {
-    readOnly: true,
+    readonly: true,
     style: {
       background: 'teal',
       color: 'yellow',
@@ -86,13 +86,13 @@ var makeDef = function (meters, tenants) {
         {
           // A(idx + 1)
           val: meter.department.name,
-          readOnly: true
+          readonly: true
         }, {
           val: R.find(R.propEq('id', meter.departmentId))(tenants).entity.name,
         }, {
           // B(idx + 1)
           val: meter.name,
-          readOnly: true
+          readonly: true
         }, ...meterType.meterReadings.map(function (mr) {
           return {
             label: meter.id + '-' + mr.name,
@@ -101,10 +101,11 @@ var makeDef = function (meters, tenants) {
         }),
         {
           val: '=' + meterType.meterReadings.map(function (mr) {
-            return '${' + meter.id + '-' + mr.name + '}*' + '${setting-' + mr.priceSetting.name + '}';
+            return ('${' + meter.id + '-' + mr.name + '}*' + '${setting-'
+                    + mr.priceSetting.name + '}');
           }).join('+'),
           __makeVNode: makeSumVNode,
-          readOnly: true,
+          readonly: true,
           label: 'sum-of-' + meter.department.id,
         },
       ];
@@ -116,7 +117,7 @@ var makeDef = function (meters, tenants) {
           return [Object.assign({
             val: it.priceSetting.name + '(元)',
           }, headerCellDef), {
-            readOnly: true,
+            readonly: true,
             val: it.priceSetting.value,
             label: 'setting-' + it.priceSetting.name,
             style: {
@@ -163,7 +164,7 @@ export default {
           for (let row of sheet.grids) {
             for (let cellDef of row) {
               if (!cellDef) continue;
-              if (!cellDef.readOnly) {
+              if (!cellDef.readonly) {
                 cellDef.__onchange = onCellChange;
               }
               if ((cellDef.label || '').startsWith('sum-of')) {
@@ -179,9 +180,13 @@ export default {
         $$content: $$(
           h('.borderless.vertical.fluid.menu',
             accountTerms.map(function (at) {
-              return h('a' + classNames('item', at.id == activeAccountTermId && 'active'), {
-                href: '/charge-bill/' + at.name,
-              }, at.name);
+              return h(
+                'a' + classNames(
+                  'item', at.id == activeAccountTermId && 'active'
+                ), {
+                  href: '/charge-bill/' + at.name,
+                }, at.name
+              );
             })), 'content'),
       });
       smartGrid = new sg.SmartGrid(obj.def);
@@ -229,9 +234,13 @@ export default {
                 () => h('button', {
                   onclick() {
                     let paymentRecords = [];
-                    for (let { sheetIdx, tag, def: cellDef } of smartGrid.searchCells(function (cellDef) {
-                      return cellDef.label && cellDef.label.startsWith('sum-of');
-                    })) {
+                    let cells = smartGrid.searchCells(
+                      function (cellDef) {
+                        return cellDef.label &&
+                          cellDef.label.startsWith('sum-of');
+                      }
+                    );
+                    for (let { sheetIdx, tag, def: cellDef } of cells) {
                       let amount = smartGrid.getCellValue(sheetIdx, tag);
                       if (!amount) {
                         $$toast.val({

@@ -14,6 +14,7 @@
     --v-header-width: 3rem;
     --cell-padding-x: .5rem;
     --cell-padding-y: .2rem;
+    --editor-height: 1.6rem;
 }
 
 .smart-grid {
@@ -37,6 +38,24 @@
 	}
 
     & .editor {
+        height: var(--editor-height);
+        width: 100%;
+
+        & > label {
+            padding: 0 .5rem;
+            display: inline-block;
+            font-weight: 700;
+            height: var(--editor-height);
+            line-height: var(--editor-height);
+            width: 3rem;
+            background: var(--color-gray-light);
+        }
+
+        & input {
+            position: absolute;
+            left: 3rem;
+            width: calc(100% - 4rem);
+        }
     }
 
     & tr:nth-child(odd) td {
@@ -70,78 +89,78 @@
         overflow: hidden;
         width: calc(100% - var(--scrollbar-width));
         height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
-    }
+        & .grid {
+            display: table;
+            table-layout: fixed;
+            user-select: none;
 
-    & .grid {
-        display: table;
-        table-layout: fixed;
-        user-select: none;
-
-        & * {
-            box-sizing: border-box;
-        }
-
-        & .header {
-            display: table-cell;
-            background: var(--color-gray-light);
-            line-height: calc(var(--cell-height) - 2 * var(--cell-padding-y));
-            padding: var(--cell-padding-y) var(--cell-padding-x);
-            &.focused {
-                background-color: var(--focused-color);
+            & * {
+                box-sizing: border-box;
             }
-        }
 
-        & .cell {
-            display: table-cell;
-            width: var(--cell-width);
-            min-height: var(--cell-height);
-            padding: var(--cell-padding-y) var(--cell-padding-x);
-            border-right: 1px solid var(--color-gray-light);
-            border-bottom: 1px solid var(--color-gray-light);
-            vertical-align: text-bottom;
-
-            &.selected {
-                background: var(--focused-color);
-            }
-        }
-
-        & .v-h-header {
-            display: table-cell;
-            width: var(--v-header-width);
-            height: var(--cell-height);
-        }
-         
-        & .top-tag-row {
-            top: 0;
-            left: 3rem;
-            display: table-row;
-            border-bottom: 1px solid var(--color-gray);
-            
             & .header {
-                width: var(--cell-width);
-                border-right: 1px solid var(--color-gray);
+                display: table-cell;
+                background: var(--color-gray-light);
+                line-height: calc(var(--cell-height) - 2 * var(--cell-padding-y));
+                padding: var(--cell-padding-y) var(--cell-padding-x);
+                &.focused {
+                    background-color: var(--focused-color);
+                }
             }
-        }
 
-        & .row {
-            display: table-row;
-            & .header {
-                width: var(--v-header-width);
-                text-align: center;
-                padding-left: 0;
-                padding-right: 0;
-                border-bottom: 1px solid var(--color-gray);
-            }
             & .cell {
+                display: table-cell;
+                width: var(--cell-width);
+                min-height: var(--cell-height);
+                padding: var(--cell-padding-y) var(--cell-padding-x);
+                border-right: 1px solid var(--color-gray-light);
+                border-bottom: 1px solid var(--color-gray-light);
+                vertical-align: text-bottom;
 
-                & .content {
-                    display: block;
-                    overflow: hidden;
-                    height: 100%;
+                &.selected {
+                    background: var(--focused-color);
+                }
+            }
+
+            & .v-h-header {
+                display: table-cell;
+                width: var(--v-header-width);
+                height: var(--cell-height);
+            }
+
+            & .top-tag-row {
+                top: 0;
+                left: 3rem;
+                display: table-row;
+                border-bottom: 1px solid var(--color-gray);
+
+                & .header {
+                    width: var(--cell-width);
+                    border-right: 1px solid var(--color-gray);
+                }
+            }
+
+            & .row {
+                display: table-row;
+                & .header {
+                    width: var(--v-header-width);
+                    text-align: center;
+                    padding-left: 0;
+                    padding-right: 0;
+                    border-bottom: 1px solid var(--color-gray);
+                }
+                & .cell {
+
+                    & .content {
+                        display: block;
+                        overflow: hidden;
+                        height: 100%;
+                    }
                 }
             }
         }
     }
+
 
     & .scrollbar {
         position: absolute;
@@ -170,9 +189,9 @@
         }
 
         &.vertical {
-            top: 0;
+            top: var(--editor-height);
             right: 0;
-            height: calc(100% - var(--tab-nav-height) - var(--scrollbar-width));
+            height: calc(100% - var(--tab-nav-height) - var(--editor-height));
             width: var(--scrollbar-width);
             & .bar {
                 width: 100%;

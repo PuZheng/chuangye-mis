@@ -65,7 +65,7 @@ class EditorHook {
       }
     };
     this.onblur = function onblur() {
-      editor.onChangeCb(this.value);
+      editor.onChangeCb(cell, this.value);
     };
   }
   hook(el) {
@@ -99,48 +99,46 @@ class Cell {
     this.row = row;
     this.col = col;
     this.hook = new Hook(this);
-    this.editorHook = new EditorHook(this, function (cell) {
-      return function (val) {
-        let updates = [
-          [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
-            mode: CellMode.SELECTED,
-          })]
-        ];
-        if ((cell.def && cell.def.val) != val) {
-          let def = Object.assign(cell.def || {}, { val });
-          cell.sg.setCellDef(cell.tag, def);
-          // why reset all the slots? since modify a value of a cell will affect
-          // many other cells, and we can't know the affection unless we reset
-          // all the slots, for example, in a grid
-          // [
-          //  ['1', '=A1+2'],
-          //  ['2'],
-          // ]
-          // if we change definition of 'B1' to '0', then the slot of 'A1' will be
-          // revoked, however in this grid
-          // [
-          //  ['1', '=A1+2'],
-          //  ['=A1*2']
-          // ]
-          // if we change definition of 'B1' to '0', slot of 'A1' will not be
-          // revoked, since 'B1' depends on 'A1'
-          //
-          // reset will reuse existing slots if possible, so we don't need to
-          // recreate the whole grid (which is a very expensive operation)
-          cell.sg.dataSlotManager.reset();
-          cell.def = cell.sg.getCellDef(cell.tag);
-          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
-          let slots = [cell.sg.$$focusedCell];
-          if (cell.$$envSlot) {
-            slots.push(cell.$$envSlot);
-          }
-          cell.$$view.connect(slots, cell._vf).refresh();
-          cell.def.__onchange && cell.def.__onchange.apply(cell);
+    this.editorHook = new EditorHook(this, function (cell, val) {
+      let updates = [
+        [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
+          mode: CellMode.SELECTED,
+        })]
+      ];
+      if ((cell.def && cell.def.val) != val) {
+        let def = Object.assign(cell.def || {}, { val });
+        cell.sg.setCellDef(cell.tag, def);
+        // why reset all the slots? since modify a value of a cell will affect
+        // many other cells, and we can't know the affection unless we reset
+        // all the slots, for example, in a grid
+        // [
+        //  ['1', '=A1+2'],
+        //  ['2'],
+        // ]
+        // if we change definition of 'B1' to '0', then the slot of 'A1'
+        // will be revoked, however in this grid
+        // [
+        //  ['1', '=A1+2'],
+        //  ['=A1*2']
+        // ]
+        // if we change definition of 'B1' to '0', slot of 'A1' will not be
+        // revoked, since 'B1' depends on 'A1'
+        //
+        // reset will reuse existing slots if possible, so we don't need to
+        // recreate the whole grid (which is a very expensive operation)
+        cell.sg.dataSlotManager.reset();
+        cell.def = cell.sg.getCellDef(cell.tag);
+        cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
+        let slots = [cell.sg.$$focusedCell];
+        if (cell.$$envSlot) {
+          slots.push(cell.$$envSlot);
         }
-        $$.update(...updates);
-        return false;
-      };
-    }(this));
+        cell.$$view.connect(slots, cell._vf).refresh();
+        cell.def.__onchange && cell.def.__onchange.apply(cell);
+      }
+      $$.update(...updates);
+      return false;
+    });
     this.tag = makeTag(this.row, this.col);
     this.mode = CellMode.DEFAULT;
     this._vf = function (cell) {
@@ -149,25 +147,28 @@ class Cell {
         // 1. only the focusedCell change
         // 2. I am not the unfocused or focused one
         // this wave of change has nothing todo with me
-        let newMode = (focusedCell && focusedCell.tag === cell.tag)? focusedCell.mode: CellMode.DEFAULT;
-        if (this.value && initiators && initiators.length == 1 && initiators[0].id == cell.sg.$$focusedCell.id) {
+        let newMode = (focusedCell && focusedCell.tag === cell.tag)?
+          focusedCell.mode: CellMode.DEFAULT;
+        if (this.value && initiators && initiators.length == 1 &&
+            initiators[0].id == cell.sg.$$focusedCell.id) {
           if (cell.mode == newMode) {
             return this.value;
           }
         }
         cell.mode = newMode;
-        return cell.def && cell.def.__makeVNode? cell.def.__makeVNode(cell, val): cell.makeVNode(val);
+        if (val === void 0) {
+          val = cell.def && cell.def.val || '';
+        }
+        return cell.def && cell.def.__makeVNode?
+        cell.def.__makeVNode(cell, val): cell.makeVNode(val);
       };
     }(this);
     this.$$view = $$(null, `cell-${row}-${col}`);
     this.resetView(0, 0);
   }
   makeVNode(val) {
-    if (val === void 0) {
-      val = this.def && this.def.val || '';
-    }
     let className = ['cell', this.tag];
-    if (this.def && this.def.readOnly) {
+    if (this.def && this.def.readonly) {
       className.push('readonly');
     }
     let selected = this.mode == CellMode.SELECTED;
@@ -239,7 +240,7 @@ class Cell {
   }
   ondblclick() {
     let def = this.def;
-    if ((def && def.readOnly)) {
+    if ((def && def.readonly)) {
       return;
     }
     this.sg.$$focusedCell.val({
