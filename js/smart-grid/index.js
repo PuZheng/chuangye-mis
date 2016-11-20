@@ -13,13 +13,16 @@ var h = virtualDom.h;
  * 0 -> A  // assume A denotes 0
  * ...
  * 25 -> Z
- * but, 26, which is '10' as 26-based integer, converted to 'AA' (which should be 'BA' if we assume B denotes 1),
+ * but, 26, which is '10' as 26-based integer, converted to 'AA'
+ * (which should be 'BA' if we assume B denotes 1),
  * so the most significant digit should be minus one.
  * This flow shows how 26 is changed to 'AA'
  * 26 -> 10 -> BA -> AA
  * */
 var toColumnIdx = function (idx) {
-  var columnIdx = Number(idx).toString(26).split('').map(c => parseInt(c, 26) + 'A'.charCodeAt(0));
+  var columnIdx = Number(idx).toString(26).split('').map(
+    c => parseInt(c, 26) + 'A'.charCodeAt(0)
+  );
   if (columnIdx.length > 1) {
     --columnIdx[0];
   }
@@ -47,25 +50,31 @@ export class SmartGrid {
     this.analyzer = new Analyzer(def);
     this.dataSlotManager = new DataSlotManager(this.analyzer);
     var sg = this;
-    this.$$view = $$(h('.smart-grid', h('.grid-container', {
-      hook: new class Hook {
-        hook(node) {
-          sg.gridContainerEl = node;
-          setTimeout(function () {
-            sg.setupLayout();
-            sg.registerShortcus();
-          }, 0);
-        }
-      },
-    }, [
-      h('.grid', [
-        h('.top-tag-row', [
-          h('.v-h-header'),
-          h('.header', 'A')
-        ]),
-        h('.row', h('.header', '1'))
+    this.$$view = $$(h('.smart-grid', [
+      h('.editor', [
+        h('label', 'fx'),
+        h('input')
+      ]),
+      h('.grid-container', {
+        hook: new class Hook {
+          hook(node) {
+            sg.gridContainerEl = node;
+            setTimeout(function () {
+              sg.setupLayout();
+              sg.registerShortcus();
+            }, 0);
+          }
+        },
+      }, [
+        h('.grid', [
+          h('.top-tag-row', [
+            h('.v-h-header'),
+            h('.header', 'A')
+          ]),
+          h('.row', h('.header', '1'))
+        ])
       ])
-    ])), 'view');
+    ]), 'view');
     this.gridContainerEl = null;
     this.$$actualWidth = $$(0, 'actual-width');
     this.$$actualHeight = $$(0, 'actual-height');
@@ -113,7 +122,6 @@ export class SmartGrid {
     }(this);
     this.$$topmostRow.change(onScreenScroll);
     this.$$leftmostCol.change(onScreenScroll);
-    this.$$leftmostCol.debug = true;
     this.$$activeSheetIdx.change(function (sg) {
       return function () {
         $$.update(
@@ -159,8 +167,9 @@ export class SmartGrid {
       });
     }(this);
     let vf = function ($$activeSheetIdx) {
-      return function ([activeSheetIdx, vScrollbar, hScrollbar, grid]) {
+      return function ([activeSheetIdx, vScrollbar, hScrollbar, editor, grid]) {
         return h('.smart-grid', [
+          editor,
           grid,
           hScrollbar,
           vScrollbar,
@@ -181,8 +190,41 @@ export class SmartGrid {
     this.$$view.connect([
       this.$$activeSheetIdx,
       this.$$createVScrollbar(), this.$$createHScrollbar(),
+      this.$$createEditor(),
       this.$$createGrid()
     ], vf).update();
+  }
+  $$createEditor() {
+    let sg = this;
+    return $$.connect(
+      [sg.$$focusedCell],
+      function ([focusedCell]) {
+        let def = focusedCell? sg.getCellDef(focusedCell.tag): null;
+        return h('.editor', [
+          h('label', [
+            def && def.readonly? h('i.fa.fa-lock'): void 0,
+            'fx',
+          ]),
+          h('input', {
+            value: def? def.val: '',
+            disabled: def && def.readonly,
+            onkeydown(e) {
+              if (~[UP, RIGHT, DOWN, LEFT].indexOf(e.keyCode)) {
+                e.stopPropagation();
+                return;
+              }
+              if (e.keyCode == 27 || e.keyCode == 13) {
+                e.stopPropagation();
+                let { row, col } = focusedCell;
+                let cell = sg.cells[row][col];
+                cell.editorHook.onChangeCb(cell, this.value);
+                return false;
+              }
+            }
+          })
+        ]);
+      }
+    );
   }
   $$createTopTagRow() {
     var sg = this;
@@ -203,13 +245,16 @@ export class SmartGrid {
     });
   }
   makeLeftTagHeaderSlot(row) {
-    return $$.connect([this.$$topmostRow, this.$$focusedCell], function ([topmostRow, focusedCell]) {
-      let classNames = '.header';
-      if (focusedCell && row + topmostRow == focusedCell.row) {
-        classNames += '.focused';
+    return $$.connect(
+      [this.$$topmostRow, this.$$focusedCell],
+      function ([topmostRow, focusedCell]) {
+        let classNames = '.header';
+        if (focusedCell && row + topmostRow == focusedCell.row) {
+          classNames += '.focused';
+        }
+        return h(classNames, '' + (topmostRow + row + 1));
       }
-      return h(classNames, '' + (topmostRow + row + 1));
-    });
+    );
   }
   searchCells(test) {
     return this.analyzer.searchCells(test);
@@ -252,10 +297,12 @@ export class SmartGrid {
   $$createRow(row) {
     let sg = this;
     return $$.connect(
-      [sg.makeLeftTagHeaderSlot(row)].concat(this.cells[row].map(c => c.$$view)),
+      [sg.makeLeftTagHeaderSlot(row)].concat(
+        this.cells[row].map(c => c.$$view)),
       function ([leftTagHeader, ...cells]) {
         return h('.row', [leftTagHeader].concat(cells));
-      }, `row-${row}`);
+      }, `row-${row}`
+    );
   }
   $$createDataGrid() {
     var sg = this;
@@ -268,28 +315,33 @@ export class SmartGrid {
   $$createGrid() {
     let smartGrid = this;
     let vf = function ([topTagRow, dataGrid]) {
-      return h('.grid-container', [
-        h('.grid', {
-          onwheel(e) {
-            let actualHeight = smartGrid.$$actualHeight.val();
-            let viewportHeight = smartGrid.$$viewportHeight.val();
-            let top = (smartGrid.$$top.val() * actualHeight + e.deltaY / 2) / actualHeight;
-            if (top < 0) {
-              top = 0;
+      return [
+        h('.grid-container', [
+          h('.grid', {
+            onwheel(e) {
+              let actualHeight = smartGrid.$$actualHeight.val();
+              let viewportHeight = smartGrid.$$viewportHeight.val();
+              let top = (
+                (smartGrid.$$top.val() * actualHeight + e.deltaY / 2)
+                / actualHeight
+              );
+              if (top < 0) {
+                top = 0;
+              }
+              if (top * actualHeight + viewportHeight >= actualHeight) {
+                let scrolledHeight = actualHeight - viewportHeight;
+                actualHeight += viewportHeight;
+                top = scrolledHeight / actualHeight;
+                smartGrid.$$actualHeight.val(actualHeight);
+              }
+              smartGrid.$$top.val(top);
             }
-            if (top * actualHeight + viewportHeight >= actualHeight) {
-              let scrolledHeight = actualHeight - viewportHeight;
-              actualHeight += viewportHeight;
-              top = scrolledHeight / actualHeight;
-              smartGrid.$$actualHeight.val(actualHeight);
-            }
-            smartGrid.$$top.val(top);
-          }
-        }, [
-          topTagRow,
-          dataGrid,
+          }, [
+            topTagRow,
+            dataGrid,
+          ])
         ])
-      ]);
+      ];
     };
     return $$.connect(
       [this.$$createTopTagRow(), this.$$createDataGrid()],
@@ -326,7 +378,10 @@ export class SmartGrid {
             };
             document.addEventListener('mouseup', onmouseup);
             let onmousemove = function (e) {
-              // why prevent default? otherwise onmouseup is missed, http://stackoverflow.com/questions/9776086/how-to-disable-drag-drop-functionality-in-chrome
+              /* eslint-disable max-len */
+              // why prevent default? otherwise onmouseup is missed,
+              // http://stackoverflow.com/questions/9776086/how-to-disable-drag-drop-functionality-in-chrome
+              /* eslint-enable max-len */
               e.preventDefault();
               let railWidth = railEl.offsetWidth;
               let barWidth = barEl.offsetWidth;
@@ -387,7 +442,10 @@ export class SmartGrid {
               document.removeEventListener('mousemove', onmousemove);
             };
             let onmousemove = function (e) {
-              // why prevent default? otherwise onmouseup is missed, http://stackoverflow.com/questions/9776086/how-to-disable-drag-drop-functionality-in-chrome
+              /* eslint-disable max-len */
+              // why prevent default? otherwise onmouseup is missed,
+              // http://stackoverflow.com/questions/9776086/how-to-disable-drag-drop-functionality-in-chrome
+              /* eslint-enable max-len */
               e.preventDefault();
               let railHeight = railEl.offsetHeight;
               let barHeight = barEl.offsetHeight;
@@ -496,7 +554,9 @@ export class SmartGrid {
       left = col * this.cellWidth;
     }
 
-    left != null && updates.push([this.$$left, left / this.$$actualWidth.val()]);
+    left != null && updates.push(
+      [this.$$left, left / this.$$actualWidth.val()]
+    );
     top != null && updates.push([this.$$top, top / this.$$actualHeight.val()]);
     $$.update(...updates);
   }
