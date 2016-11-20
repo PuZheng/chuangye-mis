@@ -15,7 +15,7 @@ var $$list = $$([], 'meter-types');
 var vf = function ([loading, list]) {
   return h(classNames('list-app', loading && 'loading'), [
     h('.header', [
-      h('.title', '设备类型列表'), 
+      h('.title', '设备类型列表'),
       h('button.new-btn', {
         onclick(e) {
           e.preventDefault();
@@ -35,16 +35,16 @@ var vf = function ([loading, list]) {
         h('.title', it.name),
         h('.ops', [
           h('button', { title: '编辑' }, h('i.fa.fa-pencil')),
-          h('button', { 
+          h('button', {
             title: '删除',
             onclick(e) {
               e.stopPropagation();
-              overlay.$$content.val({
+              overlay.show({
                 type: 'warning',
                 title: '您确认要删除该表设备类型?',
                 message: h('button.btn.btn-outline.color-accent', {
                   onclick() {
-                    overlay.$$content.val(null);
+                    overlay.dismiss();
                     co(function *() {
                       try {
                         $$loading.val(true);
@@ -57,7 +57,7 @@ var vf = function ([loading, list]) {
                       } catch (e) {
                         console.error(e);
                         if ((e.response || {}).status == 400) {
-                          overlay.$$content.val({
+                          overlay.show({
                             type: 'error',
                             title: '出错了',
                             message: e.response.data.reason,

@@ -268,7 +268,7 @@ export var $$searchDropdown = function (
               // 为了防止滚动条太短， 我们保证其长度至少是.5 / maxOptions
               let minHeight = .5 / maxOptions;
               let height = maxOptions / options.length;
-              // 如果滚动条太短，将滚动条的实际映射区域居中
+              // 如果滚动条太短，将滚动条的实际映射区域"居中"
               if (height < minHeight) {
                 top = top - (minHeight - height) / 2;
                 height = minHeight;

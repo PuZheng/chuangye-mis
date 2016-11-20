@@ -14,22 +14,22 @@ var validate = function (obj) {
 };
 
 var login = function ({ username, password }) {
-    return axios.post(backendURL('/auth/login'), {
-      username, password
-    })
-    .catch(function (error) {
-      if (!error.response || error.response.status == 500) {
-        overlay.$$content.val({
-          type: 'error',
-          title: '很不幸, 出错了!',
-          message: axiosError2Dom(error),
-        });
-      }
-      throw error;
-    })
-    .then(function (response) {
-      sessionStorage.setItem('user', JSON.stringify(response.data));
-    });
+  return axios.post(backendURL('/auth/login'), {
+    username, password
+  })
+  .catch(function (error) {
+    if (!error.response || error.response.status == 500) {
+      overlay.show({
+        type: 'error',
+        title: '很不幸, 出错了!',
+        message: axiosError2Dom(error),
+      });
+    }
+    throw error;
+  })
+  .then(function (response) {
+    sessionStorage.setItem('user', JSON.stringify(response.data));
+  });
 };
 
 var logout = function () {

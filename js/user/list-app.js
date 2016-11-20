@@ -36,10 +36,15 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
           page('/user/' + obj.id);
         }
       }, [
-        R.ifElse(R.prop('enabled'), R.always(''), R.always(h('.label', '未激活')))(obj),
+        R.ifElse(
+          R.prop('enabled'), R.always(''), R.always(h('.label', '未激活'))
+        )(obj),
         h('.username', obj.username),
         h('.role', obj.role),
-        h(classNames('toggle', 'ml4', 'align-middle', obj.enabled && 'checked', obj.username == 'admin' && 'disabled'), {
+        h(classNames(
+          'toggle', 'ml4', 'align-middle', obj.enabled && 'checked',
+          obj.username == 'admin' && 'disabled'
+        ), {
           onclick(e) {
             e.stopPropagation();
             if (obj.username == 'admin') {
@@ -54,7 +59,7 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
                 message: '更新成功',
               });
             }, function (e) {
-              overlay.$$content.val({
+              overlay.show({
                 type: 'error',
                 title: '很不幸, 出错了!',
                 message: axiosError2Dom(e),
