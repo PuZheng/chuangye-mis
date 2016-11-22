@@ -24,7 +24,6 @@ export var $$searchDropdown = function (
     hook(el) {
       setTimeout(function () {
         optionHeight = el.querySelector('.item').offsetHeight;
-        console.log(optionHeight);
         $$view.connect(
           [$$activated, $$searchText, $$options, $$value, $$selection, $$top,
             $$grabbing],

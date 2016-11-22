@@ -15,6 +15,7 @@ import storeSubjectStore from 'store/store-subject-store';
 import co from 'co';
 import { $$toast } from '../toast';
 import object2qs from '../utils/object2qs';
+import overlay from '../overlay';
 
 var h = virtualDom.h;
 
@@ -31,7 +32,8 @@ var copy = {};
 $$storeOrders.change(function (storeOrders) {
   // 是否关联仓库单据
   let obj = $$obj.val();
-  let relateStoreOrders = obj.invoiceType && obj.invoiceType.storeOrderType && obj.invoiceType.storeOrderDirection;
+  let relateStoreOrders = obj.invoiceType && obj.invoiceType.storeOrderType
+  && obj.invoiceType.storeOrderDirection;
   let args = { storeOrders };
   if (relateStoreOrders) {
     args.amount = R.sum(storeOrders.map(function ({ unitPrice, quantity }) {
@@ -46,9 +48,16 @@ var dirty = function (obj) {
 };
 
 var vf = function ([loading, obj, form]) {
+  let title = R.ifElse(
+    R.prop('id'),
+    () => [
+      obj.authenticated? h('span.color-accent', '(已认证)'): void 0,
+      `编辑发票-${obj.number}`,
+    ],
+    () => '创建新发票'
+  )(obj);
   return h(classNames('object-app', loading && 'loading'), [
-    h(classNames('header', dirty(obj) && 'dirty'),
-      obj.id? `编辑发票-${obj.number}`: '创建新发票'),
+    h(classNames('header', dirty(obj) && 'dirty'), title),
     form
   ]);
 };
@@ -57,8 +66,9 @@ var formVf = function ([
   errors, obj, typeDropdown, accountTermDropdown, vendorDropdown,
   purchaserDropdown, storeOrderEditor
 ]) {
-  let relateStoreOrders = R.and(R.path(['invoiceType', 'storeOrderType']),
-                                R.path(['invoiceType', 'storeOrderDirection']))(obj);
+  let relateStoreOrders = R.and(
+    R.path(['invoiceType', 'storeOrderType']),
+    R.path(['invoiceType', 'storeOrderDirection']))(obj);
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
@@ -88,6 +98,15 @@ var formVf = function ([
     }
   }, [
     h('.col.col-6', [
+      obj.authenticated?
+      field({
+        label: '发票类型',
+        input: h(
+          '.text',
+          (R.find(R.propEq('id', obj.invoiceTypeId))($$invoiceTypes.val())
+            || {}).name
+        ),
+      }):
       field({
         key: 'invoiceType',
         label: '发票类型',
@@ -95,6 +114,11 @@ var formVf = function ([
         errors,
         required: true
       }),
+      obj.authenticated?
+      field({
+        label: '发票日期',
+        input: h('.text', obj.date),
+      }):
       field({
         key: 'date',
         label: '发票日期',
@@ -107,6 +131,11 @@ var formVf = function ([
         }),
         errors,
       }),
+      obj.authenticated?
+      field({
+        label: '发票号码',
+        input: h('.text', obj.number),
+      }):
       field({
         key: 'number',
         label: '发票号码',
@@ -121,6 +150,11 @@ var formVf = function ([
         errors,
         required: true
       }),
+      obj.authenticated?
+      field({
+        label: '会计账期',
+        input: h('.text', obj.accountTerm.name)
+      }):
       field({
         key: 'accountTermId',
         label: '会计帐期',
@@ -131,7 +165,12 @@ var formVf = function ([
       R.ifElse(
         R.path(['invoiceType', 'vendorType']),
         function () {
-          return field({
+          return obj.authenticated?
+          field({
+            label: '销售方',
+            input: h('.text', obj.vendor.name),
+          }):
+          field({
             key: 'vendorId',
             label: '销售方',
             input: vendorDropdown,
@@ -144,7 +183,12 @@ var formVf = function ([
       R.ifElse(
         R.path(['invoiceType', 'purchaserType']),
         function () {
-          return field({
+          return obj.authenticated?
+          field({
+            label: '购买方',
+            input: h('.text', obj.purchaser.name),
+          }):
+          field({
             key: 'purchaserId',
             label: '购买方',
             input: purchaserDropdown,
@@ -158,19 +202,23 @@ var formVf = function ([
         h('input', {
           type: 'checkbox',
           checked: obj.isVat,
+          disabled: obj.authenticated,
           oninput() {
             $$obj.patch({ isVat: this.checked });
           }
         }),
         h('label', {
           onclick() {
-            $$obj.patch({ isVat: !obj.isVat });
+            if (!obj.authenticated) {
+              $$obj.patch({ isVat: !obj.isVat });
+            }
           }
         }, '是否是增值税'),
       ]),
       h('.field.inline', [
         h('label', '备注'),
         h('textarea', {
+          disabled: obj.authenticated,
           rows: 4,
           onchange() {
             $$obj.patch({ notes: this.value });
@@ -179,6 +227,11 @@ var formVf = function ([
       ]),
     ]),
     h('.col.col-6', [
+      obj.authenticated?
+      field({
+        label: '税率(百分比)',
+        input: h('.text', '' + obj.taxRate),
+      }):
       field({
         key: 'taxRate',
         label: '税率(百分比)',
@@ -191,6 +244,15 @@ var formVf = function ([
         errors,
         required: relateStoreOrders,
       }),
+      obj.authenticated?
+      relateStoreOrders? field({
+        label: '相关仓储单据',
+        input: h('.text', h('list', obj.storeOrders.map(function (it) {
+          /* eslint-disable max-len */
+          return `${it.storeSubject.name}-${it.quantity}${it.storeSubject.unit}x${it.unitPrice}元, 共${it.quantity*it.unitPrice}元`;
+          /* eslint-enable max-len */
+        }))),
+      }): void 0:
       h(classNames('field', !relateStoreOrders && '.hidden'), [
         h('label', '相关仓储单据'),
         storeOrderEditor,
@@ -219,10 +281,42 @@ var formVf = function ([
     ]),
     h('.clearfix'),
     h('hr'),
-    h('button.primary', '提交'),
+    obj.authenticated? void 0: h('button.primary', '提交'),
     h('a.btn.btn-outline', {
       href: '/invoice-list',
     }, '返回'),
+    obj.id && obj.authenticated? void 0: h('button.primary', {
+      onclick(e) {
+        e.preventDefault();
+        overlay.show({
+          type: 'warning',
+          title: '您确认要认证该发票(该操作不可逆)?',
+          message: h('button.btn.btn-outline', {
+            onclick() {
+              overlay.dismiss();
+              $$loading.val(true);
+              co(function *() {
+                try {
+                  yield invoiceStore.authenticate(obj.id);
+                  $$obj.patch({ authenticated: true });
+                  copy = R.clone(obj);
+                  $$toast.val({
+                    type: 'success',
+                    message: '认证通过!'
+                  });
+                } catch (e) {
+                  console.error(e);
+                } finally {
+                  $$loading.val(false);
+                }
+              });
+              return false;
+            }
+          }, '确认')
+        });
+        return false;
+      }
+    }, '认证'),
     R.ifElse(
       R.prop('isVat'),
       () => h('a.btn.btn-outline', {
@@ -333,7 +427,9 @@ export default {
     ];
     $$loading.toggle();
     Promise.all(promises)
-    .then(function ([entities, invoiceTypes, accountTerms, obj, storeSubjects]) {
+    .then(function (
+      [entities, invoiceTypes, accountTerms, obj, storeSubjects]
+    ) {
       copy = R.clone(obj);
       $$.update(
         [$$entities, entities],
