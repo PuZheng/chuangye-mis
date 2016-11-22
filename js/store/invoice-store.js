@@ -3,6 +3,7 @@ import { validateObj } from '../validate-obj.js';
 import { notEmpty } from '../checkers.js';
 import config from '../config';
 import request from '../request';
+import object2qs from '../utils/object2qs';
 
 var rules = {
   invoiceType: notEmpty('发票类型'),
@@ -21,7 +22,7 @@ var rules = {
   amount: notEmpty(),
   taxRate: function (v, obj) {
     if (R.and(
-      R.path(['invoiceType', 'storeOrderType']), 
+      R.path(['invoiceType', 'storeOrderType']),
     R.path(['invoiceType', 'storeOrderDirection'])
     )(obj)) {
       return notEmpty('')(v);
@@ -32,7 +33,7 @@ var validate = R.partialRight(validateObj, [rules]);
 var fetchList = function (queryObj) {
   queryObj.page = queryObj.page || 1;
   queryObj.page_size = queryObj.page_size || config.getPageSize('invoice');
-  return request.get('/invoice/list?' + R.toPairs(queryObj).map(p => p.join('=')).join('&'))
+  return request.get('/invoice/list?' + object2qs(queryObj))
   .then(R.prop('data'));
 };
 
@@ -49,6 +50,9 @@ export default {
   save: function (data) {
     return request.post('/invoice/object', data)
     .then(R.prop('data'));
+  },
+  authenticate: function (id) {
+    return request.put('/invoice/object/' + id, { authenticated: true });
   },
   fetchList,
   validate,

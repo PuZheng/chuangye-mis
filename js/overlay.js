@@ -33,7 +33,8 @@ export default {
     $$view: $$content.trans(c => vf(c)),
     onMount: function () {
       document.addEventListener('keydown', function (e) {
-        if (!$$content.val().cancelable) {
+        let content = $$content.val();
+        if (content && !content.cancelable) {
           return false;
         }
         if (e.which == ESC || e.keyCode == ESC) {

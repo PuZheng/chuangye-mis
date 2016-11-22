@@ -21,16 +21,22 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
       acronym: ss.acronym,
     }))),
     onchange(storeSubjectId) {
-      $$obj.patch({ 
-        storeSubjectId, 
-        storeSubject: R.find(R.propEq('id', storeSubjectId))($$storeSubjects.val()),
+      $$obj.patch({
+        storeSubjectId,
+        storeSubject:
+          R.find(R.propEq('id', storeSubjectId))($$storeSubjects.val()),
       });
     }
   });
   var storeOrderListElVf = function ([list]) {
     return h('.segment', list.map(function (so, idx) {
       return h('.item', [
-        h('.title', `${so.storeSubject.name}-${so.quantity}${so.storeSubject.unit}x${so.unitPrice}元, 共${so.quantity*so.unitPrice}元`),
+        h(
+          '.title',
+          /* eslint-disable max-len */
+          `${so.storeSubject.name}-${so.quantity}${so.storeSubject.unit}x${so.unitPrice}元, 共${so.quantity*so.unitPrice}元`
+          /* eslint-enable max-len */
+        ),
         h('.ops', h('button', {
           onclick(e) {
             e.preventDefault();
@@ -44,13 +50,15 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
     }));
   };
   var $$storeOrderListEl = $$.connect([$$storeOrders], storeOrderListElVf);
-  var storeOrderEditorVf = function ([errors, obj, storeSubjectDropdown, storeOrderListEl]) {
+  var storeOrderEditorVf = function (
+    [errors, obj, storeSubjectDropdown, storeOrderListEl]
+  ) {
     return h('.form.border.border-box.store-order-editor', [
       field({
         key: 'storeSubjectId',
         label: '仓储科目',
         input: storeSubjectDropdown,
-        errors, 
+        errors,
         required: true
       }),
       field({
@@ -116,12 +124,12 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
         ])
       ]),
       h('.clearfix'),
-      storeOrderListEl, 
+      storeOrderListEl,
     ]);
   };
 
   return $$.connect(
-    [$$errors, $$obj, $$storeSubjectDropdown, $$storeOrderListEl], 
+    [$$errors, $$obj, $$storeSubjectDropdown, $$storeOrderListEl],
     storeOrderEditorVf
   );
 };
