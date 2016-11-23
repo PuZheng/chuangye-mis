@@ -43,16 +43,23 @@ var getHints = function (text) {
 };
 
 export default {
-  get: function (id) {
+  get(id) {
     return request.get('/invoice/object/' + id)
     .then(R.prop('data'));
   },
-  save: function (data) {
-    return request.post('/invoice/object', data)
+  save(obj) {
+    return R.ifElse(
+      R.prop('id'),
+      () => request.put('/invoice/object/' + obj.id, obj),
+      () => request.post('/invoice/object', obj)
+    )(obj)
     .then(R.prop('data'));
   },
-  authenticate: function (id) {
+  authenticate(id) {
     return request.put('/invoice/object/' + id, { authenticated: true });
+  },
+  del(id) {
+    return request.delete('/invoice/object/' + id);
   },
   fetchList,
   validate,

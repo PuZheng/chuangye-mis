@@ -73,6 +73,13 @@ var formVf = function ([
     onsubmit() {
       $$errors.val({});
       co(function *() {
+        if (!dirty(obj)) {
+          $$toast.val({
+            type: 'info',
+            message: '请做出修改后再提交',
+          });
+          return;
+        }
         try {
           yield invoiceStore.validate(obj);
         } catch (e) {
@@ -85,7 +92,7 @@ var formVf = function ([
           copy = R.clone(obj);
           $$toast.val({
             type: 'success',
-            message: '发票创建成功',
+            message: '提交成功',
           });
           !obj.id && page('/invoice/' + id);
         } catch (e) {
@@ -237,7 +244,7 @@ var formVf = function ([
         label: '税率(百分比)',
         input: h('input', {
           value: obj.taxRate,
-          onchange() {
+          oninput() {
             $$obj.patch({ taxRate: this.value });
           }
         }),
@@ -317,6 +324,38 @@ var formVf = function ([
         return false;
       }
     }, '认证'),
+    obj.id && !obj.authenticated?
+    h('a.btn.btn-outline.ca', {
+      onclick() {
+        overlay.show({
+          type: 'warning',
+          title: '你确认要删除该条发票?',
+          message: h('button.btn.btn-outline', {
+            onclick() {
+              co(function *() {
+                overlay.dismiss();
+                $$loading.on();
+                try {
+                  yield invoiceStore.del(obj.id);
+                  $$toast.val({
+                    type: 'success',
+                    message: '删除成功',
+                  });
+                  page('/invoice-list');
+                } catch (e) {
+                  console.error(e);
+                } finally {
+                  $$loading.off();
+                }
+              });
+              return false;
+            }
+          }, '确认'),
+        });
+        return false;
+      }
+    }, '删除'):
+    void 0,
     R.ifElse(
       R.prop('isVat'),
       () => h('a.btn.btn-outline', {

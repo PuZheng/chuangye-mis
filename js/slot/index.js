@@ -195,6 +195,14 @@ Slot.prototype.refresh = function (initiators, propogation=false) {
   return true;
 };
 
+Slot.prototype.on = function on() {
+  this.val(true);
+};
+
+Slot.prototype.off = function() {
+  this.val(false);
+};
+
 Slot.prototype.patch = function (obj) {
   this.debug && console.info(
     `slot: slot ${this.tag} is about to be patched`, obj
