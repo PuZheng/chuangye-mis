@@ -19,16 +19,17 @@ export var $$searchDropdown = function (
     optionContent=dropdownUtils.optionContent,
   }
 ) {
-  let optionHeight;
   let myHook = new class MyHook {
     hook(el) {
       setTimeout(function () {
-        optionHeight = el.querySelector('.item').offsetHeight;
+        $$optionHeight.val(el.querySelector('.item').offsetHeight);
         $$view.connect(
-          [$$activated, $$searchText, $$options, $$value, $$selection, $$top,
-            $$grabbing],
+          [
+            $$activated, $$searchText, $$options, $$value, $$selection, $$top,
+            $$grabbing, $$optionHeight,
+          ],
           valueFunc
-        ).refresh();
+        ).refresh(null, true);
       }, 0);
     }
   };
@@ -38,8 +39,10 @@ export var $$searchDropdown = function (
   let inputEl;
   let $$top = $$(0, 'top');
   let $$grabbing = $$(false, 'grabbing');
+  let $$optionHeight = $$(0, 'optionHeight');
   let valueFunc = function (
-    [activated, searchText, options, value, selection, top, grabbing]
+    [activated, searchText, options, value, selection, top, grabbing,
+      optionHeight]
   ) {
     options = options.map(function (o) {
       if (typeof o === 'string') {
@@ -71,6 +74,9 @@ export var $$searchDropdown = function (
       }
     }
     let menuHeight = Math.min(options.length, maxOptions) * optionHeight;
+    if (menuHeight == 0) {
+      menuHeight = optionHeight;
+    }
     let menuContentHeight = options.length * optionHeight;
     let topRow = Math.round(top * menuContentHeight / optionHeight);
 
@@ -130,7 +136,6 @@ export var $$searchDropdown = function (
     if (optionElms.length == 0) {
       optionElms = [h('.message', '没有可选项')];
     }
-
     return h(classNames, [
       h('.icons', [
         selectedOption? h('i.icon.clear.fa.fa-remove', {

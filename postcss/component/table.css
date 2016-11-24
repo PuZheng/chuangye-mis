@@ -34,6 +34,7 @@ th {
 }
 td {
 	vertical-align: top;
+    position: relative;
 }
 th,
 td {
@@ -86,4 +87,19 @@ tfoot td {
 		border: none;
 		padding: 0;
 	}
+}
+
+tr.strikeout {
+    & td::before {
+        content: " ";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        border-bottom: 1px solid var(--color-accent);
+        width: 100%;
+    }
+    & td:after {
+        content: "\00B7";
+        font-size: 1px;
+    }
 }

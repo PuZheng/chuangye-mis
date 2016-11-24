@@ -6,7 +6,9 @@ import classNames from './class-names';
 import accountStore from './store/account-store';
 import principal from './principal';
 import R from 'ramda';
+import constStore from 'store/const-store';
 
+var $$invoiceStatus = $$({}, 'invoice-status');
 export var $$mods = $$({}, 'mods');
 
 export var $$currentMod = $$('home', 'current-module');
@@ -19,22 +21,28 @@ var $$home = $$.connect([$$currentMod], function ([currentMod]) {
   ]);
 });
 
-var $$invoice = $$.connect([$$currentMod, $$mods], function ([currentMod, mods]) {
-  return R.ifElse(
-    R.prop('viewInvoiceList'),
-    () => h('a' + classNames('item', (currentMod === 'invoice') && 'active'), {
-      href: '/invoice-list',
-    }, '发票模块'),
-    R.always('')
-  )(mods);
-});
+var $$invoice = $$.connect(
+  [$$currentMod, $$mods, $$invoiceStatus],
+  function ([currentMod, mods, invoiceStatus]) {
+    return R.ifElse(
+      R.prop('viewInvoiceList'),
+      () => h(
+        'a' + classNames('item', (currentMod === 'invoice') && 'active'), {
+          href: '/invoice-list?status=' + invoiceStatus.UNAUTHENTICATED,
+        }, '发票模块'
+      ),
+      R.always('')
+    )(mods);
+  }
+);
 
 var $$store = function () {
   let $$expanded = $$(false, 'expanded');
   let vf = function ([currentMod, mods, expanded]) {
     let classes = classNames(
       'item',
-      (currentMod === 'store.order' || currentMod === 'store.checkbook') && 'active',
+      (currentMod === 'store.order' || currentMod === 'store.checkbook')
+      && 'active',
       expanded && 'expanded'
     );
     return R.ifElse(
@@ -63,7 +71,8 @@ var $$store = function () {
             '单据管理'
           ),
           h(
-            'a' + classNames('item', (currentMod == 'store.checkbook' && 'active')),
+            'a' + classNames('item',
+                             (currentMod == 'store.checkbook' && 'active')),
             {
               onclick(e) {
                 e.preventDefault();
@@ -81,24 +90,30 @@ var $$store = function () {
   return $$.connect([$$currentMod, $$mods, $$expanded], vf);
 }();
 
-var $$voucher = $$.connect([$$currentMod, $$mods], function ([currentMod, mods]) {
-  return R.ifElse(
-    R.prop('viewVoucherList'),
-    () => h('a' + classNames('item', (currentMod === 'voucher') && 'active'), {
-      href: '/voucher-list',
-    }, '凭证模块'),
-    R.always('')
-  )(mods);
-});
+var $$voucher = $$.connect(
+  [$$currentMod, $$mods], function ([currentMod, mods]) {
+    return R.ifElse(
+      R.prop('viewVoucherList'),
+      () => h(
+        'a' + classNames('item', (currentMod === 'voucher') && 'active'), {
+          href: '/voucher-list',
+        }, '凭证模块'
+      ),
+      R.always('')
+    )(mods);
+  }
+);
 
 var $$department = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editDepartment'),
-      () => h('a' + classNames('item', (currentMod === 'department') && 'active'), {
-        href: '/department-list',
-      }, '车间信息'),
+      () => h(
+        'a' + classNames('item', (currentMod === 'department') && 'active'), {
+          href: '/department-list',
+        }, '车间信息'
+      ),
       R.always('')
     )(mods);
   }
@@ -122,9 +137,11 @@ var $$settings = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editSettings'),
-      () => h('a' + classNames('item', (currentMod === 'settings') && 'active'), {
-        href: '/settings',
-      }, '系统设置'),
+      () => h(
+        'a' + classNames('item', (currentMod === 'settings') && 'active'), {
+          href: '/settings',
+        }, '系统设置'
+      ),
       R.always('')
     )(mods);
   }
@@ -133,8 +150,10 @@ var $$settings = $$.connect(
 var $$meter = function () {
   let $$expanded = $$(false, 'expanded');
   let vf = function ([currentMod, mods, expanded]) {
-    let classes = classNames('item', expanded && 'expanded',
-                             (currentMod == 'meter.meter' || currentMod == 'meter.meter_type') && 'active');
+    let classes = classNames(
+      'item', expanded && 'expanded',
+      (currentMod == 'meter.meter' || currentMod == 'meter.meter_type')
+      && 'active');
     return h(classes, {
       onmouseover() {
         $$expanded.val(true);
@@ -150,23 +169,31 @@ var $$meter = function () {
         h('.sub.menu', [
           R.ifElse(
             R.prop('editMeter'),
-            () => h('a' + classNames('item', (currentMod === 'meter.meter') && 'active'), {
-              href: '/meter-list',
-              onclick() {
-                $$expanded.val(false);
-              }
-            }, '表设备信息'),
+            () => h(
+              'a' + classNames(
+                'item', (currentMod === 'meter.meter') && 'active'
+              ), {
+                href: '/meter-list',
+                onclick() {
+                  $$expanded.val(false);
+                }
+              }, '表设备信息'
+            ),
             R.always('')
           )(mods),
           R.ifElse(
             R.prop('editMeterType'),
             function () {
-              return h('a' + classNames('item', (currentMod === 'meter.meter_type') && 'active'), {
-                href: '/meter-type-list',
-                onclick() {
-                  $$expanded.val(false);
-                }
-              }, '表设备类型');
+              return h(
+                'a' + classNames(
+                  'item', (currentMod === 'meter.meter_type') && 'active'
+                ), {
+                  href: '/meter-type-list',
+                  onclick() {
+                    $$expanded.val(false);
+                  }
+                }, '表设备类型'
+              );
             },
             R.always('')
           )(mods),
@@ -184,10 +211,12 @@ var $$accountTerm = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editAccountTerm'),
-      () => h('a' + classNames('item', (currentMod === 'account_term') && 'active'), {
-        href: '/account-term-list',
-      }, '帐期管理'),
-    R.always('')
+      () => h(
+        'a' + classNames('item', (currentMod === 'account_term') && 'active'), {
+          href: '/account-term-list',
+        }, '帐期管理'
+      ),
+      R.always('')
     )(mods);
   }
 );
@@ -197,9 +226,11 @@ var $$invoiceType = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editInvoiceType'),
-      () => h('a' + classNames('item', (currentMod === 'invoice_type') && 'active'), {
-        href: '/invoice-type-list',
-      }, '发票类型'),
+      () => h(
+        'a' + classNames('item', (currentMod === 'invoice_type') && 'active'), {
+          href: '/invoice-type-list',
+        }, '发票类型'
+      ),
       R.always('')
     )(mods);
   }
@@ -210,9 +241,13 @@ var $$voucherSubject = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editVoucherSubject'),
-      () => h('a' + classNames('item', (currentMod === 'voucher_subject') && 'active'), {
-        href: '/voucher-subject-list',
-      }, '凭证科目'),
+      () => h(
+        'a' + classNames(
+          'item', (currentMod === 'voucher_subject') && 'active'
+        ), {
+          href: '/voucher-subject-list',
+        }, '凭证科目'
+      ),
       R.always('')
     )(mods);
   }
@@ -223,9 +258,11 @@ var $$user = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editUser'),
-      R.always(h('a' + classNames('item', (currentMod === 'user') && 'active'), {
-        href: '/user-list',
-      }, '账户管理')),
+      R.always(h(
+        'a' + classNames('item', (currentMod === 'user') && 'active'), {
+          href: '/user-list',
+        }, '账户管理'
+      )),
       R.always('')
     )(mods);
   }
@@ -236,9 +273,11 @@ var $$chargeBill = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editChargeBill'),
-      R.always(h('a' + classNames('item', (currentMod === 'charge_bill') && 'active'), {
-        href: '/charge-bill/latest',
-      }, '费用单录入')),
+      R.always(h(
+        'a' + classNames('item', (currentMod === 'charge_bill') && 'active'), {
+          href: '/charge-bill/latest',
+        }, '费用单录入'
+      )),
       R.always('')
     )(mods);
   }
@@ -249,9 +288,13 @@ var $$storeSubject = $$.connect(
   function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('editStoreSubject'),
-      () => h('a' + classNames('item', (currentMod === 'store_subject') && 'active'), {
-        href: '/store-subject-list',
-      }, '仓储科目'),
+      () => h(
+        'a' + classNames(
+          'item', (currentMod === 'store_subject') && 'active'
+        ), {
+          href: '/store-subject-list',
+        }, '仓储科目'
+      ),
       () => ''
     )(mods);
   }
@@ -341,25 +384,29 @@ export var setupNavBar = function (mod) {
       editAccountTerm, editInvoiceType, editVoucherSubject,
       editUser, manageStore, editChargeBill, editStoreSubject
     ) {
-      $$.update(
-        [$$mods, {
-          viewInvoiceList,
-          viewVoucherList,
-          editDepartment,
-          viewTenantList,
-          editSettings,
-          editMeter,
-          editMeterType,
-          editAccountTerm,
-          editInvoiceType,
-          editVoucherSubject,
-          editUser,
-          manageStore,
-          editChargeBill,
-          editStoreSubject
-        }],
-        [$$currentMod, mod]
-      );
+      constStore.get()
+      .then(function ({ invoiceStatus }) {
+        $$.update(
+          [$$mods, {
+            viewInvoiceList,
+            viewVoucherList,
+            editDepartment,
+            viewTenantList,
+            editSettings,
+            editMeter,
+            editMeterType,
+            editAccountTerm,
+            editInvoiceType,
+            editVoucherSubject,
+            editUser,
+            manageStore,
+            editChargeBill,
+            editStoreSubject
+          }],
+          [$$currentMod, mod],
+          [$$invoiceStatus, invoiceStatus]
+        );
+      });
     });
   }
   $$currentMod.val(mod);

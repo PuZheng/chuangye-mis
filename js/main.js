@@ -91,7 +91,8 @@ page('/unauthorized', function () {
 
 var goto = function (queryObj) {
   page(location.pathname + '?' +
-       R.toPairs(queryObj).filter(p => p[1]).map(p => p.join('=')).join('&'));
+       R.toPairs(queryObj).filter(it => it[1] !== void 0)
+  .map(p => p.join('=')).join('&'));
 };
 
 page(function parseQuery(ctx, next) {

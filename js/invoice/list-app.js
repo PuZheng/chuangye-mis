@@ -3,9 +3,7 @@ import virtualDom from 'virtual-dom';
 import classNames from '../class-names';
 import page from 'page';
 import $$queryObj from '../query-obj';
-import config from '../config.js';
-import { $$invoiceTypes, $$accountTerms, $$entities } from './data-slots';
-import { $$filters } from './list-filters';
+import config from '../config';
 import $$tableHints from '../widget/table-hints';
 import $$paginator from '../widget/paginator';
 import invoiceStore from 'store/invoice-store';
@@ -15,11 +13,18 @@ import entityStore from 'store/entity-store';
 import $$searchBox from '../widget/search-box';
 import R from 'ramda';
 import $$myOth from 'widget/my-oth';
+import constStore from 'store/const-store';
+import $$dropdown from '../widget/dropdown';
+import $$searchDropdown from '../widget/search-dropdown';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$list = $$([], 'list');
 var $$totalCnt = $$('', 'total-cnt');
+var $$invoiceStatus = $$({}, 'invoice-status');
+var $$invoiceTypes = $$([], 'invoice-types');
+var $$accountTerms = $$([], 'account-terms');
+var $$entities = $$([], 'entities');
 
 var $$idOth = $$myOth({
   label: '编号',
@@ -61,7 +66,9 @@ var vf = function vf(
   ]);
 };
 
-var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
+var tableVf = function (
+  [idOth, dateOth, accountTermOth, amountOth, list, invoiceStatus]
+) {
   return h(
     'table#invoice-list' + classNames('striped', 'compact', 'color-gray-dark'),
     [
@@ -75,6 +82,7 @@ var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
           h('th', '税率(百分比)'),
           h('th', '税额(元)'),
           accountTermOth,
+          h('th', '状态'),
           h('th', '是否增值税'),
           h('th', '销售方'),
           h('th', '购买方'),
@@ -83,7 +91,9 @@ var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
       ]),
       h('tbody', [
         list.map(function (it) {
-          return h('tr', [
+          return h('tr' + classNames(
+            it.status === invoiceStatus.ABORTED && 'strikeout'
+          ), [
             h('td', [
               h('a', {
                 href: '/invoice/' + it.id,
@@ -104,6 +114,8 @@ var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
                 R.always('--')
             )(it)),
             h('td', it.accountTerm.name),
+            h('td' + classNames(it.status == invoiceStatus.AUTHENTICATED
+                                && 'ca'), it.status),
             h('td', [
               h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove',
                                  it.isVat? 'color-success': 'color-gray')),
@@ -119,7 +131,8 @@ var tableVf = function ([idOth, dateOth, accountTermOth, amountOth, list]) {
 };
 
 var $$table = $$.connect(
-  [$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list], tableVf
+  [$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list, $$invoiceStatus],
+  tableVf
 );
 
 var $$numberSearchBox = $$searchBox({
@@ -132,6 +145,100 @@ var $$numberSearchBox = $$searchBox({
   getHints(text) {
     return invoiceStore.getHints(text);
   }
+});
+
+var $$invoiceTypeFilter = $$dropdown({
+  $$options: $$invoiceTypes.trans(R.map(it => ({
+    value: it.id,
+    text: it.name
+  }))),
+  $$value: $$queryObj.trans(R.prop('invoice_type_id')),
+  defaultText: '请选择发票类型',
+  onchange(invoice_type_id) {
+    $$queryObj.patch({ invoice_type_id, });
+  }
+});
+
+var $$dateFilter = $$dropdown({
+  $$options: $$([
+    { value: 'in_7_days', text: '7天内' },
+    { value: 'in_30_days', text: '30天内' },
+  ]),
+  $$value: $$queryObj.trans(R.prop('date_span')),
+  defaultText: '请选择日期范围',
+  onchange(date_span) {
+    $$queryObj.patch({ date_span, });
+  }
+});
+
+var $$accountTermFilter = $$searchDropdown({
+  defaultText: '请选择账期',
+  $$value: $$queryObj.trans(R.prop('account_term_id')),
+  $$options: $$accountTerms.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+  }))),
+  onchange(account_term_id) {
+    $$queryObj.patch({ account_term_id, });
+  }
+});
+
+var $$vendorFilter = $$searchDropdown({
+  defaultText: '请选择销售方',
+  $$value: $$queryObj.trans(R.prop('vendor_id')),
+  $$options: $$entities.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
+  onchange(vendor_id) {
+    $$queryObj.patch({ vendor_id });
+  }
+});
+
+var $$purchaserFilter = $$searchDropdown({
+  defaultText: '请选择购买方',
+  $$value: $$queryObj.trans(R.prop('purchaser_id')),
+  $$options: $$entities.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+    acronym: it.acronym
+  }))),
+  onchange(purchaser_id) {
+    $$queryObj.patch({ purchaser_id, });
+  },
+});
+
+var $$statusFilter = $$dropdown({
+  defaultText: '请选择状态',
+  $$value: $$queryObj.trans(R.prop('status')),
+  $$options: $$invoiceStatus.trans(it => {
+    return R.values(it).filter(s => s != it.DELETED);
+  }),
+  onchange(status) {
+    $$queryObj.patch({ status });
+  }
+});
+
+var $$filters = $$.connect([
+  $$invoiceTypeFilter,
+  $$dateFilter,
+  $$accountTermFilter,
+  $$vendorFilter,
+  $$purchaserFilter,
+  $$statusFilter,
+], function ([
+  invoiceTypeFilter, dateFilter, accountTermFilter, vendorFilter,
+  purchaserFilter, statusFilter
+]) {
+  return h('.filters', [
+    invoiceTypeFilter,
+    dateFilter,
+    accountTermFilter,
+    vendorFilter,
+    purchaserFilter,
+    statusFilter,
+  ]);
 });
 
 var $$view = $$.connect([
@@ -158,14 +265,17 @@ export default {
       invoiceTypeStore.list,
       accountTermStore.list,
       entityStore.fetchList(),
-    ]).then(function ([data, invoiceTypes, accountTerms, entities]) {
+      constStore.get(),
+    ]).then(function ([data, invoiceTypes, accountTerms, entities,
+                      { invoiceStatus }]) {
       $$.update(
         [$$loading, false],
         [$$list, data.data],
         [$$totalCnt, data.totalCnt],
         [$$invoiceTypes, invoiceTypes],
         [$$accountTerms, accountTerms],
-        [$$entities, entities]
+        [$$entities, entities],
+        [$$invoiceStatus, invoiceStatus]
       );
     });
   }

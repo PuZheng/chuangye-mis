@@ -81,6 +81,9 @@ body {
 .bg-warning {
     background-color: var(--color-warning);
 }
+.bg-accent {
+    background-color: var(--color-accent);
+}
 
 .bw2 {
     border-width: 2px;

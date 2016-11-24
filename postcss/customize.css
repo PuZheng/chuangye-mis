@@ -184,8 +184,10 @@ a {
     }
 }
 
-#invoice-list {
-    min-height: 8rem;
+#invoice-list-app {
+    & tr.authenticated {
+        background: var(--color-success) !important;
+    }
 }
 
 #departments-app {
@@ -296,5 +298,4 @@ a {
           }
         }
     }
-
 }
