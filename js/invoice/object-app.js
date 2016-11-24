@@ -442,7 +442,7 @@ var $$accountTermDropdown = $$dropdown({
   defaultText: '请选择会计账期',
   $$options: $$accountTerms.trans(R.map(it => ({
     value: it.id,
-    text: it.name,
+    text: it.name + (it.closed? '(已关闭)': ''),
   }))),
   $$value: $$obj.trans(R.prop('accountTermId')),
   onchange(accountTermId) {
