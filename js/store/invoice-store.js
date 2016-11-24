@@ -4,6 +4,7 @@ import { notEmpty } from '../checkers.js';
 import config from '../config';
 import request from '../request';
 import object2qs from '../utils/object2qs';
+import constStore from './const-store';
 
 var rules = {
   invoiceType: notEmpty('发票类型'),
@@ -56,7 +57,19 @@ export default {
     .then(R.prop('data'));
   },
   authenticate(id) {
-    return request.put('/invoice/object/' + id, { authenticated: true });
+    return constStore.get()
+    .then(function ({ invoiceActions }) {
+      return request.post(
+        `/invoice/object/${id}/${invoiceActions.AUTHENTICATE}`
+      ).then(R.prop('data'));
+    });
+  },
+  abort(id) {
+    return constStore.get()
+    .then(function ({ invoiceActions }) {
+      return request.post(`/invoice/object/${id}/${invoiceActions.ABORT}`)
+      .then(R.prop('data'));
+    });
   },
   del(id) {
     return request.delete('/invoice/object/' + id);

@@ -16,18 +16,25 @@ import co from 'co';
 import { $$toast } from '../toast';
 import object2qs from '../utils/object2qs';
 import overlay from '../overlay';
+import constStore from 'store/const-store';
 
 var h = virtualDom.h;
 
 var $$loading = $$(false, 'loading');
 var $$invoiceTypes = $$([], 'invoice-types');
 var $$accountTerms = $$([], 'account-terms');
-var $$obj = $$({}, 'obj');
+var $$obj = $$({
+  storeOrders: [],
+  actions: []
+}, 'obj');
 var $$errors = $$({}, 'errors');
 var $$entities = $$([], 'entities');
 var $$storeSubjects = $$([], 'store-subjects');
 var $$storeOrders = $$([], 'store-orders');
 var copy = {};
+var $$invoiceStatus = $$({}, 'invoice-status');
+var $$invoiceActions = $$({}, 'invoice-actions');
+
 
 $$storeOrders.change(function (storeOrders) {
   // 是否关联仓库单据
@@ -47,11 +54,17 @@ var dirty = function (obj) {
   return !R.equals(obj, copy);
 };
 
-var vf = function ([loading, obj, form]) {
+var vf = function ([loading, obj, form, invoiceStatus]) {
   let title = R.ifElse(
     R.prop('id'),
     () => [
-      obj.authenticated? h('span.color-accent', '(已认证)'): void 0,
+      R.cond([
+        [R.propEq('status', invoiceStatus.ABORTED),
+          R.always(h('span.ca', '(已作废)'))],
+        [R.propEq('status', invoiceStatus.AUTHENTICATED),
+          R.always(h('span.ca', '(已认证)'))],
+        [R.T, R.always('')]
+      ])(obj),
       `编辑发票-${obj.number}`,
     ],
     () => '创建新发票'
@@ -64,11 +77,12 @@ var vf = function ([loading, obj, form]) {
 
 var formVf = function ([
   errors, obj, typeDropdown, accountTermDropdown, vendorDropdown,
-  purchaserDropdown, storeOrderEditor
+  purchaserDropdown, storeOrderEditor, invoiceActions
 ]) {
   let relateStoreOrders = R.and(
     R.path(['invoiceType', 'storeOrderType']),
     R.path(['invoiceType', 'storeOrderDirection']))(obj);
+  let editable = ~obj.actions.indexOf(invoiceActions.EDIT);
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
@@ -105,7 +119,14 @@ var formVf = function ([
     }
   }, [
     h('.col.col-6', [
-      obj.authenticated?
+      editable?
+      field({
+        key: 'invoiceType',
+        label: '发票类型',
+        input: typeDropdown,
+        errors,
+        required: true
+      }):
       field({
         label: '发票类型',
         input: h(
@@ -113,19 +134,8 @@ var formVf = function ([
           (R.find(R.propEq('id', obj.invoiceTypeId))($$invoiceTypes.val())
             || {}).name
         ),
-      }):
-      field({
-        key: 'invoiceType',
-        label: '发票类型',
-        input: typeDropdown,
-        errors,
-        required: true
       }),
-      obj.authenticated?
-      field({
-        label: '发票日期',
-        input: h('.text', obj.date),
-      }):
+      editable?
       field({
         key: 'date',
         label: '发票日期',
@@ -137,12 +147,12 @@ var formVf = function ([
           }
         }),
         errors,
-      }),
-      obj.authenticated?
-      field({
-        label: '发票号码',
-        input: h('.text', obj.number),
       }):
+      field({
+        label: '发票日期',
+        input: h('.text', obj.date),
+      }),
+      editable?
       field({
         key: 'number',
         label: '发票号码',
@@ -156,33 +166,37 @@ var formVf = function ([
         }),
         errors,
         required: true
-      }),
-      obj.authenticated?
-      field({
-        label: '会计账期',
-        input: h('.text', obj.accountTerm.name)
       }):
+      field({
+        label: '发票号码',
+        input: h('.text', obj.number),
+      }),
+      editable?
       field({
         key: 'accountTermId',
         label: '会计帐期',
         input: accountTermDropdown,
         errors,
         required: true
+      }):
+      field({
+        label: '会计账期',
+        input: h('.text', R.path(['accountTerm', 'name'])(obj))
       }),
       R.ifElse(
         R.path(['invoiceType', 'vendorType']),
         function () {
-          return obj.authenticated?
-          field({
-            label: '销售方',
-            input: h('.text', obj.vendor.name),
-          }):
+          return editable?
           field({
             key: 'vendorId',
             label: '销售方',
             input: vendorDropdown,
             errors,
             required: true
+          }):
+          field({
+            label: '销售方',
+            input: h('.text', obj.vendor.name),
           });
         },
         R.always('')
@@ -190,17 +204,17 @@ var formVf = function ([
       R.ifElse(
         R.path(['invoiceType', 'purchaserType']),
         function () {
-          return obj.authenticated?
-          field({
-            label: '购买方',
-            input: h('.text', obj.purchaser.name),
-          }):
+          return editable?
           field({
             key: 'purchaserId',
             label: '购买方',
             input: purchaserDropdown,
             errors,
             required: true
+          }):
+          field({
+            label: '购买方',
+            input: h('.text', obj.purchaser.name),
           });
         },
         R.always('')
@@ -209,14 +223,14 @@ var formVf = function ([
         h('input', {
           type: 'checkbox',
           checked: obj.isVat,
-          disabled: obj.authenticated,
+          disabled: !editable,
           oninput() {
             $$obj.patch({ isVat: this.checked });
           }
         }),
         h('label', {
           onclick() {
-            if (!obj.authenticated) {
+            if (~obj.actions.indexOf(invoiceActions.EDIT)) {
               $$obj.patch({ isVat: !obj.isVat });
             }
           }
@@ -225,7 +239,7 @@ var formVf = function ([
       h('.field.inline', [
         h('label', '备注'),
         h('textarea', {
-          disabled: obj.authenticated,
+          disabled: !editable,
           rows: 4,
           onchange() {
             $$obj.patch({ notes: this.value });
@@ -234,36 +248,39 @@ var formVf = function ([
       ]),
     ]),
     h('.col.col-6', [
-      obj.authenticated?
-      field({
-        label: '税率(百分比)',
-        input: h('.text', '' + obj.taxRate),
-      }):
+      editable?
       field({
         key: 'taxRate',
         label: '税率(百分比)',
         input: h('input', {
-          value: obj.taxRate,
+          value: obj.taxRate || '',
           oninput() {
             $$obj.patch({ taxRate: this.value });
           }
         }),
         errors,
         required: relateStoreOrders,
+      }):
+      field({
+        label: '税率(百分比)',
+        input: h('.text', '' + (obj.taxRate || '')),
       }),
-      obj.authenticated?
-      relateStoreOrders? field({
-        label: '相关仓储单据',
-        input: h('.text', h('list', obj.storeOrders.map(function (it) {
-          /* eslint-disable max-len */
-          return `${it.storeSubject.name}-${it.quantity}${it.storeSubject.unit}x${it.unitPrice}元, 共${it.quantity*it.unitPrice}元`;
-          /* eslint-enable max-len */
-        }))),
-      }): void 0:
-      h(classNames('field', !relateStoreOrders && '.hidden'), [
+      editable?
+      relateStoreOrders? h('.field', [
         h('label', '相关仓储单据'),
         storeOrderEditor,
-      ]),
+      ]): void 0:
+      relateStoreOrders? field({
+        label: '相关仓储单据',
+        input: h('.text', h('ul', obj.storeOrders.map(function (it) {
+          /* eslint-disable max-len */
+          return h(
+            'li',
+            `${it.storeSubject.name}-${it.quantity}${it.storeSubject.unit}x${it.unitPrice}元, 共${it.quantity*it.unitPrice}元`
+          );
+          /* eslint-enable max-len */
+        }))),
+      }): void 0,
       field({
         key: 'amount',
         label: '金额',
@@ -272,7 +289,7 @@ var formVf = function ([
           oninput() {
             $$obj.patch({ amount: this.value });
           },
-          disabled: relateStoreOrders,
+          disabled: !editable || relateStoreOrders,
         }),
         errors,
         required: true,
@@ -288,11 +305,12 @@ var formVf = function ([
     ]),
     h('.clearfix'),
     h('hr'),
-    obj.authenticated? void 0: h('button.primary', '提交'),
+    !obj.id || editable?
+      h('button.primary', '提交'): void 0,
     h('a.btn.btn-outline', {
       href: '/invoice-list',
     }, '返回'),
-    obj.id && obj.authenticated? void 0: h('button.primary', {
+    ~obj.actions.indexOf(invoiceActions.AUTHENTICATE)? h('button.primary', {
       onclick(e) {
         e.preventDefault();
         overlay.show({
@@ -304,8 +322,7 @@ var formVf = function ([
               $$loading.val(true);
               co(function *() {
                 try {
-                  yield invoiceStore.authenticate(obj.id);
-                  $$obj.patch({ authenticated: true });
+                  $$obj.patch(yield invoiceStore.authenticate(obj.id));
                   copy = R.clone(obj);
                   $$toast.val({
                     type: 'success',
@@ -323,8 +340,8 @@ var formVf = function ([
         });
         return false;
       }
-    }, '认证'),
-    obj.id && !obj.authenticated?
+    }, '认证'): void 0,
+    ~obj.actions.indexOf(invoiceActions.DELETE)?
     h('a.btn.btn-outline.ca', {
       onclick() {
         overlay.show({
@@ -354,8 +371,37 @@ var formVf = function ([
         });
         return false;
       }
-    }, '删除'):
-    void 0,
+    }, '删除'): void 0,
+    ~obj.actions.indexOf(invoiceActions.ABORT)?
+    h('a.btn.btn-outline.ca', {
+      onclick() {
+        overlay.show({
+          type: 'warning',
+          title: '您确认要作废该发票?(该操作不可逆)',
+          message: h('button.btn.btn-outline', {
+            onclick() {
+              overlay.dismiss();
+              co(function *() {
+                $$loading.on();
+                try {
+                  $$obj.patch(yield invoiceStore.abort(obj.id));
+                  $$toast.val({
+                    type: 'success',
+                    message: '操作成功',
+                  });
+                } catch (e) {
+                  console.error(e);
+                } finally {
+                  $$loading.off();
+                }
+              });
+              return false;
+            }
+          }, '确认')
+        });
+        return false;
+      }
+    }, '作废'): void 0,
     R.ifElse(
       R.prop('isVat'),
       () => h('a.btn.btn-outline', {
@@ -444,13 +490,15 @@ var $$purchaserDropdown = $$dropdown({
 
 var $$form = $$.connect(
   [$$errors, $$obj, $$typeDropdown, $$accountTermDropdown, $$vendorDropdown,
-    $$purchaserDropdown, $$storeOrderEditor($$storeSubjects, $$storeOrders)],
+    $$purchaserDropdown, $$storeOrderEditor($$storeSubjects, $$storeOrders),
+    $$invoiceActions
+  ],
   formVf
 );
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$obj, $$form], vf),
+    $$view: $$.connect([$$loading, $$obj, $$form, $$invoiceStatus], vf),
   },
   init(ctx) {
     let { id } = ctx.params;
@@ -461,13 +509,18 @@ export default {
       id? invoiceStore.get(id): {
         date: moment().format('YYYY-MM-DD'),
         storeOrders: [],
+        actions: []
       },
       storeSubjectStore.list,
+      constStore.get()
     ];
     $$loading.toggle();
     Promise.all(promises)
     .then(function (
-      [entities, invoiceTypes, accountTerms, obj, storeSubjects]
+      [
+        entities, invoiceTypes, accountTerms, obj, storeSubjects,
+        { invoiceActions, invoiceStatus }
+      ]
     ) {
       copy = R.clone(obj);
       $$.update(
@@ -477,7 +530,9 @@ export default {
         [$$loading, false],
         [$$obj, obj],
         [$$storeSubjects, storeSubjects],
-        [$$storeOrders, obj.storeOrders]
+        [$$storeOrders, obj.storeOrders],
+        [$$invoiceActions, invoiceActions],
+        [$$invoiceStatus, invoiceStatus]
       );
     });
   }

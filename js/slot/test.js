@@ -22,9 +22,11 @@ test('connect2', function (t) {
     return s1 + s2;
   });
 
-  let $$s4 = $$(null, 's4').connect([$$s1, $$s2, $$s3], function ([s1, s2, s3]) {
-    return s1 + s2 + s3;
-  });
+  let $$s4 = $$(null, 's4').connect(
+    [$$s1, $$s2, $$s3], function ([s1, s2, s3]) {
+      return s1 + s2 + s3;
+    }
+  );
 
   t.is($$s4.val(), 6);
 });
