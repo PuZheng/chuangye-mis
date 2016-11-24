@@ -210,6 +210,13 @@ Slot.prototype.patch = function (obj) {
   this.val(Object.assign(this.val(), obj));
 };
 
+Slot.prototype.delete = function (...fields) {
+  for (let field of fields) {
+    delete this.value[field];
+  }
+  this.val(this.value);
+};
+
 Slot.prototype.inc = function (cnt=1) {
   this.val(this.val() + cnt);
 };
@@ -222,10 +229,10 @@ Slot.prototype.toggle = function () {
   this.val(!this.val());
 };
 
-Slot.prototype.trans = function (p, label) {
+Slot.prototype.trans = function (p, tag) {
   return connect([this], function ([slot]) {
     return p(slot);
-  }, label);
+  }, tag);
 };
 
 Slot.prototype.map = function (f) {
@@ -266,13 +273,27 @@ Slot.prototype.connect = function (slots, valueFunc) {
     self,
     [self.parents.map(parent => parent.val())]
   );
-  // make parents' offsprings obsolete
-  self.parents.forEach(function (parent) {
-    parent.offsprings = void 0;
-    parent.offspringsByLevels = void 0;
+  // make ancestors' offsprings obsolete
+  self.getAncestors().forEach(function (ancestor) {
+    ancestor.offsprings = void 0;
+    ancestor.offspringsByLevels = void 0;
   });
   return self;
 };
+
+Slot.prototype.getAncestors = function() {
+  let ancestors = {};
+  for (let parent of this.parents) {
+    if (!ancestors[parent.id]) {
+      ancestors[parent.id] = parent;
+      for (let ancestor of parent.getAncestors()) {
+        ancestors[ancestor.id] = ancestor;
+      }
+    }
+  }
+  return objectValues(ancestors);
+};
+
 
 
 /**
