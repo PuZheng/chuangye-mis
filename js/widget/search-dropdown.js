@@ -15,6 +15,7 @@ export var $$searchDropdown = function (
     $$options,
     onchange,
     optionGroup,
+    tag='search-dropdown',
     maxOptions=8,
     optionContent=dropdownUtils.optionContent,
   }
@@ -44,6 +45,7 @@ export var $$searchDropdown = function (
     [activated, searchText, options, value, selection, top, grabbing,
       optionHeight]
   ) {
+    console.log(value);
     options = options.map(function (o) {
       if (typeof o === 'string') {
         return {
@@ -73,6 +75,7 @@ export var $$searchDropdown = function (
         }
       }
     }
+    console.log(value, selectedOption);
     let menuHeight = Math.min(options.length, maxOptions) * optionHeight;
     if (menuHeight == 0) {
       menuHeight = optionHeight;
@@ -207,6 +210,7 @@ export var $$searchDropdown = function (
             $$selection.val(-1);
             this.blur();
             selection && onchange(selection.value, selection);
+            return false;
           }
           if (e.which === ESC || e.keyCode === ESC) {
             this.blur();
@@ -298,7 +302,7 @@ export var $$searchDropdown = function (
         h('.items', h('.item', 'option1')),
       ]),
     ]);
-  });
+  }, tag);
   return $$view;
 };
 

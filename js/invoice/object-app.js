@@ -8,6 +8,7 @@ import R from 'ramda';
 import virtualDom from 'virtual-dom';
 import { field } from '../field.js';
 import $$dropdown from 'widget/dropdown';
+import $$searchDropdown from 'widget/search-dropdown';
 import entityStore from 'store/entity-store';
 import page from 'page';
 import $$storeOrderEditor from './store-order-editor';
@@ -449,7 +450,7 @@ var $$accountTermDropdown = $$dropdown({
   },
 });
 
-var $$vendorDropdown = $$dropdown({
+var $$vendorDropdown = $$searchDropdown({
   defaultText: '请选择销售方',
   $$value: $$obj.trans(R.prop('vendorId')),
   $$options: $$.connect([$$entities, $$obj], function ([entities, obj]) {
@@ -468,7 +469,7 @@ var $$vendorDropdown = $$dropdown({
   },
 });
 
-var $$purchaserDropdown = $$dropdown({
+var $$purchaserDropdown = $$searchDropdown({
   defaultText: '请选择购买方',
   onchange(purchaserId) {
     $$obj.patch({ purchaserId });
@@ -484,7 +485,8 @@ var $$purchaserDropdown = $$dropdown({
     }
     return [];
   }),
-  $$value: $$obj.trans(R.prop('purchaserId')),
+  $$value: $$obj.trans(R.prop('purchaserId'), 'purchaser-id'),
+  tag: 'purcharser-dropdown',
 });
 
 
