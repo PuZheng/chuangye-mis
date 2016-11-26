@@ -37,6 +37,7 @@ import storeOrderObjectApp from './store/order/object-app';
 import chargeBillApp from './charge-bill/';
 import storeSubjectListApp from './store-subject/list-app';
 import storeSubjectObjectApp from './store-subject/object-app';
+import partnerListApp from './partner/list-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -262,6 +263,14 @@ page(
   '/store-subject/:id?', loginRequired,
   _setupNavBar('store_subject'),
   _could('edit.store_subject'), useWith(storeSubjectObjectApp)
+);
+
+page(
+  '/partner-list', loginRequired,
+  function (ctx, next) {
+    setupNavBar('partner.' + ctx.query.type).then(next);
+  },
+  _could('edit.partner'), useWith(partnerListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

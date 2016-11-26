@@ -32,6 +32,7 @@ export var $$searchBox = function (
     onsearch,
     getHints,
     minLen=1,
+    maxOptions=8,
     optionContent=function (o, searchText) {
       let text = getText(o).toUpperCase();
       searchText = searchText.toUpperCase();
@@ -47,7 +48,9 @@ export var $$searchBox = function (
       if (pos > 0) {
         content.push(text.slice(0, pos));
       }
-      content.push(h('.span.color-accent.inline', text.slice(pos, pos + searchText.length)));
+      content.push(
+        h('.span.color-accent.inline', text.slice(pos, pos + searchText.length))
+      );
       if (pos + searchText.length < text.length) {
         content.push(text.slice(pos + searchText.length));
       }
@@ -60,7 +63,10 @@ export var $$searchBox = function (
   let $$options = $$([], 'options');
   let $$loading = $$(false, 'loading');
   let $$active = $$(false, 'active');
-  let valueFunc = function ([searchText, loading, options, selection, active]) {
+  let $$totalCnt = $$(0, 'total-cnt');
+  let valueFunc = function (
+    [searchText, loading, options, selection, active, totalCnt]
+  ) {
     return h('.search-box.small' + (loading? '.loading': ''), [
       h('i.icon.fa.fa-search'),
       h('input.search', {
@@ -76,8 +82,9 @@ export var $$searchBox = function (
             $$loading.val(true);
             getHints(searchText).then(function (hints) {
               $$.update(
+                [$$totalCnt, hints.length],
                 [$$selection, -1],
-                [$$options, hints],
+                [$$options, hints.slice(0, maxOptions)],
                 [$$loading, false]
               );
             });
@@ -102,7 +109,8 @@ export var $$searchBox = function (
           $$loading.toggle();
           getHints(this.value).then(function (hints) {
             $$.update(
-              [$$options, hints],
+              [$$totalCnt, hints.length],
+              [$$options, hints.slice(0, maxOptions)],
               [$$loading, false]
             );
           });
@@ -172,13 +180,18 @@ export var $$searchBox = function (
               }
             }, optionContent(o, searchText));
           });
+          if (totalCnt > options.length) {
+            children.push(h('.item',
+                            `省略了(${totalCnt - options.length})个结果`));
+          }
         }
         return h(classNames, children);
       }(),
     ]);
   };
-  return $$.connect([$$searchText, $$loading, $$options, $$selection,
-                    $$active], valueFunc);
+  return $$.connect(
+    [$$searchText, $$loading, $$options, $$selection, $$active, $$totalCnt],
+    valueFunc);
 };
 
 export default $$searchBox;
