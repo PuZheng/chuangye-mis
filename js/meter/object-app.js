@@ -213,7 +213,9 @@ var $$meterTypeDropdown = $$dropdown({
   defaultText: '请选择类型',
   onchange(meterTypeId) {
     $$obj.patch({ meterTypeId });
-    $$parentMeters.val(allMeters.filter(m => m.isTotal && m.meterTypeId == meterTypeId));
+    $$parentMeters.val(
+      allMeters.filter(m => m.isTotal && m.meterTypeId == meterTypeId)
+    );
   },
   $$options: $$meterTypeList.trans(function (list) {
     return list.map(it => ({
@@ -264,7 +266,9 @@ export default {
       departmentStore.list,
       id? meterStore.get(id): {}
     ])
-    .then(function ([{ meterStatus }, meterTypes, { data: meters }, departments, obj]) {
+    .then(function (
+      [{ meterStatus }, meterTypes, { data: meters }, departments, obj]
+    ) {
       copy = R.clone(obj);
       allMeters = meters;
       $$.update(
@@ -274,7 +278,9 @@ export default {
         [$$departments, departments],
         [$$obj, obj]
       );
-      obj.id && $$parentMeters.val(allMeters.filter(m => m.isTotal && m.type == obj.type));
+      obj.id && $$parentMeters.val(
+        allMeters.filter(m => m.isTotal && m.type == obj.type)
+      );
     });
   },
   get dirty() {
