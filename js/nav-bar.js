@@ -303,7 +303,8 @@ var $$partner = (function() {
     h(
       classNames(
         'item',
-        (currentMod == 'partner.customer' || currentMod == 'partner.supplier')
+        (currentMod == 'partner.' + entityTypes.CUSTOMER ||
+         currentMod == 'partner.' + entityTypes.SUPPLIER)
         && 'active',
         expanded && 'expanded'
       ), {
@@ -319,7 +320,8 @@ var $$partner = (function() {
         h('.sub.menu', [
           h(
             'a' + classNames(
-              'item', currentMod === 'partner.customer' && 'active'
+              'item', currentMod === 'partner.' + entityTypes.CUSTOMER
+              && 'active'
             ), {
               href: '/partner-list?type=' + entityTypes.CUSTOMER,
               onclick() {
@@ -330,7 +332,8 @@ var $$partner = (function() {
           ),
           h(
             'a' + classNames(
-              'item', currentMod === 'partner.supplier' && 'active'
+              'item', currentMod === 'partner.' + entityTypes.SUPPLIER
+              && 'active'
             ), {
               href: '/partner-list?type=' + entityTypes.SUPPLIER,
               onclick() {

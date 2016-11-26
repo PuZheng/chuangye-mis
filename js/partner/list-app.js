@@ -8,6 +8,7 @@ import entityStore from 'store/entity-store';
 import $$paginator from '../widget/paginator';
 import $$tableHints from '../widget/table-hints';
 import config from '../config';
+import $$myOth from 'widget/my-oth';
 
 var { h } = virtualDom;
 var $$list = $$([], 'list');
@@ -20,7 +21,9 @@ var vf = function (
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '往来户列表-' + queryObj.type),
-      h('button.new-btn', h('i.fa.fa-plus', {
+      h('a.new-btn', {
+        href: '/partner?type=' + queryObj.type,
+      }, h('i.fa.fa-plus', {
         title: '创建往来户'
       })),
       h('.search', nameSearchBox)
@@ -42,21 +45,28 @@ var $$nameSearchBox = $$searchBox({
   }
 });
 
-var tableVf = function tableVf([list]) {
+var $$idOth = $$myOth({ label: '编号', column: 'id' });
+var $$enabledOth = $$myOth({ label: '是否激活', column: 'enabled' });
+
+var tableVf = function tableVf([idOth, enabledOth, list]) {
   return h('table.table.striped.compact', [
     h('thead', [
       h('tr', [
+        idOth,
         h('th', '名称'),
         h('th', '地址'),
         h('th', '税号'),
         h('th', '开户行'),
         h('th', '银行账号'),
         h('th', '联系方式'),
-        h('th', '激活'),
+        enabledOth,
       ]),
     ]),
     h('tbody', list.map(function (it) {
       return h('tr', [
+        h('td', h('a', {
+          href: '/partner/' + it.id,
+        }, it.id)),
         h('td', h('a', {
           href: '/partner/' + it.id,
         }, it.entity.name)),
@@ -72,7 +82,7 @@ var tableVf = function tableVf([list]) {
   ]);
 };
 
-var $$table = $$.connect([$$list], tableVf);
+var $$table = $$.connect([$$idOth, $$enabledOth, $$list], tableVf);
 
 export default {
   page: {
