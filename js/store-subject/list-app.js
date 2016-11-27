@@ -27,7 +27,9 @@ var vf = function ([loading, searchBox, table]) {
 };
 
 var tableVf = function ([list]) {
-  return h('table' + classNames('table', 'striped', 'compact', 'color-gray-dark'), [
+  return h('table' + classNames(
+    'table', 'striped', 'compact', 'color-gray-dark'
+  ), [
     h('thead', h('tr', [
       h('th', '名称'),
       h('th', '单位'),
@@ -50,12 +52,12 @@ var $$table = $$.connect([$$list], tableVf);
 export default {
   page: {
     $$view: $$.connect([
-      $$loading, 
+      $$loading,
       $$searchBox({
         defaultText: '按名称搜索',
         $$searchText: $$queryObj.trans(R.propOr('', 'kw')),
         onsearch(kw) {
-          $$queryObj.patch({ kw });
+          $$queryObj.patch({ kw, page: 1 });
         },
         getHints(kw) {
           return storeSubjectStore.getHints(kw);

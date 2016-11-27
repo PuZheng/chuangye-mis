@@ -18,7 +18,7 @@ var $$nameSearchBox = $$searchBox({
   defaultText: '输入名称搜索',
   $$searchText: $$queryObj.trans(R.propOr('', 'kw')),
   onsearch(kw) {
-    $$queryObj.patch({ kw });
+    $$queryObj.patch({ kw, page: 1 });
   },
   getHints(kw) {
     return voucherSubjectStore.getHints(kw);

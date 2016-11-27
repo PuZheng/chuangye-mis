@@ -27,10 +27,8 @@ var $$voucherSubjects = $$([], 'voucher-subjects');
 var $$numberFilter = $$searchBox({
   defaultText: '请输入凭证号',
   $$searchText: $$queryObj.trans(qo => qo.number__like || ''),
-  onsearch(text) {
-    $$queryObj.patch({
-      number__like: text,
-    });
+  onsearch(number__like) {
+    $$queryObj.patch({ number__like, page: 1 });
   },
   getHints(text) {
     return voucherStore.getHints(text);

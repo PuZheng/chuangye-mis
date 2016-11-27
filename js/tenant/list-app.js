@@ -38,9 +38,10 @@ var $$table = $$.connect([$$tenants], tableVf);
 var $$nameFilter = $$searchBox({
   defaultText: '输入承包人姓名/车间',
   $$searchText: $$queryObj.trans(qo => qo.kw || ''),
-  onsearch(text) {
+  onsearch(kw) {
     $$queryObj.patch({
-      kw: text
+      kw,
+      page: 1
     });
   },
   getHints(text) {
