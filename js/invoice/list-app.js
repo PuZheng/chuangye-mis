@@ -140,7 +140,7 @@ var $$numberSearchBox = $$searchBox({
   defaultText: '搜索编号',
   $$searchText: $$queryObj.trans(R.propOr('', 'number__like')),
   onsearch(number__like) {
-    $$queryObj.patch({ number__like });
+    $$queryObj.patch({ number__like, page: 1 });
   },
   getHints(text) {
     return invoiceStore.getHints(text);
