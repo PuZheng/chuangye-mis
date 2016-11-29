@@ -13,5 +13,9 @@ export default {
   get(id) {
     return request.get('/account-term/object/' + id)
     .then(R.prop('data'));
+  },
+  close(id) {
+    return request.post('/account-term/object/' + id + '/close')
+    .then(R.prop('data'));
   }
 };
