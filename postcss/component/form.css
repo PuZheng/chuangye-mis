@@ -71,7 +71,7 @@
     & > .input {
         min-height: 2.7142rem;
         & > input, & > textarea, & > .dropdown {
-            width: 100%;
+            /* width: 100%; */
         }
         & > .text {
             height: 2.7142rem;

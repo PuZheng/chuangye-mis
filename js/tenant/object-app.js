@@ -13,6 +13,7 @@ import classNames from '../class-names';
 import accountStore from 'store/account-store';
 import accountTermStore from 'store/account-term-store';
 import overlay from '../overlay';
+import moment from 'moment';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -166,6 +167,14 @@ var accountFormVf = function accountFormVf(
 ) {
   return h('form.form', {
     onsubmit() {
+      if (accountTerms.map(R.prop('name'))
+          .indexOf(moment().format('YYYY-MM')) == -1) {
+        $$toast.val({
+          type: 'warning',
+          message: '请先创建当月账期'
+        });
+        return false;
+      }
       overlay.show({
         type: 'warning',
         title: '请再次确认初始数据，初始化后无法修改!',
@@ -199,12 +208,14 @@ var accountFormVf = function accountFormVf(
       return false;
     }
   }, [
-    h('.inline.field', h('h3', '当前账期: ' + (accountTerms[0] || {}).name)),
-    account.id?
-    field({
-      label: '当月累计收入',
-      input: h('.text', '' + account.thisMonthIncome)
-    }):
+    h('.inline.field', h('h3', [
+      h('span', '当前账期: ' + moment().format('YYYY-MM')),
+      ~accountTerms.map(R.prop('name')).indexOf(moment().format('YYYY-MM'))?
+      void 0:
+      h('a', {
+        href: '/account-term-list'
+      }, '(去创建)')
+    ])),
     field({
       label: '当月累计收入',
       key: 'thisMonthIncome',
@@ -215,13 +226,9 @@ var accountFormVf = function accountFormVf(
           $$account.patch({ thisMonthIncome: this.value });
         },
         value: account.thisMonthIncome || '',
+        disabled: account.id
       })
     }),
-    account.id?
-    field({
-      label: '当月累计支出',
-      input: h('.text', '' + account.thisMonthExpense)
-    }):
     field({
       label: '当月累计支出',
       key: 'thisMonthExpense',
@@ -232,41 +239,40 @@ var accountFormVf = function accountFormVf(
           $$account.patch({ thisMonthExpense: this.value });
         },
         value: account.thisMonthExpense || '',
+        disabled: account.id
       })
     }),
-    account.id?
-    field({
-      label: '当年累计收入',
-      input: h('.text', '' + account.thisYearIncome)
-    }):
     field({
       label: '当年累计收入',
       key: 'thisYearIncome',
       errors: accountErrors,
       required: true,
-      input: h('input', {
-        oninput() {
-          $$account.patch({ thisYearIncome: this.value });
-        },
-        value: account.thisYearIncome || '',
-      }),
+      input: [
+        h('input', {
+          oninput() {
+            $$account.patch({ thisYearIncome: this.value });
+          },
+          value: account.thisYearIncome || '',
+          disabled: account.id
+        }),
+        h('label', '注意!不包含当月收入(即累计至上月)')
+      ]
     }),
-    account.id?
-    field({
-      label: '当年累计支出',
-      input: h('.text', '' + account.thisYearExpense)
-    }):
     field({
       label: '当年累计支出',
       key: 'thisYearExpense',
       errors: accountErrors,
       required: true,
-      input: h('input', {
-        oninput() {
-          $$account.patch({ thisYearExpense: this.value });
-        },
-        value: account.thisYearExpense || ''
-      })
+      input: [
+        h('input', {
+          oninput() {
+            $$account.patch({ thisYearExpense: this.value });
+          },
+          value: account.thisYearExpense || '',
+          disabled: account.id
+        }),
+        h('label', '注意!不包含当月支出(即累计至上月)')
+      ]
     }),
     h('hr'),
     account.id? void 0: h('button.primary', '初始化'),
@@ -327,6 +333,7 @@ export default {
       let account = {};
       if (obj.entityId) {
         account = yield accountStore.getByEntityId(obj.entityId);
+        console.log(account);
         // 没有关联账户
         if (!account) {
           account = { entityId: obj.entityId };
