@@ -11,7 +11,7 @@ import meterListApp from './meter/list-app';
 import meterObjectApp from './meter/object-app';
 import meterTypeListApp from './meter-type/list-app';
 import meterTypeObjectApp from './meter-type/object-app';
-import accountStore from 'store/account-store';
+import authStore from 'store/auth-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
@@ -69,7 +69,7 @@ var _setupNavBar = function (mod) {
 };
 
 var loginRequired = function (ctx, next) {
-  if (!accountStore.user) {
+  if (!authStore.user) {
     return page('/login');
   }
   next();
@@ -118,7 +118,7 @@ page.exit(function (ctx, next) {
 });
 
 page('/login', function () {
-  if (!accountStore.user) {
+  if (!authStore.user) {
     mount(loginApp.page);
   } else {
     page('/');

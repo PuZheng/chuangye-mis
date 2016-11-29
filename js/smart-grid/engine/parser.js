@@ -48,7 +48,8 @@ export class Parser {
     }
     let node = this.term;
     while (this.currentToken &&
-           (this.currentToken.type === Token.MINUS || this.currentToken.type === Token.PLUS)) {
+           (this.currentToken.type === Token.MINUS ||
+            this.currentToken.type === Token.PLUS)) {
       let op = this.currentToken.value;
       this.eat(this.currentToken.type);
       node = new BinOp(op, node, this.term);
@@ -58,7 +59,8 @@ export class Parser {
   get term() {
     let node = this.factor;
     while (this.currentToken &&
-           (this.currentToken.type === Token.MUL || this.currentToken.type === Token.DIV)) {
+           (this.currentToken.type === Token.MUL ||
+            this.currentToken.type === Token.DIV)) {
       let op = this.currentToken.value;
       this.eat(this.currentToken.type);
       node = new BinOp(op, node, this.factor);

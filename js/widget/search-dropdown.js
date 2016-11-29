@@ -45,7 +45,6 @@ export var $$searchDropdown = function (
     [activated, searchText, options, value, selection, top, grabbing,
       optionHeight]
   ) {
-    console.log(value);
     options = options.map(function (o) {
       if (typeof o === 'string') {
         return {
@@ -75,7 +74,6 @@ export var $$searchDropdown = function (
         }
       }
     }
-    console.log(value, selectedOption);
     let menuHeight = Math.min(options.length, maxOptions) * optionHeight;
     if (menuHeight == 0) {
       menuHeight = optionHeight;

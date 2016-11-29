@@ -1,46 +1,30 @@
-import { validateObj } from '../validate-obj.js';
-import { notEmpty } from '../checkers.js';
-import { backendURL } from '../backend-url.js';
-import overlay from '../overlay';
-import axiosError2Dom from '../axios-error-2-dom';
+import request from '../request';
+import R from 'ramda';
+import validateObj from '../validate-obj';
+import { notEmpty } from '../checkers';
 
-var rules = {
-  username: notEmpty(),
-  password: notEmpty()
-};
-
-var validate = function (obj) {
-  return validateObj(obj, rules);
-};
-
-var login = function ({ username, password }) {
-  return axios.post(backendURL('/auth/login'), {
-    username, password
-  })
-  .catch(function (error) {
-    if (!error.response || error.response.status == 500) {
-      overlay.show({
-        type: 'error',
-        title: '很不幸, 出错了!',
-        message: axiosError2Dom(error),
-      });
-    }
-    throw error;
-  })
-  .then(function (response) {
-    sessionStorage.setItem('user', JSON.stringify(response.data));
-  });
-};
-
-var logout = function () {
-  return Promise.resolve(sessionStorage.removeItem('user'));
-};
+var validate = R.partialRight(validateObj, [
+  {
+    thisMonthIncome: notEmpty(),
+    thisMonthExpense: notEmpty(),
+    thisYearIncome: notEmpty(),
+    thisYearExpense: notEmpty(),
+  }
+]);
 
 export default {
   validate,
-  login,
-  get user() {
-    return JSON.parse(sessionStorage.getItem('user'));
+  getByEntityId(entityId) {
+    return request.get('/account/object?entity_id=' + entityId)
+    .then(R.prop('data'))
+    .catch(function (e) {
+      if (R.path(['response', 'status'])(e) == 404) {
+        return void 0;
+      }
+      throw e;
+    });
   },
-  logout,
+  save(obj) {
+    return request.post('/account/object', obj).then(R.prop('data'));
+  }
 };

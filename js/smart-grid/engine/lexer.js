@@ -61,7 +61,8 @@ export class Lexer {
     }, pos + m[0].length];
   }
   skipSpaces(pos) {
-    for (; pos < this.text.length && (this.text[pos] === ' ' || this.text[pos] === '\t'); ++pos);
+    for (; pos < this.text.length &&
+         (this.text[pos] === ' ' || this.text[pos] === '\t'); ++pos);
     return pos;
   }
 

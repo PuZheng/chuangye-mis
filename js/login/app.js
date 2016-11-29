@@ -2,7 +2,7 @@ import x from 'slot';
 import virtualDom from 'virtual-dom';
 var h = virtualDom.h;
 import { field } from '../field.js';
-import accountStore from '../store/account-store.js';
+import authStore from '../store/auth-store.js';
 import classNames from '../class-names.js';
 import page from 'page';
 import co from 'co';
@@ -20,17 +20,20 @@ $$password.change(function () {
 });
 
 var $$page = x.connect(
-  [$$username, $$password, $$errors, $$loading], 
+  [$$username, $$password, $$errors, $$loading],
   function ([username, password, errors, loading]) {
     return h('#login-app', [
-      h(classNames('block', 'p2', 'border', 'box', 'rounded', 'border-gray', 'mx-auto', loading), [
+      h(classNames(
+        'block', 'p2', 'border', 'box', 'rounded', 'border-gray', 'mx-auto',
+        loading
+      ), [
         h('h3.header.c1', '欢迎登陆创业电镀管理系统'),
         h('form.form', {
           onsubmit() {
             co(function *() {
               try {
-                yield accountStore.validate({
-                  username, 
+                yield authStore.validate({
+                  username,
                   password
                 });
               } catch (e) {
@@ -39,7 +42,7 @@ var $$page = x.connect(
               }
               try {
                 $$loading.val('loading');
-                yield accountStore.login({
+                yield authStore.login({
                   username, password
                 });
                 page('/');
@@ -58,24 +61,24 @@ var $$page = x.connect(
           }
         }, [
           field({
-            key: 'username', 
+            key: 'username',
             input: h('input', {
               placeholder: '请输入用户名',
               onchange() {
                 $$username.val(this.value);
               }
-            }), 
+            }),
             errors,
           }),
           field({
-            key: 'password', 
+            key: 'password',
             input: h('input', {
               placeholder: '请输入密码',
               type: 'password',
               onchange() {
                 $$password.val(this.value);
               }
-            }), 
+            }),
             errors,
           }),
           h('button.btn.btn-outline.bc1.block.mx-auto.mt3', '登陆')

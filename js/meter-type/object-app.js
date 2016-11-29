@@ -129,10 +129,11 @@ var $$readingEditor = function () {
             e.preventDefault();
             if (meterReading.name && meterReading.priceSettingId) {
               $$obj.patch({
-                meterReadings: (obj.meterReadings || []).concat([R.clone(meterReading)])
+                meterReadings: (obj.meterReadings || [])
+                .concat([R.clone(meterReading)])
               });
-              $$meterReading.patch({ 
-                name: '', 
+              $$meterReading.patch({
+                name: '',
                 priceSettingId: '',
               });
             }
@@ -140,8 +141,8 @@ var $$readingEditor = function () {
           },
         }, '添加读数'),
         R.ifElse(
-          (meterReadings) => meterReadings == undefined || R.isEmpty(meterReadings),
-            R.always(''),
+          meterReadings => meterReadings == void 0 || R.isEmpty(meterReadings),
+          R.always(''),
           function (meterReadings=[]) {
             return h('.segment', meterReadings.map(function (it, idx) {
               let setting = R.find(R.propEq('id', it.priceSettingId))(settings);
@@ -151,7 +152,7 @@ var $$readingEditor = function () {
                   onclick(e) {
                     e.preventDefault();
                     $$obj.patch({
-                      meterReadings: obj.meterReadings.filter(function (it, idx_) {
+                      meterReadings: meterReadings.filter(function (it, idx_) {
                         return idx_ != idx;
                       })
                     });
@@ -162,12 +163,14 @@ var $$readingEditor = function () {
             }));
           }
         )(obj.meterReadings),
-      ]), 
+      ]),
       err? h('.label.pointing.error', err): '',
     ]);
   };
-  return $$.connect([$$obj, $$meterReading, $$errors, $$settingsDropdown, $$settings], 
-                    vf);
+  return $$.connect(
+    [$$obj, $$meterReading, $$errors, $$settingsDropdown, $$settings],
+    vf
+  );
 }();
 
 export default {

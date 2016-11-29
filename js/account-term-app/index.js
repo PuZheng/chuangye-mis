@@ -27,7 +27,8 @@ var calcUninitialized = function (initialized) {
   return Array.from({
     [Symbol.iterator]() { return this; },
     next() {
-      if (year > earliestYear || (year === earliestYear && month > earliestMonth)) {
+      if (year > earliestYear ||
+          (year === earliestYear && month > earliestMonth)) {
         let value = moment({
           year,
           month,
