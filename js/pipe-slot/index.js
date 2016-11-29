@@ -1,14 +1,17 @@
 import $$ from 'slot';
 
-var objectValues = obj => (Object.values?  obj => Object.values(obj): function (obj) {
-  var values = [];
-  for (var key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      values.push(obj[key]);
+var objectValues = function objectValues(obj) {
+  if (Object.values && typeof Object.values === 'function') {
+    return Object.values(obj);
+  }
+  let values = [];
+  for (let k in obj){
+    if (obj.hasOwnProperty(k)) {
+      values.push(obj[k]);
     }
   }
   return values;
-})(obj);
+};
 
 var PipeSlot = function PipeSlot(...args) {
   $$.Slot.apply(this, args);

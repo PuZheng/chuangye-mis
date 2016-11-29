@@ -4,8 +4,7 @@ var h = virtualDom.h;
 var formatParagraph = function (paragraph) {
   return paragraph.split('\n').map(function (l) {
     let i = 0;
-    for (; i < l.length && l[i] == ' '; ++i) {
-    }
+    for (; i < l.length && l[i] == ' '; ++i);
     return h('p', {
       style: {
         paddingLeft: i + 'rem',
@@ -21,7 +20,10 @@ var axiosError2Dom = function (error) {
   ];
   if (error.response) {
     dom.push(h('.response.pt3', [
-      h('h3', `Response (${error.response.status}, ${error.response.statusText})`),
+      h(
+        'h3',
+        `Response (${error.response.status}, ${error.response.statusText})`
+      ),
       h('.data', formatParagraph(JSON.stringify(error.response.data, null, 4))),
     ]));
   }

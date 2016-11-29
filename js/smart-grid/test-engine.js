@@ -55,7 +55,8 @@ test('lexer', function (t) {
   console.log(tokens);
   t.is(tokens.length, 7);
   t.deepEqual(tokens.map(R.prop('type')), [
-    Token.VARIABLE, Token.PLUS, Token.LPAREN, Token.REF, Token.PLUS, Token.REF, Token.RPAREN
+    Token.VARIABLE, Token.PLUS, Token.LPAREN, Token.REF, Token.PLUS, Token.REF,
+    Token.RPAREN
   ]);
 });
 

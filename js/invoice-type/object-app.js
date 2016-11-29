@@ -228,7 +228,8 @@ export default {
       voucherSujectStore.list
     ])
     .then(function (
-      [obj, { storeOrderTypes, storeOrderDirections, entityTypes}, voucherSubjects]
+      [obj, { storeOrderTypes, storeOrderDirections, entityTypes},
+        voucherSubjects]
     ) {
       copy = R.clone(obj);
       $$.update(

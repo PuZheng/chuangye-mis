@@ -2,6 +2,7 @@ import request from '../request';
 import R from 'ramda';
 import { notEmpty } from '../checkers';
 import validateObj from '../validate-obj';
+import object2qs from '../utils/object2qs';
 
 var validate = R.partialRight(validateObj, [{
   name: notEmpty(),
@@ -22,7 +23,7 @@ export default {
     });
   },
   fetchList(qo) {
-    return request.get('/invoice-type/list?' + R.toPairs(qo).map(it => it.join('=')).join('&'))
+    return request.get('/invoice-type/list?' + object2qs(qo))
     .then(function (response) {
       return response.data.data;
     });

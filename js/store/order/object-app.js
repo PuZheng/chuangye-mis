@@ -28,14 +28,14 @@ var dirty = function (obj) {
 };
 
 var formVf = function (
-  [errors, obj, storeOrderTypes, storeOrderDirections, 
-    storeSubjectDropdown, tenantDropdown, directionDropdown, 
+  [errors, obj, storeOrderTypes, storeOrderDirections,
+    storeSubjectDropdown, tenantDropdown, directionDropdown,
     typeDropdown]
 ) {
   let fields = [
     field({
-      key: 'storeSubjectId', 
-      label: '仓储科目', 
+      key: 'storeSubjectId',
+      label: '仓储科目',
       input: storeSubjectDropdown,
       errors,
       required: true
@@ -78,8 +78,12 @@ var formVf = function (
       errors,
     }),
   ];
-  if ((obj.type === storeOrderTypes.PRODUCT && obj.direction === storeOrderDirections.OUTBOUND) ||
-     (obj.type === storeOrderTypes.MATERIAL && obj.direction === storeOrderDirections.INBOUND)) {
+  if (
+    (obj.type === storeOrderTypes.PRODUCT &&
+     obj.direction === storeOrderDirections.OUTBOUND) ||
+    (obj.type === storeOrderTypes.MATERIAL &&
+     obj.direction === storeOrderDirections.INBOUND)
+  ) {
     fields = fields.concat([
       field({
         key: 'unitPrice',
@@ -206,8 +210,9 @@ var $$typeDropdown = $$dropdown({
 });
 
 var $$form = $$.connect(
-  [$$errors, $$obj, $$storeOrderTypes, $$storeOrderDirections, $$storeSubjectDropdown, 
-    $$tenantDropdown, $$directionDropdown, $$typeDropdown], 
+  [$$errors, $$obj, $$storeOrderTypes, $$storeOrderDirections,
+    $$storeSubjectDropdown, $$tenantDropdown, $$directionDropdown,
+    $$typeDropdown],
   formVf
 );
 
@@ -250,13 +255,15 @@ export default {
       R.ifElse(
         R.path(['params', 'id']),
         ctx => storeOrderStore.get(ctx.params.id),
-        ctx => ({ 
-          type: R.path(['query', 'type'])(ctx), 
-          direction: R.path(['query', 'direction'])(ctx) 
+        ctx => ({
+          type: R.path(['query', 'type'])(ctx),
+          direction: R.path(['query', 'direction'])(ctx)
         })
       )(ctx)
     ])
-    .then(function ([storeSubjects, tenants, { storeOrderDirections, storeOrderTypes }, obj]) {
+    .then(function (
+      [storeSubjects, tenants, { storeOrderDirections, storeOrderTypes }, obj]
+    ) {
       console.log(obj);
       copy = R.clone(obj);
       $$.update(

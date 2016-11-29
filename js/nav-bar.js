@@ -3,7 +3,7 @@ import virtualDom from 'virtual-dom';
 import page from 'page';
 var h = virtualDom.h;
 import classNames from './class-names';
-import accountStore from './store/account-store';
+import authStore from './store/auth-store';
 import principal from './principal';
 import R from 'ramda';
 import constStore from 'store/const-store';
@@ -376,12 +376,12 @@ var vf = function vf([
         '欢迎',
         h('a.item.c1.username', {
           href: '/profile',
-        }, accountStore.user.username),
+        }, authStore.user.username),
         h('a.px1', {
           title: '退出',
           href: '#',
           onclick() {
-            accountStore.logout().then(function () {
+            authStore.logout().then(function () {
               // refresh means hide, since there's no user
               $$mods.val({});
               page('/login');
@@ -393,7 +393,7 @@ var vf = function vf([
         ]),
       ]),
       R.always('')
-    )(accountStore)
+    )(authStore)
   ].filter(R.identity));
 };
 

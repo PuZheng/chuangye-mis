@@ -1,14 +1,14 @@
-import accountStore from './store/account-store';
+import authStore from './store/auth-store';
 import { backendURL } from './backend-url.js';
 import overlay from './overlay';
 import axiosError2Dom from './axios-error-2-dom';
 
 var setAuthorization = function (options) {
-  if (accountStore.user) {
+  if (authStore.user) {
     if (!options.headers) {
       options.headers = {};
     }
-    options.headers.Authorization = 'Bearer ' + accountStore.user.token;
+    options.headers.Authorization = 'Bearer ' + authStore.user.token;
   }
   return options;
 };
