@@ -36,7 +36,7 @@ var tableVf = function ([tenants]) {
 var $$table = $$.connect([$$tenants], tableVf);
 
 var $$nameFilter = $$searchBox({
-  defaultText: '输入承包人姓名/车间',
+  defaultText: '输入承包人姓名',
   $$searchText: $$queryObj.trans(qo => qo.kw || ''),
   onsearch(kw) {
     $$queryObj.patch({

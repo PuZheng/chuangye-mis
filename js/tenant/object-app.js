@@ -11,6 +11,7 @@ import co from 'co';
 import acronym from '../utils/acronym';
 import classNames from '../class-names';
 import accountStore from 'store/account-store';
+import accountTermStore from 'store/account-term-store';
 import overlay from '../overlay';
 
 var h = virtualDom.h;
@@ -20,6 +21,9 @@ var $$departments = $$([], 'departments');
 var $$loading = $$(false, 'loading');
 var copy = {};
 var $$activeTabIdx = $$(0, 'active-tab-idx');
+var $$accountTerms = $$([], 'account-terms');
+var $$accountErrors = $$({}, 'account-errors');
+var $$account = $$({}, 'account');
 
 var dirty = function (obj) {
   return !R.equals(copy, obj);
@@ -68,7 +72,7 @@ var formVf = function ([errors, departmentDropdown, obj, account]) {
           copy = R.clone(obj);
           // 新创建了承包人，需要关联账户
           if (obj.entityId && !account.entityId) {
-            account = { entityId: obj.entityId };
+            $$account.val({ entityId: obj.entityId });
           }
           $$toast.val({
             type: 'success',
@@ -153,9 +157,13 @@ var formVf = function ([errors, departmentDropdown, obj, account]) {
   ]);
 };
 
-var $$form = $$.connect([$$errors, $$departmentDropdown, $$obj], formVf);
+var $$form = $$.connect(
+  [$$errors, $$departmentDropdown, $$obj, $$account], formVf
+);
 
-var accountFormVf = function accountFormVf([accountErrors, account]) {
+var accountFormVf = function accountFormVf(
+  [accountErrors, account, accountTerms]
+) {
   return h('form.form', {
     onsubmit() {
       overlay.show({
@@ -191,6 +199,7 @@ var accountFormVf = function accountFormVf([accountErrors, account]) {
       return false;
     }
   }, [
+    h('.inline.field', h('h3', '当前账期: ' + (accountTerms[0] || {}).name)),
     account.id?
     field({
       label: '当月累计收入',
@@ -264,10 +273,9 @@ var accountFormVf = function accountFormVf([accountErrors, account]) {
   ]);
 };
 
-var $$accountErrors = $$({}, 'account-errors');
-var $$account = $$({}, 'account');
 
-var $$accountForm = $$.connect([$$accountErrors, $$account], accountFormVf);
+var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
+                               accountFormVf);
 
 var tabsVf = function ([activeTabIdx, accountForm, form]) {
   return h('.tabs', [
@@ -294,7 +302,7 @@ var vf = function ([obj, tabs, form, loading]) {
   return h('.object-app' + (loading? '.loading': ''), [
     h(
       '.header' + (dirty(obj)? '.dirty': ''),
-      obj.id? `编辑承包人-${obj.entity.name}`: '创建承包人'
+      obj.id? `承包人-${obj.entity.name}`: '创建承包人'
     ),
     obj.id? tabs: form,
   ]);
@@ -314,6 +322,7 @@ export default {
       $$loading.on();
       let departments = yield departmentStore.list;
       let obj = id? (yield tenantStore.get(id)): {};
+      let accountTerms = yield accountTermStore.list;
       copy = R.clone(obj);
       let account = {};
       if (obj.entityId) {
@@ -327,7 +336,8 @@ export default {
         [$$loading, false],
         [$$departments, departments],
         [$$obj, obj],
-        [$$account, account]
+        [$$account, account],
+        [$$accountTerms, accountTerms]
       );
     });
   }
