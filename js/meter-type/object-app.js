@@ -175,7 +175,9 @@ var $$readingEditor = function () {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$obj, $$errors, $$readingEditor], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$obj, $$errors, $$readingEditor], vf);
+    }
   },
   init(ctx) {
     let { id } = ctx.params;

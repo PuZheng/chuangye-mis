@@ -132,11 +132,11 @@ var $$filters = $$.connect(
   filtersVf
 );
 
-var $$view = $$.connect([$$loading, $$nameSearchBox, $$table, $$filters], vf);
-
 export default {
   page: {
-    $$view,
+    get $$view() {
+      return $$.connect([$$loading, $$nameSearchBox, $$table, $$filters], vf);
+    }
   },
   init(ctx) {
     $$loading.toggle();

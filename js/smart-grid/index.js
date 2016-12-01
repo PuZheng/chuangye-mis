@@ -149,6 +149,13 @@ export class SmartGrid {
     var viewportHeight = this.gridContainerEl.offsetHeight - this.hHeaderHeight;
     this.rowNum = Math.floor((viewportHeight - 1) / this.cellHeight) + 1;
     this.colNum = Math.floor((viewportWidth - 1) / this.cellWidth) + 1;
+    this.cells = function (sg) {
+      return range(0, sg.rowNum).map(function (row) {
+        return range(0, sg.colNum).map(function (col) {
+          return new Cell(sg, row, col);
+        });
+      });
+    }(this);
     $$.update(
       [this.$$viewportWidth, viewportWidth],
       [this.$$viewportHeight, viewportHeight],
@@ -159,13 +166,6 @@ export class SmartGrid {
     for (var {label} of this.analyzer.sheets) {
       sheetNames.push(label);
     }
-    this.cells = function (sg) {
-      return range(0, sg.rowNum).map(function (row) {
-        return range(0, sg.colNum).map(function (col) {
-          return new Cell(sg, row, col);
-        });
-      });
-    }(this);
     let vf = function ($$activeSheetIdx) {
       return function ([activeSheetIdx, vScrollbar, hScrollbar, editor, grid]) {
         return h('.smart-grid', [

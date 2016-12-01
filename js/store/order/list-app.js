@@ -174,32 +174,34 @@ var $$tabNames = $$.connect(
 
 export default {
   page: {
-    $$view: $$tabs({
-      $$tabNames: $$tabNames,
-      $$activeIdx: $$.connect(
-        [$$queryObj, $$tabNames], function ([qo, tabNames]) {
-          return tabNames.indexOf(`${qo.type}(${qo.direction})`);
-        }
-      ),
-      onchange(idx, tabName) {
-        let re = /(.+)\((.+)\)/;
-        let m = tabName.match(re);
-        if (m) {
-          $$queryObj.patch({ type: m[1], direction: m[2] });
-        }
-      },
-      $$content: $$.connect(
-        [$$queryObj, $$loading, $$filters, $$table, $$tableHints({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('storeOrder'),
-        }), $$paginator({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('invoice'),
-        })], contentVf
-      ),
-    }),
+    get $$view() {
+      return $$tabs({
+        $$tabNames: $$tabNames,
+        $$activeIdx: $$.connect(
+          [$$queryObj, $$tabNames], function ([qo, tabNames]) {
+            return tabNames.indexOf(`${qo.type}(${qo.direction})`);
+          }
+        ),
+        onchange(idx, tabName) {
+          let re = /(.+)\((.+)\)/;
+          let m = tabName.match(re);
+          if (m) {
+            $$queryObj.patch({ type: m[1], direction: m[2] });
+          }
+        },
+        $$content: $$.connect(
+          [$$queryObj, $$loading, $$filters, $$table, $$tableHints({
+            $$totalCnt,
+            $$queryObj,
+            pageSize: config.getPageSize('storeOrder'),
+          }), $$paginator({
+            $$totalCnt,
+            $$queryObj,
+            pageSize: config.getPageSize('invoice'),
+          })], contentVf
+        ),
+      });
+    }
   },
   init(ctx) {
     $$loading.val(true);

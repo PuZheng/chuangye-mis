@@ -49,8 +49,13 @@ Slot.prototype.change = function (proc) {
 Slot.prototype.offChange = function (proc) {
   this.onChangeCbs = this.onChangeCbs.filter(cb => cb != proc);
 };
-Slot.prototype.val = function (newValue) {
+Slot.prototype.val = function val(newValue) {
   if (newValue === void 0) {
+    if (this.value === void 0 && this.valueFunc) {
+      this.value = this.valueFunc.apply(
+        this, [this.parents.map(it => it.val())]
+      );
+    }
     return this.value;
   } else {
     if (this.changed && !this.changed(this.value, newValue)) {
@@ -236,6 +241,12 @@ Slot.prototype.trans = function (p, tag) {
 };
 
 Slot.prototype.map = function (f) {
+  // since proxy will use field 'value', so let it initialized
+  if (this.value === void 0 && this.valueFunc) {
+    this.value = this.valueFunc.apply(
+      this, [this.parents.map(it => it.val())]
+    );
+  }
   return new Proxy(this, {
     get(target, name) {
       if (name == 'value') {
@@ -246,8 +257,9 @@ Slot.prototype.map = function (f) {
   });
 };
 
-Slot.prototype.connect = function (slots, valueFunc) {
+Slot.prototype.connect = function (slots, valueFunc, lazy=true) {
   let self = this;
+  self.value = void 0;
   self.valueFunc = valueFunc;
   // affected slots are parents/un-parents
   let affected = {};
@@ -269,10 +281,12 @@ Slot.prototype.connect = function (slots, valueFunc) {
     slot.children[self.id] = self;
   });
   // initialize
-  self.value = self.valueFunc.apply(
-    self,
-    [self.parents.map(parent => parent.val())]
-  );
+  if (!lazy) {
+    self.value = self.valueFunc.apply(
+      self,
+      [self.parents.map(parent => parent.val())]
+    );
+  }
   // make ancestors' offsprings obsolete
   self.getAncestors().forEach(function (ancestor) {
     ancestor.offsprings = void 0;
@@ -300,10 +314,10 @@ Slot.prototype.getAncestors = function() {
  * note! a child has only one chance to setup its parents
  * */
 var connect = function connect(
-  slots, valueFunc, tag, changed, parentsCalcOffsprings=false
+  slots, valueFunc, tag, changed, lazy=true
 ) {
   var self = new Slot(null, tag, changed);
-  return self.connect(slots, valueFunc, parentsCalcOffsprings);
+  return self.connect(slots, valueFunc, lazy);
 };
 
 var update = function (...slotValuePairs) {

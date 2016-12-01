@@ -175,7 +175,9 @@ var vf = function ([loading, obj, form]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$obj, $$form], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$obj, $$form], vf);
+    }
   },
   init(ctx) {
     let id = ctx.params.id;

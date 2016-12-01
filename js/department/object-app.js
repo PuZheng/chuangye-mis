@@ -84,7 +84,9 @@ let vf = function ([obj, errors, loading]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$obj, $$errors, $$loading], vf),
+    get $$view() {
+      return $$.connect([$$obj, $$errors, $$loading], vf);
+    }
   },
   init() {
     $$errors.val({});

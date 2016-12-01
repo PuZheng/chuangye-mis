@@ -81,7 +81,9 @@ var vf = function ([loading, list]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$list], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$list], vf);
+    }
   },
   init() {
     $$loading.toggle();

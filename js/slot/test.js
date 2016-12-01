@@ -167,6 +167,7 @@ test('changed4', function (t) {
   }, 's3', function () {
     return false;
   });
+  t.is($$s3.val(), 2);
   $$.update([$$s1, 2]);
   t.is($$s3.val(), 2);
   let $$s4 = $$.connect([$$s2], function([s2]) {
@@ -196,6 +197,7 @@ test('map', function (t) {
   }).map(function (v) {
     return v * 2;
   });
+
   t.is($$s2.val(), 4);
 });
 
@@ -207,7 +209,7 @@ test('refresh', function (t) {
   });
 
   let b = $$s1.refresh();
-  t.false(b);
+  t.true(b);
 
   $$s1 = $$.connect([], function () {
     let counter = 1;

@@ -70,15 +70,17 @@ var vf = function ([nameFilter, table, loading, tableHints, paginator]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$nameFilter, $$table, $$loading, $$tableHints({
-      $$totalCnt,
-      $$queryObj,
-      pageSize: config.getPageSize('tenant'),
-    }), $$paginator({
-      $$totalCnt,
-      $$queryObj,
-      pageSize: config.getPageSize('voucher'),
-    })], vf)
+    get $$view() {
+      return $$.connect([$$nameFilter, $$table, $$loading, $$tableHints({
+        $$totalCnt,
+        $$queryObj,
+        pageSize: config.getPageSize('tenant'),
+      }), $$paginator({
+        $$totalCnt,
+        $$queryObj,
+        pageSize: config.getPageSize('voucher'),
+      })], vf);
+    }
   },
   init() {
     $$loading.toggle();

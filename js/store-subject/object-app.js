@@ -120,11 +120,11 @@ var formVf = function ([obj, errors]) {
 
 var $$form = $$.connect([$$obj, $$errors], formVf);
 
-var $$view = $$.connect([$$loading, $$obj, $$form], vf);
-
 export default {
   page: {
-    $$view,
+    get $$view() {
+      return $$.connect([$$loading, $$obj, $$form], vf);
+    }
   },
   get dirty() {
     return dirty($$obj.val());

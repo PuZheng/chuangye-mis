@@ -241,23 +241,24 @@ var $$filters = $$.connect([
   ]);
 });
 
-var $$view = $$.connect([
-  $$loading,
-  $$paginator({
-    $$totalCnt,
-    $$queryObj,
-    pageSize: config.getPageSize('invoice'),
-  }),
-  $$tableHints({
-    $$totalCnt,
-    $$queryObj,
-    pageSize: config.getPageSize('invoice'),
-  }), $$filters, $$table, $$numberSearchBox,
-],
-vf);
-
 export default {
-  page: { $$view },
+  page: {
+    get $$view() {
+      return $$.connect([
+        $$loading,
+        $$paginator({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('invoice'),
+        }),
+        $$tableHints({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('invoice'),
+        }), $$filters, $$table, $$numberSearchBox,
+      ], vf);
+    }
+  },
   init() {
     $$loading.toggle();
     Promise.all([
@@ -266,8 +267,9 @@ export default {
       accountTermStore.list,
       entityStore.fetchList(),
       constStore.get(),
-    ]).then(function ([data, invoiceTypes, accountTerms, entities,
-                      { invoiceStatus }]) {
+    ]).then(function (
+      [data, invoiceTypes, accountTerms, entities, { invoiceStatus }]
+    ) {
       $$.update(
         [$$loading, false],
         [$$list, data.data],

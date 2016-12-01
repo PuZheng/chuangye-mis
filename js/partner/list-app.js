@@ -86,22 +86,24 @@ var $$table = $$.connect([$$idOth, $$enabledOth, $$list], tableVf);
 
 export default {
   page: {
-    $$view: $$.connect(
-      [
-        $$nameSearchBox, $$table, $$queryObj, $$loading,
-        $$tableHints({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('meter'),
-        }),
-        $$paginator({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('meter'),
-        })
-      ],
-      vf
-    ),
+    get $$view() {
+      return $$.connect(
+        [
+          $$nameSearchBox, $$table, $$queryObj, $$loading,
+          $$tableHints({
+            $$totalCnt,
+            $$queryObj,
+            pageSize: config.getPageSize('meter'),
+          }),
+          $$paginator({
+            $$totalCnt,
+            $$queryObj,
+            pageSize: config.getPageSize('meter'),
+          })
+        ],
+        vf
+      );
+    }
   },
   init(ctx) {
     $$loading.on();

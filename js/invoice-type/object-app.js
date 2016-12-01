@@ -215,7 +215,9 @@ var vf = function ([obj, loading, form]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$obj, $$loading, $$form], vf),
+    get $$view() {
+      return $$.connect([$$obj, $$loading, $$form], vf);
+    }
   },
   init(ctx) {
     $$.update(

@@ -323,7 +323,9 @@ var smartGrid;
 
 export default {
   page: {
-    $$view: $$.connect([$$obj, $$tabs, $$form, $$loading], vf),
+    get $$view() {
+      return $$.connect([$$obj, $$tabs, $$form, $$loading], vf);
+    },
     onUpdated() {
       smartGrid && smartGrid.onUpdated();
     },
@@ -342,7 +344,8 @@ export default {
       let departments = yield departmentStore.list;
       let accountTerms = yield accountTermStore.list;
       if (activeAccountTermId == void 0) {
-        activeAccountTermId = (accountTerms.filter(R.prop('closed'))[0] || {}).id;
+        activeAccountTermId = (accountTerms.filter(R.prop('closed'))[0]
+          || {}).id;
       }
       copy = R.clone(obj);
       let account = {};
