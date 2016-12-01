@@ -24,11 +24,11 @@ var dirty = function (obj) {
 
 var vf = function ([loading, form, obj]) {
   return h(classNames('object-app', loading && 'loading'), [
-    h(classNames('header', dirty(obj) && 'dirty'), 
-      R.ifElse(R.prop('id'), R.always(`编辑用户-${obj.username}`), 
+    h(classNames('header', dirty(obj) && 'dirty'),
+      R.ifElse(R.prop('id'), R.always(`编辑用户-${obj.username}`),
                R.always('创建用户'))(obj)),
     form,
-  ]);    
+  ]);
 };
 
 
@@ -73,14 +73,14 @@ var formVf = function ([errors, obj, roleDropdown]) {
     }
   }, [
     field({
-      key: 'username', 
-      label: '用户名', 
+      key: 'username',
+      label: '用户名',
       input: h('input', {
         value: obj.username,
         onchange() {
           $$obj.patch({ username: this.value });
         }
-      }), 
+      }),
       errors,
       required: true
     }),
@@ -89,15 +89,15 @@ var formVf = function ([errors, obj, roleDropdown]) {
       R.prop('id'),
       () => '',
       () => field({
-        key: 'password', 
-        label: '密码', 
+        key: 'password',
+        label: '密码',
         input: h('input', {
           type: 'password',
           value: obj.password,
           onchange() {
             $$obj.patch({ password: this.value });
           }
-        }), 
+        }),
         errors,
         required: true
       })
@@ -106,8 +106,8 @@ var formVf = function ([errors, obj, roleDropdown]) {
       R.prop('id'),
       () => '',
       () => field({
-        key: 'passwordAg', 
-        label: '再次输入密码', 
+        key: 'passwordAg',
+        label: '再次输入密码',
         input: h('input', {
           type: 'password',
           value: obj.passwordAg,
@@ -120,9 +120,9 @@ var formVf = function ([errors, obj, roleDropdown]) {
       })
     )(obj),
     field({
-      key: 'role', 
-      label: '角色', 
-      input: roleDropdown, 
+      key: 'role',
+      label: '角色',
+      input: roleDropdown,
       errors,
       required: true
     }),
@@ -138,7 +138,7 @@ var formVf = function ([errors, obj, roleDropdown]) {
 };
 
 var $$roleDropdown = $$dropdown({
-  defaultText: '请选择用户组', 
+  defaultText: '请选择用户组',
   onchange(role) {
     $$obj.patch({ role });
   },
@@ -151,7 +151,9 @@ var $$form = $$.connect([$$errors, $$obj, $$roleDropdown], formVf);
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$form, $$obj], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$form, $$obj], vf);
+    }
   },
   init(ctx) {
     let { id } = ctx.params;
@@ -167,7 +169,7 @@ export default {
         [$$loading, false],
         [$$obj, obj],
         [$$roles, roles]
-      ); 
+      );
     });
   },
   get dirty() {

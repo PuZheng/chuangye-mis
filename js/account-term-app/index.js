@@ -154,8 +154,6 @@ var vf = ([uninitializedList, list]) => {
   ]);
 };
 
-var $$view = $$.connect([$$uninitialized, $$list], vf);
-
 var init = function () {
   $$loading.val(true);
   accountTermStore.list
@@ -170,7 +168,9 @@ var init = function () {
 
 export default {
   page: {
-    $$view,
+    get $$view() {
+      return $$.connect([$$uninitialized, $$list], vf);
+    }
   },
   init,
 };

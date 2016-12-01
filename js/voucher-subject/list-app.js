@@ -127,7 +127,9 @@ var $$filters = $$.connect(
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$nameSearchBox, $$filters, $$table], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$nameSearchBox, $$filters, $$table], vf);
+    }
   },
   init(ctx) {
     $$loading.val(true);

@@ -11,7 +11,7 @@ var ThrottleSlot = function () {
       for (var level of that.offspringsByLevels) {
         for (var slot of level) {
           opt.debug && console.info(`slot: slot ${slot.tag} will be refreshed`);
-          slot.refresh();
+          slot.refresh(null, true);
         }
       }
       that.dirty = false;
@@ -25,6 +25,11 @@ ThrottleSlot.prototype = Object.create($$.Slot.prototype);
 
 ThrottleSlot.prototype.val = function (newValue) {
   if (newValue === undefined) {
+    if (this.value === void 0 && this.valueFunc) {
+      this.value = this.valueFunc.apply(
+        this, [this.parents.map(it => it.val())]
+      );
+    }
     return this.value;
   } else {
     opt.debug && console.info(

@@ -207,17 +207,19 @@ var viewVf = function ([loading, table, paginator, tableHints,
 
 export default {
   page: {
-    $$view: $$.connect([
-      $$loading, $$table, $$paginator({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('voucher'),
-      }),
-      $$tableHints({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('voucher'),
-      }), $$filters], viewVf)
+    get $$view() {
+      return $$.connect([
+        $$loading, $$table, $$paginator({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('voucher'),
+        }),
+        $$tableHints({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('voucher'),
+        }), $$filters], viewVf);
+    }
   },
   init() {
     $$loading.toggle();

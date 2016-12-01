@@ -241,7 +241,9 @@ var vf = function ([loading, obj, form]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$obj, $$form], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$obj, $$form], vf);
+    }
   },
   get diry() {
     return dirty($$obj.val());

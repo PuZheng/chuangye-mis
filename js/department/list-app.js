@@ -74,8 +74,10 @@ var vf = function ([loading, departments, searchText, searchBox]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$departments, $$searchText, $$searchBox],
-                       vf, 'departments-app'),
+    get $$view() {
+      return $$.connect([$$loading, $$departments, $$searchText, $$searchBox],
+                        vf, 'departments-app');
+    }
   },
   init() {
     $$loading.val(true);

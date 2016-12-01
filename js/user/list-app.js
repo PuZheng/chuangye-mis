@@ -82,7 +82,9 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$listVNode], vf)
+    get $$view() {
+      return $$.connect([$$loading, $$listVNode], vf);
+    }
   },
   init() {
     $$loading.val(true);

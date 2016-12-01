@@ -51,20 +51,22 @@ var $$table = $$.connect([$$list], tableVf);
 
 export default {
   page: {
-    $$view: $$.connect([
-      $$loading,
-      $$searchBox({
-        defaultText: '按名称搜索',
-        $$searchText: $$queryObj.trans(R.propOr('', 'kw')),
-        onsearch(kw) {
-          $$queryObj.patch({ kw, page: 1 });
-        },
-        getHints(kw) {
-          return storeSubjectStore.getHints(kw);
-        }
-      }),
-      $$table,
-    ], vf)
+    get $$view() {
+      return $$.connect([
+        $$loading,
+        $$searchBox({
+          defaultText: '按名称搜索',
+          $$searchText: $$queryObj.trans(R.propOr('', 'kw')),
+          onsearch(kw) {
+            $$queryObj.patch({ kw, page: 1 });
+          },
+          getHints(kw) {
+            return storeSubjectStore.getHints(kw);
+          }
+        }),
+        $$table,
+      ], vf);
+    }
   },
   init(ctx) {
     $$loading.val(true);

@@ -500,7 +500,9 @@ var $$form = $$.connect(
 
 export default {
   page: {
-    $$view: $$.connect([$$loading, $$obj, $$form, $$invoiceStatus], vf),
+    get $$view() {
+      return $$.connect([$$loading, $$obj, $$form, $$invoiceStatus], vf);
+    }
   },
   init(ctx) {
     let { id } = ctx.params;

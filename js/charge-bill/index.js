@@ -16,7 +16,8 @@ var h = virtualDom.h;
 
 var smartGrid;
 var $$loading = $$(false, 'loading');
-var $$view = $$.connect(
+
+var $$view_ = $$.connect(
   [$$loading],
   function (loading) {
     return h('#charge-bills' + classNames(loading && 'loading'));
@@ -135,7 +136,9 @@ var makeDef = function (meters, tenants) {
 
 export default {
   page: {
-    $$view,
+    get $$view() {
+      return $$view_;
+    },
     onUpdated() {
       smartGrid && smartGrid.onUpdated();
     },
@@ -190,7 +193,7 @@ export default {
             })), 'content'),
       });
       smartGrid = new sg.SmartGrid(obj.def);
-      $$view.connect(
+      $$view_.connect(
         [sidebar.$$view, smartGrid.$$view, $$dirty, $$loading],
         function ([sidebar, smartGridVNode, dirty, loading]) {
           return h('#charge-bills' + classNames(loading && 'loading'), [

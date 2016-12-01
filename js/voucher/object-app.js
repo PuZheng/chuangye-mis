@@ -344,15 +344,16 @@ var $$form = $$.connect([
   $$payerDropdown, $$recipientDropdown
 ], formVf, 'voucher-form');
 
-const $$view = $$.connect(
-  [$$obj, $$form],
-  vf,
-  'voucher-object-app');
-
 export
 default {
   page: {
-    $$view,
+    get $$view() {
+      return $$.connect(
+        [$$obj, $$form],
+        vf,
+        'voucher-object-app'
+      );
+    }
   },
   get dirty() {
     return dirty($$obj.val());

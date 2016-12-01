@@ -254,7 +254,9 @@ var $$form = $$.connect(
 
 export default {
   page: {
-    $$view: $$.connect([$$obj, $$form, $$loading], vf),
+    get $$view() {
+      return $$.connect([$$obj, $$form, $$loading], vf);
+    }
   },
   init(ctx) {
     let { id } = ctx.params;
