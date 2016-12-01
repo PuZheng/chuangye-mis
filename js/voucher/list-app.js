@@ -16,6 +16,7 @@ import voucherSubjectStore from 'store/voucher-subject-store';
 import entityStore from 'store/entity-store';
 import moment from 'moment';
 import R from 'ramda';
+import accountTermStore from 'store/account-term-store';
 
 var h = virtualDom.h;
 
@@ -23,6 +24,7 @@ var $$list = $$([], 'list');
 var $$loading = $$(false, 'loading');
 var $$voucherTypes = $$([], 'voucher-types');
 var $$voucherSubjects = $$([], 'voucher-subjects');
+var $$accountTerms = $$([], 'account-terms');
 
 var $$numberFilter = $$searchBox({
   defaultText: '请输入凭证号',
@@ -119,11 +121,12 @@ var $$recipientFilter = $$searchDropdown({
 
 var filtersVf = function ([
   numberFilter, dateFilter, typeFilter, subjectFilter,
-  payerFilter, recipientFilter
+  payerFilter, recipientFilter, accountTermFilter,
 ]) {
   return h('.filters', [
     numberFilter,
     dateFilter,
+    accountTermFilter,
     typeFilter,
     subjectFilter,
     payerFilter,
@@ -131,12 +134,28 @@ var filtersVf = function ([
   ]);
 };
 
+var $$accountTermFilter = $$searchDropdown({
+  defaultText: '请选择账期',
+  $$value: $$queryObj.trans(R.prop('account_term_id')),
+  $$options: $$accountTerms.trans(R.map(it => ({
+    value: it.id,
+    text: it.name,
+  }))),
+  onchange(account_term_id) {
+    $$queryObj.patch({ account_term_id, });
+  }
+});
+
 var $$filters = $$.connect([
   $$numberFilter, $$dateFilter, $$typeFilter,
-  $$subjectFilter, $$payerFilter, $$recipientFilter],
+  $$subjectFilter, $$payerFilter, $$recipientFilter,
+  $$accountTermFilter,
+],
 filtersVf);
 
-var tableVf = function ([list, idOth, dateOth, amountOth]) {
+
+
+var tableVf = function ([list, idOth, dateOth, amountOth, accountTermOth]) {
   return h('table.table.striped.compact', [
     h('thead', [
       h('tr', [
@@ -144,6 +163,7 @@ var tableVf = function ([list, idOth, dateOth, amountOth]) {
         h('th', '凭证号'),
         amountOth,
         dateOth,
+        accountTermOth,
         h('th', '类型'),
         h('th', '项目'),
         h('th', '支付方'),
@@ -164,6 +184,7 @@ var tableVf = function ([list, idOth, dateOth, amountOth]) {
         ]),
         h('td', '' + v.amount),
         h('td', moment(v.date).format('YYYY-MM-DD')),
+        h('td', v.accountTerm.name),
         h('td', v.voucherType.name),
         h('td', v.voucherSubject.name),
         h('td', v.payer.name),
@@ -180,6 +201,7 @@ var $$table = $$.connect(
     $$myOth({ label: '编号', column: 'id' }),
     $$myOth({ label: '日期', column: 'date' }),
     $$myOth({ label: '金额(元)', column: 'amount' }),
+    $$myOth({ label: '账期', column: 'account_term_id' }),
   ],
   tableVf
 );
@@ -228,14 +250,18 @@ export default {
       voucherTypeStore.list,
       voucherSubjectStore.list,
       entityStore.fetchList(),
-    ]).then(function ([data, voucherTypes, voucherSubjects, entities]) {
+      accountTermStore.list,
+    ]).then(function (
+      [data, voucherTypes, voucherSubjects, entities, accountTerms]
+    ) {
       $$.update(
         [$$list, data.data],
         [$$totalCnt, data.totalCnt],
         [$$voucherTypes, voucherTypes],
         [$$voucherSubjects, voucherSubjects],
         [$$entities, entities],
-        [$$loading, false]
+        [$$loading, false],
+        [$$accountTerms, accountTerms]
       );
     });
   }
