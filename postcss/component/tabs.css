@@ -1,10 +1,14 @@
 .tabs {
-    & .tabluar.menu, .content {
+    & .tabular.menu, .content {
         margin-left: 5px;
         margin-right: 5px;
     }
-    & .content {
-        border: 1px solid var(--color-gray-light);
-        padding: 5px;
+    & .tabular.menu {
+        height: 100%;
+        & > .content {
+            border: 1px solid var(--color-gray-light);
+            padding: 5px;
+            height: calc(100% - 2.2rem - 10px);
+        }
     }
 }

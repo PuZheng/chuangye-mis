@@ -203,6 +203,7 @@
         position: absolute;
         bottom: 0;
         height: var(--tab-nav-height);
+        background: white;
 
         & a {
             -webkit-user-select: none;
