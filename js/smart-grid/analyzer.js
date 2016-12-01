@@ -26,7 +26,7 @@ export var getNextCellDef = function getNextCellDef(grids, i, j) {
     cellDef = row[j];
     break;
   }
-  if (cellDef) {
+  if (cellDef !== void 0) {
     return [cellDef, i, j];
   }
   return [];
@@ -132,6 +132,9 @@ class Analyzer {
    * normalize a cell's definition and normalize it
    * */
   normalize(cellDef) {
+    if (typeof cellDef === 'number') {
+      cellDef = String(cellDef);
+    }
     if (typeof cellDef === 'string') {
       cellDef = {
         val: cellDef,

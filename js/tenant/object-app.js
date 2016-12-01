@@ -14,6 +14,9 @@ import accountStore from 'store/account-store';
 import accountTermStore from 'store/account-term-store';
 import overlay from '../overlay';
 import moment from 'moment';
+import Scrollable from '../scrollable';
+import {SmartGrid} from 'smart-grid';
+import accountBookStore from 'store/account-book-store';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -49,7 +52,7 @@ var $$departmentDropdown = $$searchDropdown({
   }
 });
 
-var formVf = function ([errors, departmentDropdown, obj, account]) {
+var formVf = function ([errors, departmentDropdown, obj]) {
   return h('form.form', {
     onsubmit() {
       $$errors.val({});
@@ -69,10 +72,11 @@ var formVf = function ([errors, departmentDropdown, obj, account]) {
         }
         try {
           $$loading.toggle();
+          let newTenant = !obj.id;
           Object.assign(obj, yield tenantStore.save(obj));
           copy = R.clone(obj);
           // 新创建了承包人，需要关联账户
-          if (obj.entityId && !account.entityId) {
+          if (newTenant) {
             $$account.val({ entityId: obj.entityId });
           }
           $$toast.val({
@@ -159,7 +163,7 @@ var formVf = function ([errors, departmentDropdown, obj, account]) {
 };
 
 var $$form = $$.connect(
-  [$$errors, $$departmentDropdown, $$obj, $$account], formVf
+  [$$errors, $$departmentDropdown, $$obj], formVf
 );
 
 var accountFormVf = function accountFormVf(
@@ -283,29 +287,30 @@ var accountFormVf = function accountFormVf(
 var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
                                accountFormVf);
 
-var tabsVf = function ([activeTabIdx, accountForm, form]) {
+var tabsVf = function ([activeTabIdx, content]) {
   return h('.tabs', [
     h('.tabular.menu', [
-      h(classNames('item', activeTabIdx === 0 && 'active'), {
-        onclick() {
-          $$activeTabIdx.val(0);
-        }
-      }, '账户信息'),
-      h(classNames('item', activeTabIdx === 1 && 'active'), {
-        onclick() {
-          $$activeTabIdx.val(1);
-        }
-      }, '基本信息'),
-      h('.content', [accountForm, form][activeTabIdx])
+      ...['账户信息', '基本信息', '账簿'].map(function (tabName, idx) {
+        return h(classNames('item', activeTabIdx == idx && 'active'), {
+          onclick() {
+            page(location.pathname + '?active_tab_idx=' + idx);
+          }
+        }, tabName);
+      }),
+      h('.content', content)
     ]),
   ]);
 };
 
-var $$tabs = $$.connect([$$activeTabIdx, $$accountForm, $$form], tabsVf);
+var $$activeAccountTermId = $$(0, 'active-account-term-id');
+
+var $$tabs = $$.connect(
+  [$$activeTabIdx, $$('')], tabsVf
+);
 
 
 var vf = function ([obj, tabs, form, loading]) {
-  return h('.object-app' + (loading? '.loading': ''), [
+  return h('#tenant-app.object-app' + (loading? '.loading': ''), [
     h(
       '.header' + (dirty(obj)? '.dirty': ''),
       obj.id? `承包人-${obj.entity.name}`: '创建承包人'
@@ -314,29 +319,96 @@ var vf = function ([obj, tabs, form, loading]) {
   ]);
 };
 
+var smartGrid;
 
 export default {
   page: {
     $$view: $$.connect([$$obj, $$tabs, $$form, $$loading], vf),
+    onUpdated() {
+      smartGrid && smartGrid.onUpdated();
+    },
   },
   get dirty() {
     return !R.equals($$obj.val(), copy);
   },
   init(ctx) {
     let { id } = ctx.params;
+    let { active_tab_idx: activeTabIdx=0 } = ctx.query;
+    let { active_account_term_id: activeAccountTermId } = ctx.query;
+    $$activeTabIdx.val(activeTabIdx);
     return co(function *() {
       $$loading.on();
-      let departments = yield departmentStore.list;
       let obj = id? (yield tenantStore.get(id)): {};
+      let departments = yield departmentStore.list;
       let accountTerms = yield accountTermStore.list;
+      if (activeAccountTermId == void 0) {
+        activeAccountTermId = (accountTerms.filter(R.prop('closed'))[0] || {}).id;
+      }
       copy = R.clone(obj);
       let account = {};
       if (obj.entityId) {
         account = yield accountStore.getByEntityId(obj.entityId);
-        console.log(account);
         // 没有关联账户
         if (!account) {
           account = { entityId: obj.entityId };
+        }
+        switch (Number(activeTabIdx)) {
+        case 0: {
+          $$tabs.connect([$$activeTabIdx, $$accountForm], tabsVf);
+          break;
+        }
+        case 1: {
+          $$tabs.connect([$$activeTabIdx, $$form], tabsVf);
+          break;
+        }
+        case 2: {
+          let accountBook = yield accountBookStore.get(obj.entityId,
+                                                       activeAccountTermId);
+          let myScrollable = new Scrollable({
+            tag: 'aside',
+            $$content: $$.connect(
+              [$$accountTerms, $$activeAccountTermId],
+              function ([accountTerms, activeAccountTermId]) {
+                return h(
+                  '.borderless.vertical.fluid.menu',
+                  accountTerms.filter(R.prop('closed')).map(function (at) {
+                    return h(
+                      'a' + classNames(
+                        'item', at.id == activeAccountTermId && 'active'
+                      ), {
+                        onclick() {
+                          page(location.pathname +
+                               '?active_tab_idx=2&active_account_term_id=' +
+                               at.id);
+                        }
+                      }, at.name
+                    );
+                  })
+                );
+              }),
+          });
+          let accountBooksVf = function ([scrollable, grid]) {
+            return [
+              scrollable,
+              grid
+            ];
+          };
+          let $$accountBooks = R.ifElse(
+            R.identity(),
+            function (accountBook) {
+              smartGrid = new SmartGrid(accountBook.def);
+              return $$.connect([myScrollable.$$view, smartGrid.$$view],
+                                accountBooksVf);
+            },
+            function () {
+              return $$.connect([myScrollable.$$view], accountBooksVf);
+            }
+          )(accountBook);
+          $$tabs.connect([$$activeTabIdx, $$accountBooks], tabsVf);
+          break;
+        }
+        default:
+
         }
       }
       $$.update(
@@ -344,7 +416,8 @@ export default {
         [$$departments, departments],
         [$$obj, obj],
         [$$account, account],
-        [$$accountTerms, accountTerms]
+        [$$accountTerms, accountTerms],
+        [$$activeAccountTermId, activeAccountTermId]
       );
     });
   }

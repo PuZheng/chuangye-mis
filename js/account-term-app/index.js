@@ -121,7 +121,18 @@ var vf = ([uninitializedList, list]) => {
                           message: '账期已经关闭'
                         });
                         init();
+                      })
+                      .catch(function (e) {
+                        console.error(e);
+                        if (R.path(['response', 'status'])(e) == 400) {
+                          $$toast.val({
+                            type: 'error',
+                            message: '出错了!' +
+                              R.path(['response', 'data', 'reason'])(e),
+                          });
+                        }
                       });
+
                     }
                   }, '确认')
                 ]
