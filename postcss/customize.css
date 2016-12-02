@@ -321,3 +321,9 @@ a {
         }
     }
 }
+
+#tenant-list-app {
+    & .no-account {
+        border: 1px solid var(--color-accent);
+    }
+}

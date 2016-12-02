@@ -7,6 +7,7 @@ import $$tableHints from '../widget/table-hints';
 import tenantStore from '../store/tenant-store';
 import config from '../config';
 import page from 'page';
+import R from 'ramda';
 
 var h = virtualDom.h;
 
@@ -20,14 +21,23 @@ var tableVf = function ([tenants]) {
       h('th', '姓名'),
       h('th', '车间'),
       h('th', '联系方式'),
+      h('th', '累计收入'),
+      h('th', '累计开销'),
+      h('th', '账户结存')
     ])),
     h('tbody', tenants.map(function (t) {
-      return h('tr', [
+      let income = R.path(['account', 'income'])(t);
+      let expense = R.path(['account', 'expense'])(t);
+      let accountUnitialized = income == void 0 || expense == void 0;
+      return h('tr' + (accountUnitialized? '.no-account': ''), [
         h('td', h('a', {
           href: '/tenant/' + t.id,
         }, t.entity.name)),
         h('td', t.department.name),
         h('td', t.contact),
+        h('td', income === void 0? '--': '' + income),
+        h('td', expense === void 0? '--': '' + expense),
+        h('td', income && expense? income - expense + '': '--'),
       ]);
     })),
   ]);
@@ -50,8 +60,10 @@ var $$nameFilter = $$searchBox({
 
 });
 
-var vf = function ([nameFilter, table, loading, tableHints, paginator]) {
-  return h('.list-app' + (loading? '.loading': ''), [
+var vf = function (
+  [nameFilter, filters, table, loading, tableHints, paginator]
+) {
+  return h('#tenant-list-app.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '承包人列表'),
       h('button.new-btn', {
@@ -62,24 +74,55 @@ var vf = function ([nameFilter, table, loading, tableHints, paginator]) {
       }, h('i.fa.fa-plus')),
       h('.search', nameFilter),
     ]),
+    filters,
     table,
     tableHints,
     h('.paginator-container', paginator),
   ]);
 };
 
+var $$onlyAccountUninitialized = $$.connect([$$queryObj], function ([qo]) {
+  return h('.checkbox', [
+    h('input', {
+      type: 'checkbox',
+      checked: qo.only_account_uninitialized == '1',
+      onchange() {
+        $$queryObj.patch(
+          { only_account_uninitialized: this.checked? '1': '0' }
+        );
+      }
+    }),
+    h('label', {
+      onclick() {
+        $$queryObj.patch({
+          only_account_uninitialized:
+            qo.only_account_uninitialized == '1'? '0': '1'
+        });
+      }
+    }, '仅看账户未初始化'),
+  ]);
+});
+
+var $$filters = $$.connect(
+  [$$onlyAccountUninitialized], function ([onlyAccountUninitialized]) {
+    return h('.filters', [onlyAccountUninitialized]);
+  }
+);
+
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$nameFilter, $$table, $$loading, $$tableHints({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('tenant'),
-      }), $$paginator({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('voucher'),
-      })], vf);
+      return $$.connect(
+        [$$nameFilter, $$filters, $$table, $$loading, $$tableHints({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('tenant'),
+        }), $$paginator({
+          $$totalCnt,
+          $$queryObj,
+          pageSize: config.getPageSize('voucher'),
+        })], vf
+      );
     }
   },
   init() {
