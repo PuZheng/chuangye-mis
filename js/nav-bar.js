@@ -193,6 +193,20 @@ var $$meter = function () {
             },
             R.always('')
           )(mods),
+          R.ifElse(
+            R.prop('editMeterReadings'),
+            () => h(
+              'a' + classNames(
+                'item', (currentMod === 'meter.meter_reading') && 'active'
+              ), {
+                href: '/meter-readings',
+                onclick() {
+                  $$expanded.off();
+                }
+              }, '读数设置'
+            ),
+            R.always('')
+          )(mods),
         ])
       ],
       R.always('')
@@ -429,12 +443,13 @@ export var setupNavBar = function (mod) {
     .could('edit.charge_bill')
     .could('edit.store_subject')
     .could('edit.partner')
+    .could('edit.meter_reading')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editMeter, editMeterType,
       editAccountTerm, editInvoiceType, editVoucherSubject,
       editUser, manageStore, editChargeBill, editStoreSubject,
-      editPartner
+      editPartner, editMeterReadings
     ) {
       constStore.get()
       .then(function ({ invoiceStatus, entityTypes }) {
@@ -454,7 +469,8 @@ export var setupNavBar = function (mod) {
             manageStore,
             editChargeBill,
             editStoreSubject,
-            editPartner
+            editPartner,
+            editMeterReadings,
           }],
           [$$currentMod, mod],
           [$$invoiceStatus, invoiceStatus],
