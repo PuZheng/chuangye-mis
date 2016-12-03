@@ -21,7 +21,7 @@ var dirty = function (obj) {
   return !R.equals(obj, copy);
 };
 
-var vf = function ([loading, obj, errors, readingEditor]) {
+var vf = function ([loading, obj, errors, readingTypeEditor]) {
   return h(classNames('object-app', loading && 'loading'), [
     h(classNames('header', dirty(obj) && 'dirty'), R.ifElse(
       R.prop('id'),
@@ -77,7 +77,7 @@ var vf = function ([loading, obj, errors, readingEditor]) {
         errors,
         required: true
       }),
-      readingEditor,
+      readingTypeEditor,
       h('hr'),
       h('button.primary', '提交'),
       h('button', {
@@ -92,11 +92,11 @@ var vf = function ([loading, obj, errors, readingEditor]) {
 };
 
 // 读数编辑器
-var $$readingEditor = function () {
-  let $$meterReading = $$({}, 'meter-reading');
+var $$readingTypeEditor = function () {
+  let $$meterReadingType = $$({}, 'meter-reading-type');
   let $$settingsDropdown = $$searchDropdown({
     defaultText: '选择相关价格配置项',
-    $$value: $$meterReading.trans(R.propOr('', 'priceSettingId')),
+    $$value: $$meterReadingType.trans(R.propOr('', 'priceSettingId')),
     $$options: $$settings.trans(R.map(function ({ id, name, group }) {
       return {
         value: id,
@@ -105,20 +105,22 @@ var $$readingEditor = function () {
       };
     })),
     onchange(priceSettingId) {
-      $$meterReading.patch({ priceSettingId });
+      $$meterReadingType.patch({ priceSettingId });
     },
     optionGroup: R.prop('group')
   });
-  let vf = function ([obj, meterReading, errors, settingsDropdown, settings]) {
-    let err = errors['meterReadings'];
+  let vf = function (
+    [obj, meterReadingType, errors, settingsDropdown, settings]
+  ) {
+    let err = errors['meterReadingTypes'];
     return h('.field.inline', [
       h('.border.border-box.p2', [
         h('input', {
           placeholder: '输入读数名称',
           oninput() {
-            $$meterReading.patch({ name: this.value });
+            $$meterReadingType.patch({ name: this.value });
           },
-          value: meterReading.name || '',
+          value: meterReadingType.name || '',
         }),
         settingsDropdown,
         h('button.btn.btn-outline', {
@@ -127,12 +129,12 @@ var $$readingEditor = function () {
           },
           onclick(e) {
             e.preventDefault();
-            if (meterReading.name && meterReading.priceSettingId) {
+            if (meterReadingType.name && meterReadingType.priceSettingId) {
               $$obj.patch({
-                meterReadings: (obj.meterReadings || [])
-                .concat([R.clone(meterReading)])
+                meterReadingTypes: (obj.meterReadingTypes || [])
+                .concat([R.clone(meterReadingType)])
               });
-              $$meterReading.patch({
+              $$meterReadingType.patch({
                 name: '',
                 priceSettingId: '',
               });
@@ -141,10 +143,11 @@ var $$readingEditor = function () {
           },
         }, '添加读数'),
         R.ifElse(
-          meterReadings => meterReadings == void 0 || R.isEmpty(meterReadings),
+          meterReadingTypes => meterReadingTypes == void 0 ||
+            R.isEmpty(meterReadingTypes),
           R.always(''),
-          function (meterReadings=[]) {
-            return h('.segment', meterReadings.map(function (it, idx) {
+          function (meterReadingTypes=[]) {
+            return h('.segment', meterReadingTypes.map(function (it, idx) {
               let setting = R.find(R.propEq('id', it.priceSettingId))(settings);
               return h('.item', [
                 h('.title', it.name + `(${setting.name})`),
@@ -152,9 +155,11 @@ var $$readingEditor = function () {
                   onclick(e) {
                     e.preventDefault();
                     $$obj.patch({
-                      meterReadings: meterReadings.filter(function (it, idx_) {
-                        return idx_ != idx;
-                      })
+                      meterReadingTypes: meterReadingTypes.filter(
+                        function (it, idx_) {
+                          return idx_ != idx;
+                        }
+                      )
                     });
                     return false;
                   }
@@ -162,13 +167,13 @@ var $$readingEditor = function () {
               ]);
             }));
           }
-        )(obj.meterReadings),
+        )(obj.meterReadingTypes),
       ]),
       err? h('.label.pointing.error', err): '',
     ]);
   };
   return $$.connect(
-    [$$obj, $$meterReading, $$errors, $$settingsDropdown, $$settings],
+    [$$obj, $$meterReadingType, $$errors, $$settingsDropdown, $$settings],
     vf
   );
 }();
@@ -176,7 +181,7 @@ var $$readingEditor = function () {
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$loading, $$obj, $$errors, $$readingEditor], vf);
+      return $$.connect([$$loading, $$obj, $$errors, $$readingTypeEditor], vf);
     }
   },
   init(ctx) {

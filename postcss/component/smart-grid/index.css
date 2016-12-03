@@ -204,6 +204,7 @@
         bottom: 0;
         height: var(--tab-nav-height);
         background: white;
+        width: 100%;
 
         & a {
             -webkit-user-select: none;
