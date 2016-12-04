@@ -207,13 +207,16 @@ class Cell {
     // it could be more sophisticated
     let properties = {
       hook: this.editorHook,
+      value: (def && def.val) || '',
       attributes: {
         class: 'editor',
         type: 'text',
-        value: (def && def.val) || '',
         style: editing? '': 'display: none',
       }
     };
+    if (this.tag == 'H3' || this.tag == 'I3') {
+      console.log(def);
+    }
     return new VNode('input', properties);
   }
   makeContentVnode(def, val, editing) {

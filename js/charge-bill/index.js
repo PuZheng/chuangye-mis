@@ -73,10 +73,10 @@ var makeDef = function (meters, tenants) {
         val: '承包人',
       }, {
         val: '表设备',
-      }, ...meterType.meterReadings.map(function (it) {
-        return {
-          val: it.name
-        };
+      }, ...meterType.meterReadingTypes.map(function ({ name }) {
+        return { val: '上期' + name };
+      }), ...meterType.meterReadingTypes.map(function ({ name }) {
+        return { val: name };
       }), {
         val: '总费用(元)'
       }
@@ -90,21 +90,34 @@ var makeDef = function (meters, tenants) {
           readonly: true
         }, {
           val: R.find(R.propEq('id', meter.departmentId))(tenants).entity.name,
+          readonly: true
         }, {
           // B(idx + 1)
           val: meter.name,
           readonly: true
-        }, ...meterType.meterReadings.map(function (mr) {
+        }, ...meterType.meterReadingTypes.map(function ({ id, name }) {
+          let { value } = R.find(
+            R.propEq('meterReadingTypeId', id)
+          )(meter.meterReadings) || {};
           return {
-            label: meter.id + '-' + mr.name,
+            label: meter.name + '-上期' + name,
+            val: value,
+            readonly: true
+          };
+        }), ...meterType.meterReadingTypes.map(function ({ name }) {
+          return {
+            label: meter.name + '-' + name,
             __onchange: onCellChange,
           };
-        }),
-        {
-          val: '=' + meterType.meterReadings.map(function (mr) {
-            return ('${' + meter.id + '-' + mr.name + '}*' + '${setting-'
-                    + mr.priceSetting.name + '}');
-          }).join('+'),
+        }), {
+          val: '=' + meterType.meterReadingTypes.map(
+            function ({ name, priceSetting }) {
+              let lastValueQuote = '${' + meter.name + '-上期' + name + '}';
+              let valueQuote = '${' + meter.name + '-' + name + '}';
+              let settingQuote = '${' + 'setting-' + priceSetting.name + '}';
+              return `(${valueQuote} - ${lastValueQuote}) * ${settingQuote}`;
+            }
+          ).join('+'),
           __makeVNode: makeSumVNode,
           readonly: true,
           label: 'sum-of-' + meter.department.id,
@@ -114,13 +127,13 @@ var makeDef = function (meters, tenants) {
     def.sheets.push({
       label: meterType.name,
       grids: [
-        R.flatten(meterType.meterReadings.map(function (it) {
+        R.flatten(meterType.meterReadingTypes.map(function ({ priceSetting }) {
           return [Object.assign({
-            val: it.priceSetting.name + '(元)',
+            val: priceSetting.name + '(元)',
           }, headerCellDef), {
             readonly: true,
-            val: it.priceSetting.value,
-            label: 'setting-' + it.priceSetting.name,
+            val: priceSetting.value,
+            label: 'setting-' + priceSetting.name,
             style: {
               border: '1px solid red',
             }
