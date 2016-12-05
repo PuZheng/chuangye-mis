@@ -11,6 +11,7 @@ import chargeBillStore from 'store/charge-bill-store';
 import paymentRecordStore from 'store/payment-record-store';
 import co from 'co';
 import { $$toast } from '../toast';
+import makeGridDef from './make-grid-def';
 
 var h = virtualDom.h;
 
@@ -30,13 +31,6 @@ var onCellChange = function () {
   $$dirty.val(true);
 };
 
-var makeSumVNode = function (cell, val) {
-  let vNode = cell.makeVNode(val);
-  if (!val) {
-    vNode.properties.attributes.class += ' unfullfilled';
-  }
-  return vNode;
-};
 
 var getActiveAccountTermId = function (accountTermName, accountTerms) {
   let ret;
@@ -49,102 +43,6 @@ var getActiveAccountTermId = function (accountTermName, accountTerms) {
     }
   }
   return ret;
-};
-
-var makeDef = function (meters, tenants) {
-  let headerCellDef = {
-    readonly: true,
-    style: {
-      background: 'teal',
-      color: 'yellow',
-      fontWeight: 'bold',
-      whiteSpace: 'nowrap',
-    }
-  };
-  let def = { sheets: [] };
-  for (let [, group] of R.toPairs(
-    R.groupBy(R.path(['meterType', 'id']))(meters)
-  )) {
-    let meterType = group[0].meterType;
-    let headers = [
-      {
-        val: '车间',
-      }, {
-        val: '承包人',
-      }, {
-        val: '表设备',
-      }, ...meterType.meterReadingTypes.map(function ({ name }) {
-        return { val: '上期' + name };
-      }), ...meterType.meterReadingTypes.map(function ({ name }) {
-        return { val: name };
-      }), {
-        val: '总费用(元)'
-      }
-    ].map(it => Object.assign(it, headerCellDef));
-    let dataRows = group.filter(it => it.parentMeterId)
-    .map(function (meter) {
-      return [
-        {
-          // A(idx + 1)
-          val: meter.department.name,
-          readonly: true
-        }, {
-          val: R.find(R.propEq('id', meter.departmentId))(tenants).entity.name,
-          readonly: true
-        }, {
-          // B(idx + 1)
-          val: meter.name,
-          readonly: true
-        }, ...meterType.meterReadingTypes.map(function ({ id, name }) {
-          let { value } = R.find(
-            R.propEq('meterReadingTypeId', id)
-          )(meter.meterReadings) || {};
-          return {
-            label: meter.name + '-上期' + name,
-            val: value,
-            readonly: true
-          };
-        }), ...meterType.meterReadingTypes.map(function ({ name }) {
-          return {
-            label: meter.name + '-' + name,
-            __onchange: onCellChange,
-          };
-        }), {
-          val: '=' + meterType.meterReadingTypes.map(
-            function ({ name, priceSetting }) {
-              let lastValueQuote = '${' + meter.name + '-上期' + name + '}';
-              let valueQuote = '${' + meter.name + '-' + name + '}';
-              let settingQuote = '${' + 'setting-' + priceSetting.name + '}';
-              return `(${valueQuote} - ${lastValueQuote}) * ${settingQuote}`;
-            }
-          ).join('+'),
-          __makeVNode: makeSumVNode,
-          readonly: true,
-          label: 'sum-of-' + meter.department.id,
-        },
-      ];
-    });
-    def.sheets.push({
-      label: meterType.name,
-      grids: [
-        R.flatten(meterType.meterReadingTypes.map(function ({ priceSetting }) {
-          return [Object.assign({
-            val: priceSetting.name + '(元)',
-          }, headerCellDef), {
-            readonly: true,
-            val: priceSetting.value,
-            label: 'setting-' + priceSetting.name,
-            style: {
-              border: '1px solid red',
-            }
-          }];
-        })),
-        headers,
-        ...dataRows,
-      ]
-    });
-  }
-  return def;
 };
 
 export default {
@@ -169,26 +67,26 @@ export default {
       if (!obj) {
         let meters = yield meterStore.list;
         let tenants = yield tenantStore.list;
-        let def = makeDef(meters, tenants);
+        let def = makeGridDef(meters, tenants, onCellChange);
         obj = {
           def,
           accountTermId: activeAccountTermId,
         };
       } else {
-        let { def } = obj;
-        for (let sheet of def.sheets) {
-          for (let row of sheet.grids) {
-            for (let cellDef of row) {
-              if (!cellDef) continue;
-              if (!cellDef.readonly) {
-                cellDef.__onchange = onCellChange;
-              }
-              if ((cellDef.label || '').startsWith('sum-of')) {
-                cellDef.__makeVNode = makeSumVNode;
-              }
-            }
-          }
-        }
+        // let { def } = obj;
+        // for (let sheet of def.sheets) {
+        //   for (let row of sheet.grids) {
+        //     for (let cellDef of row) {
+        //       if (!cellDef) continue;
+        //       if (!cellDef.readonly) {
+        //         cellDef.__onchange = onCellChange;
+        //       }
+        //       if ((cellDef.label || '').startsWith('sum-of')) {
+        //         cellDef.__makeVNode = makeSumVNode;
+        //       }
+        //     }
+        //   }
+        // }
       }
       $$loading.val(false);
       let sidebar = new Scrollable({

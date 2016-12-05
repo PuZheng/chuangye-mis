@@ -214,9 +214,6 @@ class Cell {
         style: editing? '': 'display: none',
       }
     };
-    if (this.tag == 'H3' || this.tag == 'I3') {
-      console.log(def);
-    }
     return new VNode('input', properties);
   }
   makeContentVnode(def, val, editing) {
