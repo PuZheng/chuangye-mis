@@ -7,6 +7,7 @@ export default {
     .then(R.path(['data', 'data']));
   },
   update(group, name, value) {
-    return request.put(`/settings/${group}/${name}`, { value });
+    return request.put(`/settings/${group}/${name}`, { value })
+    .then(R.prop('data'));
   },
 };
