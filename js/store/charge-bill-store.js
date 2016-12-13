@@ -19,5 +19,9 @@ export default {
   fetchList(qo) {
     return request.get('/charge-bill/list?' + object2qs(casing.snakeize(qo)))
     .then(R.path(['data', 'data']));
+  },
+  close(id) {
+    return request.post('/charge-bill/object/' + id + '/close')
+    .then(R.prop('data'));
   }
 };

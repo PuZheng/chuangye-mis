@@ -100,43 +100,44 @@ class Cell {
     this.col = col;
     this.hook = new Hook(this);
     this.editorHook = new EditorHook(this, function (cell, val) {
-      let updates = [
-        [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
-          mode: CellMode.SELECTED,
-        })]
-      ];
       if ((cell.def && cell.def.val) != val) {
-        let def = Object.assign(cell.def || {}, { val });
-        cell.sg.setCellDef(cell.tag, def);
-        // why reset all the slots? since modify a value of a cell will affect
-        // many other cells, and we can't know the affection unless we reset
-        // all the slots, for example, in a grid
-        // [
-        //  ['1', '=A1+2'],
-        //  ['2'],
-        // ]
-        // if we change definition of 'B1' to '0', then the slot of 'A1'
-        // will be revoked, however in this grid
-        // [
-        //  ['1', '=A1+2'],
-        //  ['=A1*2']
-        // ]
-        // if we change definition of 'B1' to '0', slot of 'A1' will not be
-        // revoked, since 'B1' depends on 'A1'
-        //
-        // reset will reuse existing slots if possible, so we don't need to
-        // recreate the whole grid (which is a very expensive operation)
-        cell.sg.dataSlotManager.reset();
-        cell.def = cell.sg.getCellDef(cell.tag);
-        cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
-        let slots = [cell.sg.$$focusedCell];
-        if (cell.$$envSlot) {
-          slots.push(cell.$$envSlot);
-        }
-        cell.$$view.connect(slots, cell._vf).refresh();
-        cell.def.__onchange && cell.def.__onchange.apply(cell);
+        let validate = (cell.def || {}).__validate;
+        Promise.resolve(validate? validate.apply(cell, [val]): null)
+        .then(function () {
+          let def = Object.assign(cell.def || {}, { val });
+          cell.sg.setCellDef(cell.tag, def);
+          // why reset all the slots? since modify a value of a cell will affect
+          // many other cells, and we can't know the affection unless we reset
+          // all the slots, for example, in a grid
+          // [
+          //  ['1', '=A1+2'],
+          //  ['2'],
+          // ]
+          // if we change definition of 'B1' to '0', then the slot of 'A1'
+          // will be revoked, however in this grid
+          // [
+          //  ['1', '=A1+2'],
+          //  ['=A1*2']
+          // ]
+          // if we change definition of 'B1' to '0', slot of 'A1' will not be
+          // revoked, since 'B1' depends on 'A1'
+          //
+          // reset will reuse existing slots if possible, so we don't need to
+          // recreate the whole grid (which is a very expensive operation)
+          cell.sg.dataSlotManager.reset();
+          cell.def = cell.sg.getCellDef(cell.tag);
+          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
+          let slots = [cell.sg.$$focusedCell];
+          if (cell.$$envSlot) {
+            slots.push(cell.$$envSlot);
+          }
+          cell.$$view.connect(slots, cell._vf).refresh(null, true);
+          cell.def.__onchange && cell.def.__onchange.apply(cell);
+        });
       }
-      $$.update(...updates);
+      cell.sg.$$focusedCell.patch({
+        mode: CellMode.SELECTED
+      });
       return false;
     });
     this.tag = makeTag(this.row, this.col);
@@ -183,6 +184,7 @@ class Cell {
       attributes: {
         class: className.join(' '),
         style: stringifyStyle(this.def? this.def.style: {}),
+        title: this.def && (this.def.title || JSON.stringify(this.def)),
       },
       hook: this.hook,
     };

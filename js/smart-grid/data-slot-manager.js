@@ -100,7 +100,7 @@ class DataSlotManager {
         slot = $$(null, `cell-${tag}`);
       }
       let dependencies = this.getDependencies(cell, currentSheetIdx);
-      return slot.connect(
+      slot.connect(
         dependencies.map(dep => dep.slot),
         function (values) {
           let env = {};
@@ -126,7 +126,8 @@ class DataSlotManager {
           let parser = new Parser(lexer);
           return new Interpreter(parser.expr, env, refMaps).eval();
         }
-      );
+      ).refresh(null, true);
+      return slot;
     }
   }
   getDependencies(cellDef, currentSheetIdx) {

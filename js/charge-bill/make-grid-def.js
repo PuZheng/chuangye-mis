@@ -1,4 +1,5 @@
 import R from 'ramda';
+import { $$toast } from '../toast';
 
 var makeSumVNode = function (cell, val) {
   let vNode = cell.makeVNode(val);
@@ -39,7 +40,7 @@ var settingsRow = function settingsRow(meterType) {
 
 var headerRow = function headerRow(meterType) {
   return [
-    header('车间'), header('承包人'), header('表设备'),
+    header('表设备'), header('车间'), header('承包人'), header('倍数'),
     ...meterType.meterReadingTypes.map(({ name }) => header('上期' + name)),
     ...meterType.meterReadingTypes.map(({ name }) => header(name)),
     header('总费用(元)')
@@ -51,57 +52,92 @@ var meterRow = function meterRow(meter, tenants, onCellChange) {
                         ({ val: name, readonly: true }));
   let entityCell = function ({ departmentId }, tenants) {
     return {
-      val: R.find(R.propEq('id', departmentId))(tenants).entity.name,
+      val: R.find(R.propEq('departmentId', departmentId))(tenants).entity.name,
       readonly: true
     };
   };
-  let nameCell = ({ name }) => ({ val: name, readonly: true });
+  let nameCell = ({ id, name }) => ({
+    val: name,
+    readonly: true,
+    'data-meter-id': id,
+  });
   let lastAccountTermValueCell = function (meter, meterReadingType) {
-    let { value } = R.find(
-      R.propEq('meterReadingTypeId', meterReadingType.id)
-    )(meter.meterReadings) || {};
+    let meterReading = R.find(
+      it => it.meterReadingTypeId == meterReadingType.id
+    )(meter.meterReadings);
     return {
       label: meter.name + '-上期' + meterReadingType.name,
-      val: value,
+      val: meterReading.value,
       readonly: true
     };
   };
   let valueCell = function valueCell(meter, meterReadingType, onCellChange) {
+    let meterReading = R.find(
+      it => it.meterReadingTypeId == meterReadingType.id
+    )(meter.meterReadings);
+    let { value: lastAccountTermValue, id } = meterReading.value;
     return {
       label: meter.name + '-' + meterReadingType.name,
-      __onchange: onCellChange,
+      data: {
+        tag: 'meter-reading',
+        meterId: meter.id,
+        id,
+        lastAccountTermValue,
+        meterReadingTypeId: meterReadingType.id
+      },
+      __validate: function (val) {
+        if (val <= lastAccountTermValue) {
+          $$toast.val({
+            type: 'error',
+            message: '至少大于上账期数据'
+          });
+          return Promise.reject();
+        }
+        return Promise.resolve();
+      },
+      __onchange: function () {
+        onCellChange.apply(this);
+      }
     };
   };
   let sumCell = function (meter, meterReadingTypes) {
+    let readingSumQuote = meterReadingTypes.map(
+      function ({ name, priceSetting }) {
+        let lastValueQuote = '${' + meter.name + '-上期' + name + '}';
+        let valueQuote = '${' + meter.name + '-' + name + '}';
+        let settingQuote = '${' + 'setting-' + priceSetting.name + '}';
+        return `(${valueQuote} - ${lastValueQuote}) * ${settingQuote}`;
+      }
+    ).join('+');
+    let timesQuote = '${' + meter.name + '倍数}';
     return {
-      val: '=' + meterReadingTypes.map(
-        function ({ name, priceSetting }) {
-          let lastValueQuote = '${' + meter.name + '-上期' + name + '}';
-          let valueQuote = '${' + meter.name + '-' + name + '}';
-          let settingQuote = '${' + 'setting-' + priceSetting.name + '}';
-          return `(${valueQuote} - ${lastValueQuote}) * ${settingQuote}`;
-        }
-      ).join('+'),
+      val: `=(${readingSumQuote}) * ${timesQuote}`,
       __makeVNode: makeSumVNode,
       readonly: true,
       label: 'sum-of-' + meter.department.id,
     };
   };
+  let timesCell = ({ times, name }) => ({
+    val: times,
+    readonly: true,
+    label: name + '倍数',
+  });
   let { meterType } = meter;
   let { meterReadingTypes } = meterType;
   return [
-    departmentCell(meter), entityCell(meter, tenants), nameCell(meter),
+    nameCell(meter), departmentCell(meter), entityCell(meter, tenants),
+    timesCell(meter),
     ...meterReadingTypes.map(function (meterReadingType) {
       return lastAccountTermValueCell(meter, meterReadingType);
     }),
-    ...meterReadingTypes.map(function (meter, meterReadingType) {
+    ...meterReadingTypes.map(function (meterReadingType) {
       return valueCell(meter, meterReadingType, onCellChange);
     }),
     sumCell(meter, meterReadingTypes),
   ];
 };
 
-var makeGridDef = function (meters, tenants, onCellChange) {
+export var makeGridDef = function (meters, tenants, onCellChange) {
   let groups = R.toPairs(R.groupBy(R.prop('meterTypeId'))(meters));
   let sheets = groups.map(function ([, group]) {
     let meterType = group[0].meterType;
@@ -110,9 +146,8 @@ var makeGridDef = function (meters, tenants, onCellChange) {
       grids: [
         settingsRow(meterType),
         headerRow(meterType),
-        // meters
-        group.filter(it => it.parentMeterId).map(
-          R.partialRight(meterRow, [tenants, onCellChange])
+        ...group.filter(it => it.parentMeterId).map(
+          it => meterRow(it, tenants, onCellChange)
         ),
       ]
     };
@@ -120,6 +155,18 @@ var makeGridDef = function (meters, tenants, onCellChange) {
   return { sheets };
 };
 
-
-
-export default makeGridDef;
+export var interpolateGridDef = function interpolateGridDef(def, onCellChange) {
+  for (let sheet of def.sheets) {
+    for (let row of sheet.grids) {
+      for (let cellDef of row) {
+        if (!cellDef) continue;
+        if (!cellDef.readonly) {
+          cellDef.__onchange = onCellChange;
+        }
+        if ((cellDef.label || '').startsWith('sum-of')) {
+          cellDef.__makeVNode = makeSumVNode;
+        }
+      }
+    }
+  }
+};

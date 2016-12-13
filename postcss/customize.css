@@ -12,6 +12,7 @@ body {
 #main {
     padding-top: var(--main-padding-top);
     height: 100%;
+    z-index: 1;
 }
 
 a {
@@ -164,6 +165,7 @@ a {
 
 #toast {
     width: 100%;
+    z-index: 1;
 }
 
 .toast {
@@ -336,11 +338,10 @@ a {
 #meter-readings-app {
     height: 100%;
     & .warning {
-        height: 1.2rem;
-        line-height: 1;
+        height: 1.4rem;
     }
     & .smart-grid {
-        height: calc(100% - 1.2rem);
+        height: calc(100% - 1.4rem);
     }
     & .uninitialized {
         background: color(var(--color-primary) l(+50%));

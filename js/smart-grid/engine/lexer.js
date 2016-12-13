@@ -26,7 +26,7 @@ const TOKEN_TYPE_MAP = {
 };
 
 const VARIABLE_RE = /^(\w+:)?([A-Z]+[0-9]+)/;
-const REF_RE = /^(\w+:)?\$\{([^{}]+)\}/;
+const REF_RE = /^(\w+:)?[\$|@]\{([^{}]+)\}/;
 
 export class Lexer {
   constructor(text) {
@@ -89,7 +89,7 @@ export class Lexer {
               value: new Token(Token.NUMBER, value),
               done: false,
             };
-          } else if ((c >= 'A' && c <= 'Z') || c == '$') {
+          } else if ((c >= 'A' && c <= 'Z') || c == '$' || c == '@') {
             let value, tokenType;
             [tokenType, value, pos] = lexer.variableOrRef(pos);
             return {

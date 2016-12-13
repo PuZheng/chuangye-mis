@@ -50,9 +50,18 @@ test('lexer', function (t) {
     name: 'REF1'
   });
 
+  lexer = new Lexer('SHEET2:@{ref1}');
+  tokens = [...lexer.tokens];
+  t.is(tokens.length, 1);
+  t.is(tokens[0].type, Token.REF);
+  t.deepEqual(tokens[0].value, {
+    sheet: 'SHEET2',
+    name: 'REF1'
+  });
+
+
   lexer = new Lexer('E1 + (${ref1} + ${ref2})');
   tokens = [...lexer.tokens];
-  console.log(tokens);
   t.is(tokens.length, 7);
   t.deepEqual(tokens.map(R.prop('type')), [
     Token.VARIABLE, Token.PLUS, Token.LPAREN, Token.REF, Token.PLUS, Token.REF,

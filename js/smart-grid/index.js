@@ -208,6 +208,7 @@ export class SmartGrid {
           h('input', {
             value: def? def.val: '',
             disabled: def && def.readonly,
+            title: def? def.val: '',
             onkeydown(e) {
               if (~[UP, RIGHT, DOWN, LEFT].indexOf(e.keyCode)) {
                 e.stopPropagation();
