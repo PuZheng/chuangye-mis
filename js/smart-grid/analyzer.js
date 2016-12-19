@@ -16,6 +16,12 @@ export var getNextCellDef = function getNextCellDef(grids, i, j) {
   let cellDef;
   while (i < grids.length) {
     let row = grids[i];
+    if (!Array.isArray(row)) {
+      row = row.cells;
+    }
+    if (!row) {
+      throw 'if row is an object, then it must have a field named "cells"';
+    }
     while (j < row.length && row[j] === void(0)) {
       ++j;
     }

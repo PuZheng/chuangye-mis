@@ -59,7 +59,9 @@ var meterRow = function meterRow(meter, tenants, onCellChange) {
   let nameCell = ({ id, name }) => ({
     val: name,
     readonly: true,
-    'data-meter-id': id,
+    data: {
+      meterId: id,
+    }
   });
   let lastAccountTermValueCell = function (meter, meterReadingType) {
     let meterReading = R.find(
@@ -80,8 +82,9 @@ var meterRow = function meterRow(meter, tenants, onCellChange) {
       label: meter.name + '-' + meterReadingType.name,
       data: {
         tag: 'meter-reading',
-        meterId: meter.id,
         id,
+        name: meterReadingType.name,
+        price: meterReadingType.priceSetting.value,
         lastAccountTermValue,
         meterReadingTypeId: meterReadingType.id
       },
@@ -124,17 +127,27 @@ var meterRow = function meterRow(meter, tenants, onCellChange) {
   });
   let { meterType } = meter;
   let { meterReadingTypes } = meterType;
-  return [
-    nameCell(meter), departmentCell(meter), entityCell(meter, tenants),
-    timesCell(meter),
-    ...meterReadingTypes.map(function (meterReadingType) {
-      return lastAccountTermValueCell(meter, meterReadingType);
-    }),
-    ...meterReadingTypes.map(function (meterReadingType) {
-      return valueCell(meter, meterReadingType, onCellChange);
-    }),
-    sumCell(meter, meterReadingTypes),
-  ];
+  let { id, name, departmentId, times } = meter;
+  return {
+    data: {
+      tag: 'meter',
+      id,
+      name,
+      departmentId,
+      times,
+    },
+    cells: [
+      nameCell(meter), departmentCell(meter), entityCell(meter, tenants),
+      timesCell(meter),
+      ...meterReadingTypes.map(function (meterReadingType) {
+        return lastAccountTermValueCell(meter, meterReadingType);
+      }),
+      ...meterReadingTypes.map(function (meterReadingType) {
+        return valueCell(meter, meterReadingType, onCellChange);
+      }),
+      sumCell(meter, meterReadingTypes),
+    ],
+  };
 };
 
 export var makeGridDef = function (meters, tenants, onCellChange) {
