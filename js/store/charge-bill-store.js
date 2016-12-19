@@ -16,6 +16,10 @@ export default {
     )(obj)
     .then(R.prop('data'));
   },
+  getOrCreate({ accountTermId }) {
+    return request.post('/charge-bill/object', { accountTermId })
+    .then(R.prop('data'));
+  },
   fetchList(qo) {
     return request.get('/charge-bill/list?' + object2qs(casing.snakeize(qo)))
     .then(R.path(['data', 'data']));

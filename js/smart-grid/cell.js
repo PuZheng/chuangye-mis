@@ -172,6 +172,9 @@ class Cell {
     if (this.def && this.def.readonly) {
       className.push('readonly');
     }
+    if (this.def && this.def.class) {
+      className = className.concat(this.def.class);
+    }
     let selected = this.mode == CellMode.SELECTED;
     if (selected) {
       className.push('selected');

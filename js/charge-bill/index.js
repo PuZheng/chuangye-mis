@@ -62,9 +62,10 @@ export default {
       let accountTerms = yield accountTermStore.list;
       let activeAccountTermId = getActiveAccountTermId(accountTermName,
                                                        accountTerms);
-      let [obj] = (yield chargeBillStore.fetchList({
+      // 获取清单，如果获取不到, 就创建一个
+      let obj = yield chargeBillStore.getOrCreate({
         accountTermId: activeAccountTermId,
-      }));
+      });
       if (!obj) {
         let meters = yield meterStore.list;
         let tenants = yield tenantStore.list;
