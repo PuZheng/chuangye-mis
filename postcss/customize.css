@@ -12,6 +12,7 @@ body {
 #main {
     padding-top: var(--main-padding-top);
     height: 100%;
+    z-index: 1;
 }
 
 a {
@@ -164,15 +165,18 @@ a {
 
 #toast {
     width: 100%;
-    z-index: 10000;
+    z-index: 1;
 }
 
 .toast {
     opacity: 0;
     visibility: hidden;
+    z-index: 10000;
+    padding: 1rem;
 
     &.fade-in {
         opacity: 1;
+        height: auto;
         transition: opacity .5s linear;
         visibility: visible;
     }
@@ -180,7 +184,10 @@ a {
     &.fade-out {
         opacity: 0;
         visible: hidden;
-        transition: visibility 0s 1.5s, opacity 1.5s linear;
+        margin-bottom: -4rem;
+        overflow: hidden;
+        /* transition: visibility 0s 1.5s, opacity 1.5s linear, display 2.5s linear; */
+        transition: all 1.5s ease .15s;
     }
 }
 
@@ -325,5 +332,18 @@ a {
 #tenant-list-app {
     & .no-account {
         border: 1px solid var(--color-accent);
+    }
+}
+
+#meter-readings-app {
+    height: 100%;
+    & .warning {
+        height: 1.4rem;
+    }
+    & .smart-grid {
+        height: calc(100% - 1.4rem);
+    }
+    & .uninitialized {
+        background: color(var(--color-primary) l(+50%));
     }
 }

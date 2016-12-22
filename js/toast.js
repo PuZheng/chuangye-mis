@@ -8,7 +8,7 @@ export var $$toast = $$(null, 'toast');
 var $$view = $$.connect([$$toast], function ([toast]) {
   if (!toast) return h('div');
   let ret = h(
-    classNames('toast', 'bg-' + toast.type || 'info', 'p2', 'center'), {
+    classNames('toast', 'bg-' + toast.type || 'info', 'center'), {
       hook: new class Hook {
         hook(el) {
           // we must setTimeout here, otherwise dom will be not inserted
@@ -20,7 +20,7 @@ var $$view = $$.connect([$$toast], function ([toast]) {
             }
             setTimeout(function () {
               el.className = el.className.replace(/\bfade-in\b/, 'fade-out');
-            }, 2000);
+            }, toast.duration || 2000);
           }, 0);
         }
       },

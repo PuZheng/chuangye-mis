@@ -5,7 +5,7 @@ import { notEmpty } from '../checkers';
 
 var validate = R.partialRight(validateObj, [{
   name: notEmpty(),
-  meterReadings: notEmpty(),
+  meterReadingTypes: notEmpty(),
 }]);
 
 export default {

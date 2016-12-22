@@ -8,7 +8,7 @@ test('primitive', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', 'abc'],
           [void 0, '3'],
         ],
@@ -44,12 +44,12 @@ test('primitive', function (t) {
   t.true(R.isEmpty(sheets[1].cells));
 });
 
-test('getCellDef', function (t) {
+test('getCellDef1', function (t) {
   let def = {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['a', 'b', 'c'],
           [void 0, void 0, 'f'],
         ]
@@ -60,6 +60,28 @@ test('getCellDef', function (t) {
   let analyzer = new Analyzer(def);
   let cellDef = analyzer.getCellDef(0, 'A1');
   t.is(cellDef.val, 'a');
+
+});
+
+test('getCellDef2', function (t) {
+  let def = {
+    sheets: [
+      {
+        grid: [
+          {
+            cells: ['a', 'b', 'c'],
+          }, {
+            cells: ['e', 'f', 'g']
+          }
+        ]
+      }
+    ]
+  };
+  let analyzer = new Analyzer(def);
+  let cellDef = analyzer.getCellDef(0, 'A1');
+  t.is(cellDef.val, 'a');
+  cellDef = analyzer.getCellDef(0, 'A2');
+  t.is(cellDef.val, 'e');
 });
 
 test('dependencies', function (t) {
@@ -67,7 +89,7 @@ test('dependencies', function (t) {
     sheets: [
       {
         name: 'A',
-        grids: [
+        grid: [
           ['a', 'b', 'c'],
           ['=A1+SHEET1:A1+SHEET2:${REF1}', void 0, 'f'],
         ]
@@ -106,7 +128,7 @@ test('setCellDef', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['a', 'b', 'c'],
         ]
       }
@@ -140,7 +162,7 @@ test('getTagByLabel', function (t) {
   let analyzer = new Analyzer({
     sheets: [
       {
-        grids: [
+        grid: [
           [
             {
               label: 'foo'
@@ -161,7 +183,7 @@ test('searchCells', function (t) {
   let analyzer = new Analyzer({
     sheets: [
       {
-        grids: [
+        grid: [
           ['1', '2', {
             label: 'abc',
             val: '3'

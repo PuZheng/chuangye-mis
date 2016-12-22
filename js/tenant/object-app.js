@@ -17,6 +17,7 @@ import moment from 'moment';
 import Scrollable from '../scrollable';
 import {SmartGrid} from 'smart-grid';
 import accountBookStore from 'store/account-book-store';
+import departmentChargeBillStore from 'store/department-charge-bill-store';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -290,7 +291,7 @@ var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
 var tabsVf = function ([activeTabIdx, content]) {
   return h('.tabs', [
     h('.tabular.menu', [
-      ...['账户信息', '基本信息', '账簿'].map(function (tabName, idx) {
+      ...['账户信息', '基本信息', '收支明细', '账单'].map(function (tabName, idx) {
         return h(classNames('item', activeTabIdx == idx && 'active'), {
           onclick() {
             page(location.pathname + '?active_tab_idx=' + idx);
@@ -390,24 +391,57 @@ export default {
                 );
               }),
           });
-          let accountBooksVf = function ([scrollable, grid]) {
-            return [
-              scrollable,
-              grid
-            ];
-          };
-          let $$accountBooks = R.ifElse(
-            R.identity(),
-            function (accountBook) {
-              smartGrid = new SmartGrid(accountBook.def);
-              return $$.connect([myScrollable.$$view, smartGrid.$$view],
-                                accountBooksVf);
-            },
-            function () {
-              return $$.connect([myScrollable.$$view], accountBooksVf);
-            }
-          )(accountBook);
+          let $$accountBooks = $$.connect([
+            myScrollable.$$view,
+            ...R.ifElse(
+              R.identity,
+              ({ def }) => [(new SmartGrid(def)).$$view],
+              () => []
+            )(accountBook)
+          ], function ([scrollable, grid]) {
+            return [scrollable, grid];
+          });
           $$tabs.connect([$$activeTabIdx, $$accountBooks], tabsVf);
+          break;
+        }
+        case 3: {
+          let myScrollable = new Scrollable({
+            tag: 'aside',
+            $$content: $$.connect(
+              [$$accountTerms, $$activeAccountTermId],
+              function ([accountTerms, activeAccountTermId]) {
+                return h(
+                  '.borderless.vertical.fluid.menu',
+                  accountTerms.map(function (at) {
+                    return h(
+                      'a' + classNames(
+                        'item', at.id == activeAccountTermId && 'active'
+                      ), {
+                        onclick() {
+                          page(location.pathname +
+                               '?active_tab_idx=3&active_account_term_id=' +
+                               at.id);
+                        }
+                      }, at.name
+                    );
+                  })
+                );
+              }),
+          });
+          let chargeBill = yield departmentChargeBillStore.get(obj.departmentId,
+                                                           activeAccountTermId);
+          let $$chargeBills = $$.connect([
+            myScrollable.$$view,
+            ...R.ifElse(
+              R.identity,
+              ({ def }) => [(new SmartGrid(def, { translateLabel: true }))
+                .$$view],
+              () => []
+            )(chargeBill)
+          ], function ([scrollable, grid]) {
+            return [scrollable, grid];
+          });
+          $$tabs.connect([$$activeTabIdx, $$chargeBills], tabsVf);
           break;
         }
         default:
@@ -422,6 +456,9 @@ export default {
         [$$accountTerms, accountTerms],
         [$$activeAccountTermId, activeAccountTermId]
       );
+    })
+    .catch(function (e) {
+      console.log(e);
     });
   }
 };

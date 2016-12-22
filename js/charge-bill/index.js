@@ -1,21 +1,20 @@
 import $$ from 'slot';
-import meterStore from 'store/meter-store';
 import sg from 'smart-grid';
 import virtualDom from 'virtual-dom';
 import accountTermStore from 'store/account-term-store';
-import tenantStore from 'store/tenant-store';
 import classNames from '../class-names';
 import R from 'ramda';
 import Scrollable from 'scrollable';
 import chargeBillStore from 'store/charge-bill-store';
-import paymentRecordStore from 'store/payment-record-store';
 import co from 'co';
 import { $$toast } from '../toast';
+import overlay from '../overlay';
 
 var h = virtualDom.h;
 
 var smartGrid;
 var $$loading = $$(false, 'loading');
+var $$obj = $$({}, 'loading');
 
 var $$view_ = $$.connect(
   [$$loading],
@@ -38,6 +37,8 @@ var makeSumVNode = function (cell, val) {
   return vNode;
 };
 
+
+
 var getActiveAccountTermId = function (accountTermName, accountTerms) {
   let ret;
   if (accountTermName == 'latest') {
@@ -49,89 +50,6 @@ var getActiveAccountTermId = function (accountTermName, accountTerms) {
     }
   }
   return ret;
-};
-
-var makeDef = function (meters, tenants) {
-  let headerCellDef = {
-    readonly: true,
-    style: {
-      background: 'teal',
-      color: 'yellow',
-      fontWeight: 'bold',
-      whiteSpace: 'nowrap',
-    }
-  };
-  let def = { sheets: [] };
-  for (let [, group] of R.toPairs(
-    R.groupBy(R.path(['meterType', 'id']))(meters)
-  )) {
-    let meterType = group[0].meterType;
-    let headers = [
-      {
-        val: '车间',
-      }, {
-        val: '承包人',
-      }, {
-        val: '表设备',
-      }, ...meterType.meterReadings.map(function (it) {
-        return {
-          val: it.name
-        };
-      }), {
-        val: '总费用(元)'
-      }
-    ].map(it => Object.assign(it, headerCellDef));
-    let dataRows = group.filter(it => it.parentMeterId)
-    .map(function (meter) {
-      return [
-        {
-          // A(idx + 1)
-          val: meter.department.name,
-          readonly: true
-        }, {
-          val: R.find(R.propEq('id', meter.departmentId))(tenants).entity.name,
-        }, {
-          // B(idx + 1)
-          val: meter.name,
-          readonly: true
-        }, ...meterType.meterReadings.map(function (mr) {
-          return {
-            label: meter.id + '-' + mr.name,
-            __onchange: onCellChange,
-          };
-        }),
-        {
-          val: '=' + meterType.meterReadings.map(function (mr) {
-            return ('${' + meter.id + '-' + mr.name + '}*' + '${setting-'
-                    + mr.priceSetting.name + '}');
-          }).join('+'),
-          __makeVNode: makeSumVNode,
-          readonly: true,
-          label: 'sum-of-' + meter.department.id,
-        },
-      ];
-    });
-    def.sheets.push({
-      label: meterType.name,
-      grids: [
-        R.flatten(meterType.meterReadings.map(function (it) {
-          return [Object.assign({
-            val: it.priceSetting.name + '(元)',
-          }, headerCellDef), {
-            readonly: true,
-            val: it.priceSetting.value,
-            label: 'setting-' + it.priceSetting.name,
-            style: {
-              border: '1px solid red',
-            }
-          }];
-        })),
-        headers,
-        ...dataRows,
-      ]
-    });
-  }
-  return def;
 };
 
 export default {
@@ -150,29 +68,34 @@ export default {
       let accountTerms = yield accountTermStore.list;
       let activeAccountTermId = getActiveAccountTermId(accountTermName,
                                                        accountTerms);
-      let [obj] = (yield chargeBillStore.fetchList({
+      // 获取清单，如果获取不到, 就创建一个
+      let obj = yield chargeBillStore.getOrCreate({
         accountTermId: activeAccountTermId,
-      }));
-      if (!obj) {
-        let meters = yield meterStore.list;
-        let tenants = yield tenantStore.list;
-        let def = makeDef(meters, tenants);
-        obj = {
-          def,
-          accountTermId: activeAccountTermId,
-        };
-      } else {
-        let { def } = obj;
-        for (let sheet of def.sheets) {
-          for (let row of sheet.grids) {
-            for (let cellDef of row) {
-              if (!cellDef) continue;
-              if (!cellDef.readonly) {
-                cellDef.__onchange = onCellChange;
-              }
-              if ((cellDef.label || '').startsWith('sum-of')) {
-                cellDef.__makeVNode = makeSumVNode;
-              }
+      });
+      for (let { grid } of obj.def.sheets) {
+        for (let row of grid) {
+          for (let cellDef of (row.cells || row)) {
+            if (!cellDef) {
+              continue;
+            }
+            if (!cellDef.readonly) {
+              cellDef.__onchange = onCellChange;
+            }
+            let tag = R.path(['data', 'tag'])(cellDef);
+            if (tag == 'sum') {
+              cellDef.__makeVNode = makeSumVNode;
+            }
+            if (tag == 'meter-reading') {
+              cellDef.__validate = function (val) {
+                if (val <= cellDef.data.lastAccountTermValue) {
+                  $$toast.val({
+                    type: 'error',
+                    message: '至少大于上账期数据'
+                  });
+                  return Promise.reject();
+                }
+                return Promise.resolve();
+              };
             }
           }
         }
@@ -192,93 +115,125 @@ export default {
               );
             })), 'content'),
       });
-      smartGrid = new sg.SmartGrid(obj.def);
+      smartGrid = new sg.SmartGrid(obj.def, { translateLabel: true });
+      $$obj.val(obj);
       $$view_.connect(
-        [sidebar.$$view, smartGrid.$$view, $$dirty, $$loading],
-        function ([sidebar, smartGridVNode, dirty, loading]) {
+        [sidebar.$$view, smartGrid.$$view, $$dirty, $$loading, $$obj],
+        function ([sidebar, smartGridVNode, dirty, loading, obj]) {
           return h('#charge-bills' + classNames(loading && 'loading'), [
             sidebar,
             h('.content', [
-              R.ifElse(
-                R.identity,
-                () => h('button', {
-                  onclick() {
-                    return co(function *() {
-                      try {
-                        $$loading.val(true);
-                        let sheets = [];
-                        for (let sheet of obj.def.sheets) {
-                          sheets.push({
-                            label: sheet.label,
-                            grids: sheet.grids.map(function (row) {
-                              return row.map(function (it) {
-                                return smartGrid.getRawCellDef(it);
+              R.cond([
+                [({ closed }) => !!closed, R.always('')],
+                [
+                  function (obj, dirty) { return !!dirty; },
+                  function () {
+                    return h('button', {
+                      onclick() {
+                        return co(function *() {
+                          try {
+                            $$loading.val(true);
+                            let sheets = [];
+                            for (let sheet of obj.def.sheets) {
+                              sheets.push({
+                                label: sheet.label,
+                                grid: sheet.grid.map(function (row) {
+                                  if (Array.isArray(row)) {
+                                    return row.map(smartGrid.getRawCellDef);
+                                  }
+                                  let cells = row.cells &&
+                                    row.cells.map(smartGrid.getRawCellDef);
+                                  return {
+                                    data: row.data,
+                                    cells,
+                                  };
+                                })
                               });
-                            })
-                          });
-                        }
-                        yield chargeBillStore.save({
-                          id: obj.id,
-                          accountTermId: obj.accountTermId,
-                          def: { sheets, }
+                            }
+                            yield chargeBillStore.save({
+                              id: obj.id,
+                              accountTermId: obj.accountTermId,
+                              def: { sheets, }
+                            });
+                            $$toast.val({
+                              type: 'success',
+                              message: '保存成功',
+                              duration: 500,
+                            });
+                            $$dirty.off();
+                          } catch (e) {
+                            console.error(e);
+                          } finally {
+                            $$loading.val(false);
+                          }
                         });
-                        $$toast.val({
-                          type: 'success',
-                          message: '保存成功',
-                        });
-                      } catch (e) {
-                        console.error(e);
-                      } finally {
-                        $$loading.val(false);
                       }
-                    });
+                    }, '保存');
                   }
-                }, '保存'),
-                () => h('button', {
-                  onclick() {
-                    let paymentRecords = [];
-                    let cells = smartGrid.searchCells(
-                      function (cellDef) {
-                        return cellDef.label &&
-                          cellDef.label.startsWith('sum-of');
-                      }
-                    );
-                    for (let { sheetIdx, tag, def: cellDef } of cells) {
-                      let amount = smartGrid.getCellValue(sheetIdx, tag);
-                      if (!amount) {
-                        $$toast.val({
-                          type: 'warning',
-                          message: '请输入完整的费用信息',
+                ],
+                [
+                  R.T,
+                  function () {
+                    return h('button', {
+                      onclick() {
+                        overlay.show({
+                          type: 'info',
+                          title: '您确认要生成本账期内各车间账单?',
+                          message: [
+                            h('h3', '账单生成后'),
+                            h('ul.p4', [
+                              h('li', '本账期的费用单将不能再次编辑'),
+                              h('li', '将自动生成各个车间的本账期预扣记录'),
+                              h('li', '各表设备度数将刷新'),
+                            ]),
+                            h('button.ca.btn.btn-outline', {
+                              onclick() {
+                                overlay.dismiss();
+                                let cells = smartGrid.searchCells(
+                                  function (cellDef) {
+                                    return cellDef.label &&
+                                      cellDef.label.startsWith('sum-of');
+                                  }
+                                );
+                                for (let { sheetIdx, tag } of cells) {
+                                  let amount = smartGrid.getCellValue(
+                                    tag, sheetIdx
+                                  );
+                                  if (!amount) {
+                                    $$toast.val({
+                                      type: 'error',
+                                      message: '请输入完整的费用信息',
+                                    });
+                                    return false;
+                                  }
+                                }
+
+                                co(function *() {
+                                  $$loading.on();
+                                  try {
+                                    yield chargeBillStore.close(obj.id);
+                                    $$toast.val({
+                                      type: 'success',
+                                      message: '各车间账单生成!',
+                                    });
+                                    $$obj.patch({ closed: true });
+                                  } catch (e) {
+                                    console.error(e);
+                                  } finally {
+                                    $$loading.val(false);
+                                  }
+                                });
+                                return false;
+                              }
+                            }, '确认'),
+                          ]
                         });
                         return false;
                       }
-                      paymentRecords.push({
-                        departmentId: cellDef.label.replace('sum-of-', ''),
-                        amount,
-                        reason: obj.def.sheets[sheetIdx].label + '费用',
-                        accountTermId: activeAccountTermId,
-                      });
-                    }
-
-                    co(function *() {
-                      try {
-                        $$loading.val(true);
-                        yield paymentRecordStore.save(paymentRecords);
-                        $$toast.val({
-                          type: 'success',
-                          message: '预支付记录已创建',
-                        });
-                      } catch (e) {
-                        console.error(e);
-                      } finally {
-                        $$loading.val(false);
-                      }
-                    });
-
-                    return false;
+                    }, '生成账单');
                   }
-                }, '生成支付记录')
-              )(dirty),
+                ]
+              ])(obj, dirty),
               smartGridVNode,
             ]),
           ]);

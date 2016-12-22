@@ -39,6 +39,7 @@ import storeSubjectListApp from './store-subject/list-app';
 import storeSubjectObjectApp from './store-subject/object-app';
 import partnerListApp from './partner/list-app';
 import partnerObjectApp from './partner/object-app';
+import meterReadingsApp from './meter-readings/index';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -197,6 +198,12 @@ page(
   '/meter-type/:id?', loginRequired,
   _setupNavBar('meter.meter_type'),
   _could('edit.meter_type'), useWith(meterTypeObjectApp)
+);
+
+page(
+  '/meter-readings', loginRequired,
+  _setupNavBar('meter.meter_reading'),
+  _could('edit.meter_reading'), useWith(meterReadingsApp)
 );
 
 page(

@@ -26,7 +26,7 @@ const TOKEN_TYPE_MAP = {
 };
 
 const VARIABLE_RE = /^(\w+:)?([A-Z]+[0-9]+)/;
-const REF_RE = /^(\w+:)?\$\{([^{}]+)\}/;
+const REF_RE = /^(\w+:)?[\$|@]\{([^{}]+)\}/;
 
 export class Lexer {
   constructor(text) {
@@ -89,7 +89,7 @@ export class Lexer {
               value: new Token(Token.NUMBER, value),
               done: false,
             };
-          } else if ((c >= 'A' && c <= 'Z') || c == '$') {
+          } else if ((c >= 'A' && c <= 'Z') || c == '$' || c == '@') {
             let value, tokenType;
             [tokenType, value, pos] = lexer.variableOrRef(pos);
             return {
@@ -105,3 +105,33 @@ export class Lexer {
     };
   }
 }
+
+export var unlex = function () {
+  let d = {};
+  for (let k in TOKEN_TYPE_MAP){
+    d[TOKEN_TYPE_MAP[k]] = k;
+  }
+  return function (token) {
+    return d[token.type] || (function() {
+      let s = '';
+      switch (token.type) {
+      case Token.NUMBER:
+        s = token.value;
+        break;
+      case Token.VARIABLE: {
+        let { sheet, name } = token.value;
+        s = (sheet && sheet + ':') + name;
+        break;
+      }
+      case Token.REF: {
+        let { sheet, name } = token.value;
+        s = (sheet && sheet + ':') + '@{' + name + '}';
+        break;
+      }
+      default:
+        break;
+      }
+      return s;
+    }());
+  };
+}();

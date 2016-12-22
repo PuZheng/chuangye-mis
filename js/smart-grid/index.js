@@ -45,9 +45,10 @@ export class SmartGrid {
    * then after it is mounted to dom tree, the client should call 'setupLayout'
    * to generate the second way vdom
    * */
-  constructor(def) {
+  constructor(def, options={ translateLabel: false }) {
+    let { translateLabel } = options;
     this.def = def;
-    this.analyzer = new Analyzer(def);
+    this.analyzer = new Analyzer(def, { translateLabel });
     this.dataSlotManager = new DataSlotManager(this.analyzer);
     var sg = this;
     this.$$view = $$(h('.smart-grid', [
@@ -83,6 +84,7 @@ export class SmartGrid {
     this.$$left = $$(0, 'left');
     this.$$top = $$(0, 'top');
     this.$$activeSheetIdx = $$(0, 'active-tab');
+    this.colWidthList = [];
     let topmostRowVf = function ([top, actualHeight]) {
       if (!actualHeight) return 0;
       return Math.floor(top * actualHeight / sg.cellHeight);
@@ -138,6 +140,21 @@ export class SmartGrid {
       }, 'focused-cell'
     );
   }
+  // 保证每一列的cell(即使不在视野内)同宽
+  resetColWidth(col, length) {
+    if (this.colWidthList[col] == void 0) {
+      this.colWidthList[col] = 8;
+    }
+    if (this.colWidthList[col] < length) {
+      if (col==0) {
+        console.log(length);
+      }
+      this.colWidthList[col] = length;
+      $$.update.apply(null, this.cells.map(function (row) {
+        return [row[col].$$view];
+      }));
+    }
+  }
   setupLayout() {
     let vHeader = this.gridContainerEl.querySelector('.row .header');
     let hHeader = this.gridContainerEl.querySelector('.top-tag-row .header');
@@ -156,6 +173,7 @@ export class SmartGrid {
         });
       });
     }(this);
+
     $$.update(
       [this.$$viewportWidth, viewportWidth],
       [this.$$viewportHeight, viewportHeight],
@@ -208,6 +226,7 @@ export class SmartGrid {
           h('input', {
             value: def? def.val: '',
             disabled: def && def.readonly,
+            title: def? def.val: '',
             onkeydown(e) {
               if (~[UP, RIGHT, DOWN, LEFT].indexOf(e.keyCode)) {
                 e.stopPropagation();
@@ -245,6 +264,7 @@ export class SmartGrid {
     });
   }
   makeLeftTagHeaderSlot(row) {
+    let { grid } = this.def.sheets[this.$$activeSheetIdx.val()];
     return $$.connect(
       [this.$$topmostRow, this.$$focusedCell],
       function ([topmostRow, focusedCell]) {
@@ -252,7 +272,20 @@ export class SmartGrid {
         if (focusedCell && row + topmostRow == focusedCell.row) {
           classNames += '.focused';
         }
-        return h(classNames, '' + (topmostRow + row + 1));
+        let title = '';
+        let rowDef = grid[row];
+        if (!Array.isArray(rowDef)) {
+          let d = {};
+          for (let k in rowDef) {
+            if (k != 'cells' && !k.startsWith('__')) {
+              d[k] = rowDef[k];
+            }
+          }
+          title = JSON.stringify(d, null, 2);
+        }
+        return h(classNames, {
+          title,
+        }, '' + (topmostRow + row + 1));
       }
     );
   }

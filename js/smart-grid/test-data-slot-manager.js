@@ -7,7 +7,7 @@ test('empty', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: []
+        grid: []
       }
     ]
   };
@@ -20,7 +20,7 @@ test('simple', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['a', 'b', 'c'],
           [void 0, void 0, void 0, 'x']
         ]
@@ -40,7 +40,7 @@ test('dependency1', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', '3'],
           [void 0, void 0, void 0, '=SHEET1:A1*3']
         ]
@@ -60,13 +60,13 @@ test('dependency2', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', '3'],
           [void 0, void 0, void 0, '=A1+SHEET2:A1*C1']
         ]
       }, {
         label: 'B',
-        grids: [
+        grid: [
           ['10']
         ]
       }
@@ -83,14 +83,14 @@ test('dependency3', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', '3'],
           [void 0, void 0, void 0, '=A1+SHEET2:A1*C1'],
           [void 0, void 0, void 0, '=D2+B1']
         ]
       }, {
         label: 'B',
-        grids: [
+        grid: [
         ]
       }
     ]
@@ -106,7 +106,7 @@ test('dependency4', function (t) {
   let def = {
     sheets: [
       {
-        grids: [
+        grid: [
           [{
             label: 'FOO',
             val: '19'
@@ -123,12 +123,12 @@ test('dependency5', function (t) {
   let def = {
     sheets: [
       {
-        grids: [
+        grid: [
           ['=SHEET2:${FOO} * A2'],
           ['9']
         ]
       }, {
-        grids: [
+        grid: [
           [{
             label: 'FOO'
           }]
@@ -147,14 +147,14 @@ test('create', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', '3'],
           [void 0, void 0, void 0, '=A1*2'],
           [void 0, void 0, void 0, '=D2']
         ]
       }, {
         label: 'B',
-        grids: [
+        grid: [
         ]
       }
     ]
@@ -169,7 +169,7 @@ test('reset1', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
         ]
       }
     ]
@@ -189,7 +189,7 @@ test('reset2', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2']
         ]
       }
@@ -210,7 +210,7 @@ test('reset3', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', '3'],
           ['=C1*2'],
         ]
@@ -234,7 +234,7 @@ test('reset4', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1', '2', '3'],
           ['=C1*2'],
         ]
@@ -260,7 +260,7 @@ test('reset5', function (t) {
     sheets: [
       {
         label: 'A',
-        grids: [
+        grid: [
           ['1'],
         ]
       }

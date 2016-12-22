@@ -4,6 +4,7 @@ import virtualDom from 'virtual-dom';
 import { SmartGrid } from 'smart-grid';
 import R from 'ramda';
 import settingsStore from '../store/settings-store';
+import { $$toast } from '../toast';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -17,67 +18,63 @@ var vf = function () {
 
 var $$view = throttleSlot(null, 'settings-app').connect([], vf);
 var sg;
-
-$$settings.change(function (settings) {
-  var def = {
-    sheets: [],
+var header = function header(s) {
+  return {
+    readonly: true,
+    style: {
+      background: 'teal',
+      color: 'yellow',
+      fontWeight: 'bold',
+    },
+    val: s
   };
+};
+
+var nameCell = ({name}) => ({ val: name, readonly: true });
+var commentCell = ({comment}) => ({ val: comment || '', readonly: true });
+var valueCell = function ({group, name, value}) {
+  return {
+    val: value || '',
+    __onchange() {
+      settingsStore.update(group, name, this.def.val || '')
+      .then(function () {
+        $$toast.val({
+          type: 'success',
+          message: '更新成功',
+          duration: 500,
+        });
+      });
+    }
+  };
+};
+
+var makeGridDef = function makeGridDef(settings) {
   let groups = R.toPairs(
     R.groupBy(function (s) {
       return s.group;
     })(settings)
   );
-  for (let [groupName, settings] of groups) {
-    let sheetDef = {
-      label: groupName,
+  let sheets = groups.map(function ([label, group]) {
+    return {
+      label,
+      grid: [
+        [header('字段'), header('数值'), header('说明')],
+        ...group.map(it =>
+          [nameCell(it), valueCell(it), commentCell(it)]
+        )
+      ]
     };
-    var header = [
-      {
-        val: '字段',
-      }, {
-        val: '数值',
-      }, {
-        val: '说明',
-      }
-    ].map(it => Object.assign(it, {
-      readonly: true,
-      style: {
-        background: 'teal',
-        color: 'yellow',
-        fontWeight: 'bold',
-      }
-    }));
-    sheetDef.grids = [header].concat(settings.map(function (setting) {
-      return [{
-        readonly: true,
-        val: setting.name,
-      }, {
-        label: setting.name,
-        val: setting.value,
-      }, {
-        readonly: true,
-        val: setting.comment || '',
-      }];
-    }));
-    def.sheets.push(sheetDef);
-  }
-  sg = new SmartGrid(def);
+  });
+  return { sheets };
+};
+
+$$settings.change(function (settings) {
+  console.log(makeGridDef(settings));
+  sg = new SmartGrid(makeGridDef(settings));
   $$view
   .connect([sg.$$view], function ([sg]) {
     return h('#settings-app', sg);
-  })
-  .refresh();
-  for (let sheetIdx = 0; sheetIdx < groups.length; ++sheetIdx) {
-    let [, settings] = groups[sheetIdx];
-    for (let setting of settings) {
-      let tag = sg.getTagByLabel(sheetIdx, setting.name);
-      sg.createCellSlot(sheetIdx, tag).change(function (setting) {
-        return function (value) {
-          settingsStore.update(setting.group, setting.name, value);
-        };
-      }(setting));
-    }
-  }
+  }).refresh();
 });
 
 export default {

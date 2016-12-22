@@ -117,6 +117,9 @@
                 border-bottom: 1px solid var(--color-gray-light);
                 vertical-align: text-bottom;
 
+                &.readonly {
+                    background: color(var(--color-gray-light) a(70%) l(95%));
+                }
                 &.selected {
                     background: var(--focused-color);
                 }
@@ -204,6 +207,7 @@
         bottom: 0;
         height: var(--tab-nav-height);
         background: white;
+        width: 100%;
 
         & a {
             -webkit-user-select: none;

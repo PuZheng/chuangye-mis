@@ -69,6 +69,7 @@ class EditorHook {
     };
   }
   hook(el) {
+    this.el = el;
     el.onfocus = this.moveCaretAtEnd;
     el.addEventListener('keydown', this.onkeydown);
     el.addEventListener('blur', this.onblur);
@@ -100,49 +101,64 @@ class Cell {
     this.col = col;
     this.hook = new Hook(this);
     this.editorHook = new EditorHook(this, function (cell, val) {
-      let updates = [
-        [cell.sg.$$focusedCell, Object.assign(cell.sg.$$focusedCell.val(), {
-          mode: CellMode.SELECTED,
-        })]
-      ];
+      let that = this;
       if ((cell.def && cell.def.val) != val) {
-        let def = Object.assign(cell.def || {}, { val });
-        cell.sg.setCellDef(cell.tag, def);
-        // why reset all the slots? since modify a value of a cell will affect
-        // many other cells, and we can't know the affection unless we reset
-        // all the slots, for example, in a grid
-        // [
-        //  ['1', '=A1+2'],
-        //  ['2'],
-        // ]
-        // if we change definition of 'B1' to '0', then the slot of 'A1'
-        // will be revoked, however in this grid
-        // [
-        //  ['1', '=A1+2'],
-        //  ['=A1*2']
-        // ]
-        // if we change definition of 'B1' to '0', slot of 'A1' will not be
-        // revoked, since 'B1' depends on 'A1'
-        //
-        // reset will reuse existing slots if possible, so we don't need to
-        // recreate the whole grid (which is a very expensive operation)
-        cell.sg.dataSlotManager.reset();
-        cell.def = cell.sg.getCellDef(cell.tag);
-        cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
-        let slots = [cell.sg.$$focusedCell];
-        if (cell.$$envSlot) {
-          slots.push(cell.$$envSlot);
-        }
-        cell.$$view.connect(slots, cell._vf).refresh();
-        cell.def.__onchange && cell.def.__onchange.apply(cell);
+        let validate = (cell.def || {}).__validate;
+        Promise.resolve(validate? validate.apply(cell, [val]): null)
+        .then(function () {
+          let def = Object.assign(cell.def || {}, { val });
+          cell.sg.setCellDef(cell.tag, def);
+          // why reset all the slots? since modify a value of a cell will affect
+          // many other cells, and we can't know the affection unless we reset
+          // all the slots, for example, in a grid
+          // [
+          //  ['1', '=A1+2'],
+          //  ['2'],
+          // ]
+          // if we change definition of 'B1' to '0', then the slot of 'A1'
+          // will be revoked, however in this grid
+          // [
+          //  ['1', '=A1+2'],
+          //  ['=A1*2']
+          // ]
+          // if we change definition of 'B1' to '0', slot of 'A1' will not be
+          // revoked, since 'B1' depends on 'A1'
+          //
+          // reset will reuse existing slots if possible, so we don't need to
+          // recreate the whole grid (which is a very expensive operation)
+          cell.sg.dataSlotManager.reset();
+          cell.def = cell.sg.getCellDef(cell.tag);
+          cell.$$envSlot = cell.sg.getCellSlot(cell.tag);
+          let slots = [cell.sg.$$focusedCell];
+          if (cell.$$envSlot) {
+            slots.push(cell.$$envSlot);
+          }
+          cell.$$view.connect(slots, cell._vf).refresh(null, true);
+          cell.def.__onchange && cell.def.__onchange.apply(cell);
+        }, function () {
+          that.el.value = '';
+        });
       }
-      $$.update(...updates);
+      cell.sg.$$focusedCell.patch({
+        mode: CellMode.SELECTED
+      });
       return false;
     });
     this.tag = makeTag(this.row, this.col);
     this.mode = CellMode.DEFAULT;
     this._vf = function (cell) {
       return function _vf([focusedCell, val], initiators) {
+        if (val || cell.def) {
+          let length = 0;
+          if (val) {
+            length = val.length;
+          } else {
+            if (cell.def.__primitive) {
+              length = cell.def.val.length;
+            }
+          }
+          sg.resetColWidth(cell.col + cell.sg.$$leftmostCol.val(), length);
+        }
         // if:
         // 1. only the focusedCell change
         // 2. I am not the unfocused or focused one
@@ -171,6 +187,9 @@ class Cell {
     if (this.def && this.def.readonly) {
       className.push('readonly');
     }
+    if (this.def && this.def.class) {
+      className = className.concat(this.def.class);
+    }
     let selected = this.mode == CellMode.SELECTED;
     if (selected) {
       className.push('selected');
@@ -179,13 +198,26 @@ class Cell {
     if (editing) {
       className.push('editing');
     }
-    let properties = {
-      attributes: {
-        class: className.join(' '),
-        style: stringifyStyle(this.def? this.def.style: {}),
-      },
-      hook: this.hook,
-    };
+    let properties = function (cell) {
+      let title = (cell.def && cell.def.title);
+      if (!title) {
+        let d = {};
+        for (let k in cell.def) {
+          if (!k.startsWith('__')) {
+            d[k]  = cell.def[k];
+          }
+        }
+        title = JSON.stringify(d, null, 2);
+      }
+      return {
+        attributes: {
+          class: className.join(' '),
+          style: stringifyStyle(cell.def? cell.def.style: {}),
+          title,
+        },
+        hook: cell.hook,
+      };
+    }(this);
     let ret = new VNode('div', properties, [
       this.makeContentVnode(this.def, val, editing),
       this.makeEditorVnode(this.def, editing),
@@ -207,10 +239,10 @@ class Cell {
     // it could be more sophisticated
     let properties = {
       hook: this.editorHook,
+      value: (def && def.val) || '',
       attributes: {
         class: 'editor',
         type: 'text',
-        value: (def && def.val) || '',
         style: editing? '': 'display: none',
       }
     };
@@ -224,7 +256,17 @@ class Cell {
         style: editing? 'display: none': '',
       }
     };
-    return new VNode('div', properties, [new VText(String(val || ''))]);
+    val = String(val || '');
+    if (def && def.__format) {
+      val = def.__format(val);
+    }
+    let colWidth = this.sg.colWidthList[this.col + this.sg.$$leftmostCol.val()];
+    if (val.length < colWidth) {
+      for (let i = 0, length = val.length; i < colWidth - length; ++i) {
+        val += '\u3000';
+      }
+    }
+    return new VNode('div', properties, [new VText(val)]);
   }
   select() {
     let focusedCell = this.sg.$$focusedCell;
