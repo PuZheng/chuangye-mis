@@ -57,7 +57,7 @@ var makeGridDef = function makeGridDef(settings) {
   let sheets = groups.map(function ([label, group]) {
     return {
       label,
-      grids: [
+      grid: [
         [header('字段'), header('数值'), header('说明')],
         ...group.map(it =>
           [nameCell(it), valueCell(it), commentCell(it)]

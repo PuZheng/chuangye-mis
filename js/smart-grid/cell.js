@@ -69,6 +69,7 @@ class EditorHook {
     };
   }
   hook(el) {
+    this.el = el;
     el.onfocus = this.moveCaretAtEnd;
     el.addEventListener('keydown', this.onkeydown);
     el.addEventListener('blur', this.onblur);
@@ -100,6 +101,7 @@ class Cell {
     this.col = col;
     this.hook = new Hook(this);
     this.editorHook = new EditorHook(this, function (cell, val) {
+      let that = this;
       if ((cell.def && cell.def.val) != val) {
         let validate = (cell.def || {}).__validate;
         Promise.resolve(validate? validate.apply(cell, [val]): null)
@@ -133,6 +135,8 @@ class Cell {
           }
           cell.$$view.connect(slots, cell._vf).refresh(null, true);
           cell.def.__onchange && cell.def.__onchange.apply(cell);
+        }, function () {
+          that.el.value = '';
         });
       }
       cell.sg.$$focusedCell.patch({
@@ -144,6 +148,17 @@ class Cell {
     this.mode = CellMode.DEFAULT;
     this._vf = function (cell) {
       return function _vf([focusedCell, val], initiators) {
+        if (val || cell.def) {
+          let length = 0;
+          if (val) {
+            length = val.length;
+          } else {
+            if (cell.def.__primitive) {
+              length = cell.def.val.length;
+            }
+          }
+          sg.resetColWidth(cell.col + cell.sg.$$leftmostCol.val(), length);
+        }
         // if:
         // 1. only the focusedCell change
         // 2. I am not the unfocused or focused one
@@ -183,14 +198,26 @@ class Cell {
     if (editing) {
       className.push('editing');
     }
-    let properties = {
-      attributes: {
-        class: className.join(' '),
-        style: stringifyStyle(this.def? this.def.style: {}),
-        title: this.def && (this.def.title || JSON.stringify(this.def)),
-      },
-      hook: this.hook,
-    };
+    let properties = function (cell) {
+      let title = (cell.def && cell.def.title);
+      if (!title) {
+        let d = {};
+        for (let k in cell.def) {
+          if (!k.startsWith('__')) {
+            d[k]  = cell.def[k];
+          }
+        }
+        title = JSON.stringify(d, null, 2);
+      }
+      return {
+        attributes: {
+          class: className.join(' '),
+          style: stringifyStyle(cell.def? cell.def.style: {}),
+          title,
+        },
+        hook: cell.hook,
+      };
+    }(this);
     let ret = new VNode('div', properties, [
       this.makeContentVnode(this.def, val, editing),
       this.makeEditorVnode(this.def, editing),
@@ -229,7 +256,17 @@ class Cell {
         style: editing? 'display: none': '',
       }
     };
-    return new VNode('div', properties, [new VText(String(val || ''))]);
+    val = String(val || '');
+    if (def && def.__format) {
+      val = def.__format(val);
+    }
+    let colWidth = this.sg.colWidthList[this.col + this.sg.$$leftmostCol.val()];
+    if (val.length < colWidth) {
+      for (let i = 0, length = val.length; i < colWidth - length; ++i) {
+        val += '\u3000';
+      }
+    }
+    return new VNode('div', properties, [new VText(val)]);
   }
   select() {
     let focusedCell = this.sg.$$focusedCell;

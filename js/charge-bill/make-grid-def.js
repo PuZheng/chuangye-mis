@@ -156,7 +156,7 @@ export var makeGridDef = function (meters, tenants, onCellChange) {
     let meterType = group[0].meterType;
     return {
       label: meterType.name,
-      grids: [
+      grid: [
         settingsRow(meterType),
         headerRow(meterType),
         ...group.filter(it => it.parentMeterId).map(
@@ -170,7 +170,8 @@ export var makeGridDef = function (meters, tenants, onCellChange) {
 
 export var interpolateGridDef = function interpolateGridDef(def, onCellChange) {
   for (let sheet of def.sheets) {
-    for (let row of sheet.grids) {
+    for (let row of sheet.grid) {
+      console.log(row);
       for (let cellDef of row) {
         if (!cellDef) continue;
         if (!cellDef.readonly) {

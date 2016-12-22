@@ -119,7 +119,7 @@ export default {
         );
         return {
           label: meterType.name,
-          grids: [
+          grid: [
             headerRow,
             ...meterRows,
           ]

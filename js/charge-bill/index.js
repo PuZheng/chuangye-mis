@@ -1,16 +1,13 @@
 import $$ from 'slot';
-import meterStore from 'store/meter-store';
 import sg from 'smart-grid';
 import virtualDom from 'virtual-dom';
 import accountTermStore from 'store/account-term-store';
-import tenantStore from 'store/tenant-store';
 import classNames from '../class-names';
 import R from 'ramda';
 import Scrollable from 'scrollable';
 import chargeBillStore from 'store/charge-bill-store';
 import co from 'co';
 import { $$toast } from '../toast';
-import { makeGridDef, interpolateGridDef } from './make-grid-def';
 import overlay from '../overlay';
 
 var h = virtualDom.h;
@@ -31,6 +28,15 @@ var $$dirty = $$(false, 'dirty');
 var onCellChange = function () {
   $$dirty.val(true);
 };
+
+var makeSumVNode = function (cell, val) {
+  let vNode = cell.makeVNode(val);
+  if (!val) {
+    vNode.properties.attributes.class += ' unfullfilled';
+  }
+  return vNode;
+};
+
 
 
 var getActiveAccountTermId = function (accountTermName, accountTerms) {
@@ -66,16 +72,33 @@ export default {
       let obj = yield chargeBillStore.getOrCreate({
         accountTermId: activeAccountTermId,
       });
-      if (!obj) {
-        let meters = yield meterStore.list;
-        let tenants = yield tenantStore.list;
-        let def = makeGridDef(meters, tenants, onCellChange);
-        obj = {
-          def,
-          accountTermId: activeAccountTermId,
-        };
-      } else {
-        interpolateGridDef(obj.def, onCellChange);
+      for (let { grid } of obj.def.sheets) {
+        for (let row of grid) {
+          for (let cellDef of (row.cells || row)) {
+            if (!cellDef) {
+              continue;
+            }
+            if (!cellDef.readonly) {
+              cellDef.__onchange = onCellChange;
+            }
+            let tag = R.path(['data', 'tag'])(cellDef);
+            if (tag == 'sum') {
+              cellDef.__makeVNode = makeSumVNode;
+            }
+            if (tag == 'meter-reading') {
+              cellDef.__validate = function (val) {
+                if (val <= cellDef.data.lastAccountTermValue) {
+                  $$toast.val({
+                    type: 'error',
+                    message: '至少大于上账期数据'
+                  });
+                  return Promise.reject();
+                }
+                return Promise.resolve();
+              };
+            }
+          }
+        }
       }
       $$loading.val(false);
       let sidebar = new Scrollable({
@@ -92,7 +115,7 @@ export default {
               );
             })), 'content'),
       });
-      smartGrid = new sg.SmartGrid(obj.def);
+      smartGrid = new sg.SmartGrid(obj.def, { translateLabel: true });
       $$obj.val(obj);
       $$view_.connect(
         [sidebar.$$view, smartGrid.$$view, $$dirty, $$loading, $$obj],
@@ -103,102 +126,112 @@ export default {
               R.cond([
                 [({ closed }) => !!closed, R.always('')],
                 [
-                  (obj, dirty) => !!dirty,
-                  () => h('button', {
-                    onclick() {
-                      return co(function *() {
-                        try {
-                          $$loading.val(true);
-                          let sheets = [];
-                          for (let sheet of obj.def.sheets) {
-                            sheets.push({
-                              label: sheet.label,
-                              grids: sheet.grids.map(function (row) {
-                                return row.map(function (it) {
-                                  return smartGrid.getRawCellDef(it);
-                                });
-                              })
+                  function (obj, dirty) { return !!dirty; },
+                  function () {
+                    return h('button', {
+                      onclick() {
+                        return co(function *() {
+                          try {
+                            $$loading.val(true);
+                            let sheets = [];
+                            for (let sheet of obj.def.sheets) {
+                              sheets.push({
+                                label: sheet.label,
+                                grid: sheet.grid.map(function (row) {
+                                  if (Array.isArray(row)) {
+                                    return row.map(smartGrid.getRawCellDef);
+                                  }
+                                  let cells = row.cells &&
+                                    row.cells.map(smartGrid.getRawCellDef);
+                                  return {
+                                    data: row.data,
+                                    cells,
+                                  };
+                                })
+                              });
+                            }
+                            yield chargeBillStore.save({
+                              id: obj.id,
+                              accountTermId: obj.accountTermId,
+                              def: { sheets, }
                             });
+                            $$toast.val({
+                              type: 'success',
+                              message: '保存成功',
+                              duration: 500,
+                            });
+                            $$dirty.off();
+                          } catch (e) {
+                            console.error(e);
+                          } finally {
+                            $$loading.val(false);
                           }
-                          yield chargeBillStore.save({
-                            id: obj.id,
-                            accountTermId: obj.accountTermId,
-                            def: { sheets, }
-                          });
-                          $$toast.val({
-                            type: 'success',
-                            message: '保存成功',
-                            duration: 500,
-                          });
-                          $$dirty.off();
-                        } catch (e) {
-                          console.error(e);
-                        } finally {
-                          $$loading.val(false);
-                        }
-                      });
-                    }
-                  }, '保存'),
+                        });
+                      }
+                    }, '保存');
+                  }
                 ],
                 [
                   R.T,
-                  () => h('button', {
-                    onclick() {
-                      overlay.show({
-                        type: 'info',
-                        title: '您确认要生成本账期内各车间账单?',
-                        message: [
-                          h('h3', '账单生成后'),
-                          h('ul.p4', [
-                            h('li', '本账期的费用单将不能再次编辑'),
-                            h('li', '将自动生成各个车间的本账期预扣记录'),
-                            h('li', '各表设备度数将刷新'),
-                          ]),
-                          h('button.ca.btn.btn-outline', {
-                            onclick() {
-                              overlay.dismiss();
-                              let cells = smartGrid.searchCells(
-                                function (cellDef) {
-                                  return cellDef.label &&
-                                    cellDef.label.startsWith('sum-of');
-                                }
-                              );
-                              for (let { sheetIdx, tag } of cells) {
-                                let amount = smartGrid.getCellValue(
-                                  tag, sheetIdx
+                  function () {
+                    return h('button', {
+                      onclick() {
+                        overlay.show({
+                          type: 'info',
+                          title: '您确认要生成本账期内各车间账单?',
+                          message: [
+                            h('h3', '账单生成后'),
+                            h('ul.p4', [
+                              h('li', '本账期的费用单将不能再次编辑'),
+                              h('li', '将自动生成各个车间的本账期预扣记录'),
+                              h('li', '各表设备度数将刷新'),
+                            ]),
+                            h('button.ca.btn.btn-outline', {
+                              onclick() {
+                                overlay.dismiss();
+                                let cells = smartGrid.searchCells(
+                                  function (cellDef) {
+                                    return cellDef.label &&
+                                      cellDef.label.startsWith('sum-of');
+                                  }
                                 );
-                                if (!amount) {
-                                  $$toast.val({
-                                    type: 'error',
-                                    message: '请输入完整的费用信息',
-                                  });
-                                  return false;
+                                for (let { sheetIdx, tag } of cells) {
+                                  let amount = smartGrid.getCellValue(
+                                    tag, sheetIdx
+                                  );
+                                  if (!amount) {
+                                    $$toast.val({
+                                      type: 'error',
+                                      message: '请输入完整的费用信息',
+                                    });
+                                    return false;
+                                  }
                                 }
-                              }
 
-                              co(function *() {
-                                $$loading.on();
-                                try {
-                                  yield chargeBillStore.close(obj.id);
-                                  $$toast.val({
-                                    type: 'success',
-                                    message: '各车间账单生成!',
-                                  });
-                                  $$obj.patch({ closed: true });
-                                } catch (e) {
-                                  console.error(e);
-                                } finally {
-                                  $$loading.val(false);
-                                }
-                              });
-                              return false;
-                            }
-                          }, '确认'),
-                        ]
-                      });
-                      return false;
-                    }
-                  }, '生成账单')
+                                co(function *() {
+                                  $$loading.on();
+                                  try {
+                                    yield chargeBillStore.close(obj.id);
+                                    $$toast.val({
+                                      type: 'success',
+                                      message: '各车间账单生成!',
+                                    });
+                                    $$obj.patch({ closed: true });
+                                  } catch (e) {
+                                    console.error(e);
+                                  } finally {
+                                    $$loading.val(false);
+                                  }
+                                });
+                                return false;
+                              }
+                            }, '确认'),
+                          ]
+                        });
+                        return false;
+                      }
+                    }, '生成账单');
+                  }
                 ]
               ])(obj, dirty),
               smartGridVNode,

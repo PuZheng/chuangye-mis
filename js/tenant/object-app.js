@@ -17,7 +17,7 @@ import moment from 'moment';
 import Scrollable from '../scrollable';
 import {SmartGrid} from 'smart-grid';
 import accountBookStore from 'store/account-book-store';
-import tenantChargeBillStore from 'store/tenant-charge-bill-store';
+import departmentChargeBillStore from 'store/department-charge-bill-store';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -428,13 +428,14 @@ export default {
                 );
               }),
           });
-          let chargeBill = yield tenantChargeBillStore.get(obj.id,
+          let chargeBill = yield departmentChargeBillStore.get(obj.departmentId,
                                                            activeAccountTermId);
           let $$chargeBills = $$.connect([
             myScrollable.$$view,
             ...R.ifElse(
               R.identity,
-              ({ def }) => [(new SmartGrid(def)).$$view],
+              ({ def }) => [(new SmartGrid(def, { translateLabel: true }))
+                .$$view],
               () => []
             )(chargeBill)
           ], function ([scrollable, grid]) {
@@ -455,6 +456,9 @@ export default {
         [$$accountTerms, accountTerms],
         [$$activeAccountTermId, activeAccountTermId]
       );
+    })
+    .catch(function (e) {
+      console.log(e);
     });
   }
 };

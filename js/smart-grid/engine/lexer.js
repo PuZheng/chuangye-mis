@@ -105,3 +105,33 @@ export class Lexer {
     };
   }
 }
+
+export var unlex = function () {
+  let d = {};
+  for (let k in TOKEN_TYPE_MAP){
+    d[TOKEN_TYPE_MAP[k]] = k;
+  }
+  return function (token) {
+    return d[token.type] || (function() {
+      let s = '';
+      switch (token.type) {
+      case Token.NUMBER:
+        s = token.value;
+        break;
+      case Token.VARIABLE: {
+        let { sheet, name } = token.value;
+        s = (sheet && sheet + ':') + name;
+        break;
+      }
+      case Token.REF: {
+        let { sheet, name } = token.value;
+        s = (sheet && sheet + ':') + '@{' + name + '}';
+        break;
+      }
+      default:
+        break;
+      }
+      return s;
+    }());
+  };
+}();
