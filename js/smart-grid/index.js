@@ -45,11 +45,16 @@ export class SmartGrid {
    * then after it is mounted to dom tree, the client should call 'setupLayout'
    * to generate the second way vdom
    * */
-  constructor(def, options={ translateLabel: false }) {
+  constructor(def, options={}) {
+    options = {
+      minColWidth: options.minColWidth || 6,
+      translateLabel: options.translateLabel || false,
+    };
     let { translateLabel } = options;
     this.def = def;
     this.analyzer = new Analyzer(def, { translateLabel });
     this.dataSlotManager = new DataSlotManager(this.analyzer);
+    this.options = options;
     var sg = this;
     this.$$view = $$(h('.smart-grid', [
       h('.editor', [
@@ -143,17 +148,12 @@ export class SmartGrid {
   // 保证每一列的cell(即使不在视野内)同宽
   resetColWidth(col, length) {
     if (this.colWidthList[col] == void 0) {
-      this.colWidthList[col] = 8;
+      this.colWidthList[col] = this.options.minColWidth;
     }
     if (this.colWidthList[col] < length) {
-      if (col==0) {
-        console.log(length);
-      }
       this.colWidthList[col] = length;
-      $$.update.apply(null, this.cells.map(function (row) {
-        return [row[col].$$view];
-      }));
     }
+    return this.colWidthList[col];
   }
   setupLayout() {
     let vHeader = this.gridContainerEl.querySelector('.row .header');

@@ -2,6 +2,7 @@ import virtualDom from 'virtual-dom';
 import makeTag from './make-tag';
 import $$ from 'slot';
 import CellMode from './cell-mode';
+import { sprintf } from 'sprintf-js';
 
 var VNode = virtualDom.VNode;
 var VText = virtualDom.VText;
@@ -148,17 +149,6 @@ class Cell {
     this.mode = CellMode.DEFAULT;
     this._vf = function (cell) {
       return function _vf([focusedCell, val], initiators) {
-        if (val || cell.def) {
-          let length = 0;
-          if (val) {
-            length = val.length;
-          } else {
-            if (cell.def.__primitive) {
-              length = cell.def.val.length;
-            }
-          }
-          sg.resetColWidth(cell.col + cell.sg.$$leftmostCol.val(), length);
-        }
         // if:
         // 1. only the focusedCell change
         // 2. I am not the unfocused or focused one
@@ -250,22 +240,24 @@ class Cell {
   }
   makeContentVnode(def, val, editing) {
     // it could be more sophisticated
+    val = String(val || '');
+    if (val && def && def.format) {
+      val = sprintf(def.format, val);
+    }
+    let colWidth = this.sg.resetColWidth(this.col + this.sg.$$leftmostCol.val(),
+                                        val.length);
+    let style = {
+      width: colWidth + 'rem',
+    };
+    if (editing) {
+      style.display = 'none';
+    }
     let properties = {
       attributes: {
         class: 'content',
-        style: editing? 'display: none': '',
+        style: stringifyStyle(style),
       }
     };
-    val = String(val || '');
-    if (def && def.__format) {
-      val = def.__format(val);
-    }
-    let colWidth = this.sg.colWidthList[this.col + this.sg.$$leftmostCol.val()];
-    if (val.length < colWidth) {
-      for (let i = 0, length = val.length; i < colWidth - length; ++i) {
-        val += '\u3000';
-      }
-    }
     return new VNode('div', properties, [new VText(val)]);
   }
   select() {
