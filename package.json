@@ -63,6 +63,7 @@
     "query-string": "^4.2.3",
     "ramda": "^0.21.0",
     "reqwest": "^2.0.5",
+    "sprintf-js": "^1.0.3",
     "toastr": "^2.1.2",
     "virtual-dom": "^2.1.1"
   },
