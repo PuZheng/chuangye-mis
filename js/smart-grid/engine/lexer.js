@@ -54,6 +54,9 @@ export class Lexer {
       }, pos + m[0].length];
     }
     m = this.text.slice(pos).match(VARIABLE_RE);
+    if (!m) {
+      throw 'unexpected token: ' + this.text.slice(pos);
+    }
     // since 'A' <= this.text[pos] <= 'Z', so m can't be null
     return [Token.VARIABLE, {
       sheet: m[1] ? m[1].substr(0, m[1].length - 1) : '',
