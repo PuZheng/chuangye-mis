@@ -124,12 +124,16 @@ class Analyzer {
                     }
                   }
                   if (sheetIdx == analyzer.sheets.length) {
-                    throw 'unkown sheet: ' + sheet;
+                    throw new Error('unkown sheet: ' + sheet);
                   }
+                }
+                let tagName = analyzer.getTagByLabel(sheetIdx, name);
+                if (tagName == void 0) {
+                  throw new Error('unknown label: ' + name);
                 }
                 return new Token(Token.VARIABLE, {
                   sheet: sheet,
-                  name: analyzer.getTagByLabel(sheetIdx, name),
+                  name: tagName,
                 });
               }
               return token;
