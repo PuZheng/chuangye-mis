@@ -258,6 +258,9 @@ class Cell {
         style: stringifyStyle(style),
       }
     };
+    if (val == '') {
+      val = '\u3000';
+    }
     return new VNode('div', properties, [new VText(val)]);
   }
   select() {
