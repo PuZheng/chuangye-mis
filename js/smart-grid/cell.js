@@ -259,6 +259,7 @@ class Cell {
       }
     };
     if (val == '') {
+      // 全角空格
       val = '\u3000';
     }
     return new VNode('div', properties, [new VText(val)]);

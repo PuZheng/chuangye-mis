@@ -230,7 +230,7 @@ var accountFormVf = function accountFormVf(
         oninput() {
           $$account.patch({ thisMonthIncome: this.value });
         },
-        value: account.thisMonthIncome || '',
+        value: account.thisMonthIncome || '0',
         disabled: account.id
       })
     }),
@@ -243,7 +243,7 @@ var accountFormVf = function accountFormVf(
         oninput() {
           $$account.patch({ thisMonthExpense: this.value });
         },
-        value: account.thisMonthExpense || '',
+        value: account.thisMonthExpense || '0',
         disabled: account.id
       })
     }),

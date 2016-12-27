@@ -56,6 +56,7 @@ export class SmartGrid {
     this.dataSlotManager = new DataSlotManager(this.analyzer);
     this.options = options;
     var sg = this;
+    this.gridContainerEl = null;
     this.$$view = $$(h('.smart-grid', [
       h('.editor', [
         h('label', 'fx'),
@@ -80,8 +81,7 @@ export class SmartGrid {
           h('.row', h('.header', '1'))
         ])
       ])
-    ]), 'view');
-    this.gridContainerEl = null;
+    ]), 'smart-grid-view');
     this.$$actualWidth = $$(0, 'actual-width');
     this.$$actualHeight = $$(0, 'actual-height');
     this.$$viewportWidth = $$(0, 'viewport-width');
@@ -159,6 +159,9 @@ export class SmartGrid {
     let vHeader = this.gridContainerEl.querySelector('.row .header');
     let hHeader = this.gridContainerEl.querySelector('.top-tag-row .header');
     this.vHeaderWidth = vHeader.offsetWidth;
+    if (this.vHeaderWidth == 0) {
+      return;
+    }
     this.hHeaderHeight = hHeader.offsetHeight;
     this.cellWidth = hHeader.offsetWidth;
     this.cellHeight = vHeader.offsetHeight;
