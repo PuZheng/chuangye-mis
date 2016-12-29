@@ -186,11 +186,11 @@ export default {
       id? voucherSubjectStore.get(id): {},
       constStore.get(),
     ])
-    .then(function ([obj, { entityTypes }]) {
+    .then(function ([obj, { ENTITY_TYPES }]) {
       copy = R.clone(obj);
       $$.update(
         [$$loading, false],
-        [$$entityTypes, entityTypes],
+        [$$entityTypes, ENTITY_TYPES],
         [$$obj, obj]
       );
     });

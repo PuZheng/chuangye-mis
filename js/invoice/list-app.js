@@ -21,7 +21,7 @@ var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$list = $$([], 'list');
 var $$totalCnt = $$('', 'total-cnt');
-var $$invoiceStatus = $$({}, 'invoice-status');
+var $$invoiceStates = $$({}, 'invoice-status');
 var $$invoiceTypes = $$([], 'invoice-types');
 var $$accountTerms = $$([], 'account-terms');
 var $$entities = $$([], 'entities');
@@ -67,7 +67,7 @@ var vf = function vf(
 };
 
 var tableVf = function (
-  [idOth, dateOth, accountTermOth, amountOth, list, invoiceStatus]
+  [idOth, dateOth, accountTermOth, amountOth, list, invoiceStates]
 ) {
   return h(
     'table#invoice-list' + classNames('striped', 'compact', 'color-gray-dark'),
@@ -92,7 +92,7 @@ var tableVf = function (
       h('tbody', [
         list.map(function (it) {
           return h('tr' + classNames(
-            it.status === invoiceStatus.ABORTED && 'strikeout'
+            it.status === invoiceStates.ABORTED && 'strikeout'
           ), [
             h('td', [
               h('a', {
@@ -114,7 +114,7 @@ var tableVf = function (
                 R.always('--')
             )(it)),
             h('td', it.accountTerm.name),
-            h('td' + classNames(it.status == invoiceStatus.AUTHENTICATED
+            h('td' + classNames(it.status == invoiceStates.AUTHENTICATED
                                 && 'ca'), it.status),
             h('td', [
               h('i' + classNames('fa', it.isVat? 'fa-check': 'fa-remove',
@@ -131,7 +131,7 @@ var tableVf = function (
 };
 
 var $$table = $$.connect(
-  [$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list, $$invoiceStatus],
+  [$$idOth, $$dateOth, $$accountTermOth, $$amountOth, $$list, $$invoiceStates],
   tableVf
 );
 
@@ -212,7 +212,7 @@ var $$purchaserFilter = $$searchDropdown({
 var $$statusFilter = $$dropdown({
   defaultText: '请选择状态',
   $$value: $$queryObj.trans(R.prop('status')),
-  $$options: $$invoiceStatus.trans(it => {
+  $$options: $$invoiceStates.trans(it => {
     return R.values(it).filter(s => s != it.DELETED);
   }),
   onchange(status) {
@@ -268,7 +268,7 @@ export default {
       entityStore.fetchList(),
       constStore.get(),
     ]).then(function (
-      [data, invoiceTypes, accountTerms, entities, { invoiceStatus }]
+      [data, invoiceTypes, accountTerms, entities, { INVOICE_STATUS }]
     ) {
       $$.update(
         [$$loading, false],
@@ -277,7 +277,7 @@ export default {
         [$$invoiceTypes, invoiceTypes],
         [$$accountTerms, accountTerms],
         [$$entities, entities],
-        [$$invoiceStatus, invoiceStatus]
+        [$$invoiceStates, INVOICE_STATUS]
       );
     });
   }

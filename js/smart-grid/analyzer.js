@@ -27,6 +27,7 @@ export var getNextCellDef = function getNextCellDef(grid, i, j) {
       ++j;
     }
     if (row[j] === void 0) {
+      j = 0;
       ++i;
       continue;
     }

@@ -19,7 +19,7 @@ import page from 'page';
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
 
-var $$storeOrderTypes = $$({}, 'store-order-types');
+var $$storeSubjectTypes = $$({}, 'store-order-types');
 var $$storeOrderDirections = $$({}, 'store-order-directions');
 var $$list = $$([], 'list');
 var $$totalCnt = $$(0, 'total-cnt');
@@ -161,9 +161,9 @@ var $$table = $$.connect(
 );
 
 var $$tabNames = $$.connect(
-  [$$storeOrderDirections, $$storeOrderTypes],
-  function ([storeOrderDirections, storeOrderTypes]) {
-    return R.flatten(R.values(storeOrderTypes).map(function (type) {
+  [$$storeOrderDirections, $$storeSubjectTypes],
+  function ([storeOrderDirections, storeSubjectTypes]) {
+    return R.flatten(R.values(storeSubjectTypes).map(function (type) {
       return R.values(storeOrderDirections).map(function (direction) {
         return `${type}(${direction})`;
       });
@@ -212,13 +212,13 @@ export default {
       tenantStore.list,
     ])
     .then(function (
-      [{ storeOrderDirections, storeOrderTypes }, storeSubjects,
+      [{ STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, storeSubjects,
         { totalCnt, data }, tenants]
     ) {
       $$.update(
         [$$loading, false],
-        [$$storeOrderTypes, storeOrderTypes],
-        [$$storeOrderDirections, storeOrderDirections],
+        [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
+        [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
         [$$storeSubjects, storeSubjects],
         [$$list, data],
         [$$totalCnt, totalCnt],

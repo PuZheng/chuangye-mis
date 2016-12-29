@@ -8,11 +8,11 @@ import constStore from 'store/const-store';
 
 var validate = function (obj) {
   return constStore.get()
-  .then(function ({ storeOrderTypes, storeOrderDirections }) {
-    let relateInvoice = (obj.type === storeOrderTypes.PRODUCT && 
-                         obj.direction === storeOrderDirections.OUTBOUND) ||
-                         (obj.type === storeOrderTypes.MATERIAL && 
-                          obj.direction === storeOrderDirections.INBOUND);
+  .then(function ({ STORE_SUBJECT_TYPES, STORE_ORDER_DIRECTIONS }) {
+    let relateInvoice = (obj.type === STORE_SUBJECT_TYPES.PRODUCT &&
+                         obj.direction === STORE_ORDER_DIRECTIONS.OUTBOUND) ||
+                         (obj.type === STORE_SUBJECT_TYPES.MATERIAL &&
+                          obj.direction === STORE_ORDER_DIRECTIONS.INBOUND);
     return validateObj(obj, {
       storeSubjectId: notEmpty(),
       direction: notEmpty(),

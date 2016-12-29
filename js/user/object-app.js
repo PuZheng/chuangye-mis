@@ -162,13 +162,13 @@ export default {
       id? userStore.get(id): {},
       constStore.get()
     ])
-    .then(function ([obj, { roles }]) {
+    .then(function ([obj, { ROLES }]) {
       obj.passwordAg = obj.password;
       copy = R.clone(obj);
       $$.update(
         [$$loading, false],
         [$$obj, obj],
-        [$$roles, roles]
+        [$$roles, ROLES]
       );
     });
   },
