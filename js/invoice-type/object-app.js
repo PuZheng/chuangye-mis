@@ -18,7 +18,7 @@ var $$loading = $$(false, 'loading');
 var $$errors = $$({}, 'errors');
 var $$entityTypes = $$({}, 'entity-types');
 var $$voucherSubjects = $$([], 'voucher-subjects');
-var $$storeOrderTypes = $$({}, 'store-order-types');
+var $$storeSubjectTypes = $$({}, 'store-order-types');
 var $$storeOrderDirections = $$({}, 'store-order-directions');
 
 var copy = {};
@@ -183,7 +183,7 @@ var $$voucherSubjectDropdown = $$searchDropdown({
 var $$storeOrderTypeDropdown = $$dropdown({
   defaultText: '请选择仓单类型',
   $$value: $$obj.trans(R.propOr('', 'storeOrderType')),
-  $$options: $$storeOrderTypes.trans(R.values),
+  $$options: $$storeSubjectTypes.trans(R.values),
   onchange(storeOrderType) {
     $$obj.patch({ storeOrderType });
   }
@@ -230,16 +230,16 @@ export default {
       voucherSujectStore.list
     ])
     .then(function (
-      [obj, { storeOrderTypes, storeOrderDirections, entityTypes},
+      [obj, { STORE_SUBJECT_TYPES, STORE_ORDER_DIRECTIONS, ENTITY_TYPES},
         voucherSubjects]
     ) {
       copy = R.clone(obj);
       $$.update(
         [$$loading, false],
         [$$obj, obj],
-        [$$storeOrderTypes, storeOrderTypes],
-        [$$storeOrderDirections, storeOrderDirections],
-        [$$entityTypes, entityTypes],
+        [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
+        [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
+        [$$entityTypes, ENTITY_TYPES],
         [$$voucherSubjects, voucherSubjects]
       );
     });

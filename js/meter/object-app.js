@@ -269,13 +269,13 @@ export default {
       id? meterStore.get(id): {}
     ])
     .then(function (
-      [{ meterStatus }, meterTypes, { data: meters }, departments, obj]
+      [{ METER_STATES }, meterTypes, { data: meters }, departments, obj]
     ) {
       copy = R.clone(obj);
       allMeters = meters;
       $$.update(
         [$$loading, false],
-        [$$statusList, R.values(meterStatus)],
+        [$$statusList, R.values(METER_STATES)],
         [$$meterTypeList, R.values(meterTypes)],
         [$$departments, departments],
         [$$obj, obj]

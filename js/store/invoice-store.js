@@ -70,16 +70,16 @@ export default {
   },
   authenticate(id) {
     return constStore.get()
-    .then(function ({ invoiceActions }) {
+    .then(function ({ INVOICE_ACTIONS }) {
       return request.post(
-        `/invoice/object/${id}/${invoiceActions.AUTHENTICATE}`
+        `/invoice/object/${id}/${INVOICE_ACTIONS.AUTHENTICATE}`
       ).then(R.prop('data'));
     });
   },
   abort(id) {
     return constStore.get()
-    .then(function ({ invoiceActions }) {
-      return request.post(`/invoice/object/${id}/${invoiceActions.ABORT}`)
+    .then(function ({ INVOICE_ACTIONS }) {
+      return request.post(`/invoice/object/${id}/${INVOICE_ACTIONS.ABORT}`)
       .then(R.prop('data'));
     });
   },

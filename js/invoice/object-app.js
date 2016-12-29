@@ -33,15 +33,14 @@ var $$entities = $$([], 'entities');
 var $$storeSubjects = $$([], 'store-subjects');
 var $$storeOrders = $$([], 'store-orders');
 var copy = {};
-var $$invoiceStatus = $$({}, 'invoice-status');
+var $$invoiceStates = $$({}, 'invoice-status');
 var $$invoiceActions = $$({}, 'invoice-actions');
 
 
 $$storeOrders.change(function (storeOrders) {
   // 是否关联仓库单据
   let obj = $$obj.val();
-  let relateStoreOrders = obj.invoiceType && obj.invoiceType.storeOrderType
-  && obj.invoiceType.storeOrderDirection;
+  let relateStoreOrders = R.path(['invoiceType', 'storeSubjectType'])(obj);
   let args = { storeOrders };
   if (relateStoreOrders) {
     args.amount = R.sum(storeOrders.map(function ({ unitPrice, quantity }) {
@@ -55,14 +54,14 @@ var dirty = function (obj) {
   return !R.equals(obj, copy);
 };
 
-var vf = function ([loading, obj, form, invoiceStatus]) {
+var vf = function ([loading, obj, form, invoiceStates]) {
   let title = R.ifElse(
     R.prop('id'),
     () => [
       R.cond([
-        [R.propEq('status', invoiceStatus.ABORTED),
+        [R.propEq('status', invoiceStates.ABORTED),
           R.always(h('span.ca', '(已作废)'))],
-        [R.propEq('status', invoiceStatus.AUTHENTICATED),
+        [R.propEq('status', invoiceStates.AUTHENTICATED),
           R.always(h('span.ca', '(已认证)'))],
         [R.T, R.always('')]
       ])(obj),
@@ -80,9 +79,7 @@ var formVf = function ([
   errors, obj, typeDropdown, accountTermDropdown, vendorDropdown,
   purchaserDropdown, storeOrderEditor, invoiceActions
 ]) {
-  let relateStoreOrders = R.and(
-    R.path(['invoiceType', 'storeOrderType']),
-    R.path(['invoiceType', 'storeOrderDirection']))(obj);
+  let relateStoreOrders = R.path(['invoiceType', 'storeSubjectType'])(obj);
   let editable = ~obj.actions.indexOf(invoiceActions.EDIT);
   return h('form.form', {
     onsubmit() {
@@ -120,7 +117,7 @@ var formVf = function ([
     }
   }, [
     h('.col.col-6', [
-      editable?
+      !obj.id || editable?
       field({
         key: 'invoiceType',
         label: '发票类型',
@@ -136,7 +133,7 @@ var formVf = function ([
             || {}).name
         ),
       }),
-      editable?
+      !obj.id || editable?
       field({
         key: 'date',
         label: '发票日期',
@@ -153,7 +150,7 @@ var formVf = function ([
         label: '发票日期',
         input: h('.text', obj.date),
       }),
-      editable?
+      !obj.id || editable?
       field({
         key: 'number',
         label: '发票号码',
@@ -172,7 +169,7 @@ var formVf = function ([
         label: '发票号码',
         input: h('.text', obj.number),
       }),
-      editable?
+      !obj.id || editable?
       field({
         key: 'accountTermId',
         label: '会计帐期',
@@ -187,16 +184,16 @@ var formVf = function ([
       R.ifElse(
         R.path(['invoiceType', 'vendorType']),
         function () {
-          return editable?
+          return !obj.id || editable?
           field({
             key: 'vendorId',
-            label: '销售方',
+            label: '实际销售方',
             input: vendorDropdown,
             errors,
             required: true
           }):
           field({
-            label: '销售方',
+            label: '实际销售方',
             input: h('.text', obj.vendor.name),
           });
         },
@@ -205,16 +202,16 @@ var formVf = function ([
       R.ifElse(
         R.path(['invoiceType', 'purchaserType']),
         function () {
-          return editable?
+          return !obj.id || editable?
           field({
             key: 'purchaserId',
-            label: '购买方',
+            label: '实际购买方',
             input: purchaserDropdown,
             errors,
             required: true
           }):
           field({
-            label: '购买方',
+            label: '实际购买方',
             input: h('.text', obj.purchaser.name),
           });
         },
@@ -224,14 +221,14 @@ var formVf = function ([
         h('input', {
           type: 'checkbox',
           checked: obj.isVat,
-          disabled: !editable,
+          disabled: obj.id && !editable,
           oninput() {
             $$obj.patch({ isVat: this.checked });
           }
         }),
         h('label', {
           onclick() {
-            if (~obj.actions.indexOf(invoiceActions.EDIT)) {
+            if (!obj.id || editable) {
               $$obj.patch({ isVat: !obj.isVat });
             }
           }
@@ -240,7 +237,7 @@ var formVf = function ([
       h('.field.inline', [
         h('label', '备注'),
         h('textarea', {
-          disabled: !editable,
+          disabled: obj.id && !editable,
           rows: 4,
           onchange() {
             $$obj.patch({ notes: this.value });
@@ -249,7 +246,7 @@ var formVf = function ([
       ]),
     ]),
     h('.col.col-6', [
-      editable?
+      !obj.id || editable?
       field({
         key: 'taxRate',
         label: '税率(百分比)',
@@ -266,7 +263,7 @@ var formVf = function ([
         label: '税率(百分比)',
         input: h('.text', '' + (obj.taxRate || '')),
       }),
-      editable?
+      !obj.id || editable?
       relateStoreOrders? h('.field', [
         h('label', '相关仓储单据'),
         storeOrderEditor,
@@ -404,7 +401,7 @@ var formVf = function ([
       }
     }, '作废'): void 0,
     R.ifElse(
-      R.prop('isVat'),
+      R.and(R.prop('isVat'), R.prop('id')),
       () => h('a.btn.btn-outline', {
         href: '/voucher?' + object2qs({
           amount: obj.amount,
@@ -501,7 +498,7 @@ var $$form = $$.connect(
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$loading, $$obj, $$form, $$invoiceStatus], vf);
+      return $$.connect([$$loading, $$obj, $$form, $$invoiceStates], vf);
     }
   },
   init(ctx) {
@@ -523,20 +520,26 @@ export default {
     .then(function (
       [
         entities, invoiceTypes, accountTerms, obj, storeSubjects,
-        { invoiceActions, invoiceStatus }
+        { INVOICE_ACTIONS, INVOICE_STATES }
       ]
     ) {
       copy = R.clone(obj);
+      $$storeSubjects.connect([$$obj], function (allStoreSubjects) {
+        return function ([obj]) {
+          return allStoreSubjects
+          .filter(R.propEq('type',
+                           R.path(['invoiceType', 'storeSubjectType'])(obj)));
+        };
+      }(storeSubjects));
       $$.update(
         [$$entities, entities],
         [$$invoiceTypes, invoiceTypes],
         [$$accountTerms, accountTerms],
         [$$loading, false],
         [$$obj, obj],
-        [$$storeSubjects, storeSubjects],
         [$$storeOrders, obj.storeOrders],
-        [$$invoiceActions, invoiceActions],
-        [$$invoiceStatus, invoiceStatus]
+        [$$invoiceActions, INVOICE_ACTIONS],
+        [$$invoiceStates, INVOICE_STATES]
       );
     });
   }

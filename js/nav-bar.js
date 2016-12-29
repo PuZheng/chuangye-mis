@@ -8,7 +8,7 @@ import principal from './principal';
 import R from 'ramda';
 import constStore from 'store/const-store';
 
-var $$invoiceStatus = $$({}, 'invoice-status');
+var $$invoiceStates = $$({}, 'invoice-status');
 var $$entityTypes = $$({}, 'entity-types');
 export var $$mods = $$({}, 'mods');
 export var $$currentMod = $$('home', 'current-module');
@@ -22,13 +22,13 @@ var $$home = $$.connect([$$currentMod], function ([currentMod]) {
 });
 
 var $$invoice = $$.connect(
-  [$$currentMod, $$mods, $$invoiceStatus],
-  function ([currentMod, mods, invoiceStatus]) {
+  [$$currentMod, $$mods, $$invoiceStates],
+  function ([currentMod, mods, invoiceStates]) {
     return R.ifElse(
       R.prop('viewInvoiceList'),
       () => h(
         'a' + classNames('item', (currentMod === 'invoice') && 'active'), {
-          href: '/invoice-list?status=' + invoiceStatus.UNAUTHENTICATED,
+          href: '/invoice-list?status=' + invoiceStates.UNAUTHENTICATED,
         }, '发票模块'
       ),
       R.always('')
@@ -452,7 +452,7 @@ export var setupNavBar = function (mod) {
       editPartner, editMeterReadings
     ) {
       constStore.get()
-      .then(function ({ invoiceStatus, entityTypes }) {
+      .then(function ({ INVOICE_STATES, ENTITY_TYPES }) {
         $$.update(
           [$$mods, {
             viewInvoiceList,
@@ -473,8 +473,8 @@ export var setupNavBar = function (mod) {
             editMeterReadings,
           }],
           [$$currentMod, mod],
-          [$$invoiceStatus, invoiceStatus],
-          [$$entityTypes, entityTypes]
+          [$$invoiceStates, INVOICE_STATES],
+          [$$entityTypes, ENTITY_TYPES]
         );
       });
     });

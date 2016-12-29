@@ -196,11 +196,11 @@ export default {
       constStore.get(),
       id? partnerStore.get(id): { entity: { type: ctx.query.type } }
     ])
-    .then(function ([{ entityTypes }, obj]) {
+    .then(function ([{ ENTITY_TYPES }, obj]) {
       copy = R.clone(obj);
       $$.update(
         [$$loading, false],
-        [$$entityTypes, entityTypes],
+        [$$entityTypes, ENTITY_TYPES],
         [$$obj, obj]
       );
     });

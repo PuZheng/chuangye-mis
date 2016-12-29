@@ -20,7 +20,7 @@ var $$obj = $$({}, 'obj');
 var $$storeSubjects = $$([], 'store-subjects');
 var $$tenants = $$([], 'tenants');
 var $$storeOrderDirections = $$({}, 'store-order-directions');
-var $$storeOrderTypes = $$({}, 'store-order-types');
+var $$storeSubjectTypes = $$({}, 'store-order-types');
 var copy = {};
 
 var dirty = function (obj) {
@@ -28,7 +28,7 @@ var dirty = function (obj) {
 };
 
 var formVf = function (
-  [errors, obj, storeOrderTypes, storeOrderDirections,
+  [errors, obj, storeSubjectTypes, storeOrderDirections,
     storeSubjectDropdown, tenantDropdown, directionDropdown,
     typeDropdown]
 ) {
@@ -79,9 +79,9 @@ var formVf = function (
     }),
   ];
   if (
-    (obj.type === storeOrderTypes.PRODUCT &&
+    (obj.type === storeSubjectTypes.PRODUCT &&
      obj.direction === storeOrderDirections.OUTBOUND) ||
-    (obj.type === storeOrderTypes.MATERIAL &&
+    (obj.type === storeSubjectTypes.MATERIAL &&
      obj.direction === storeOrderDirections.INBOUND)
   ) {
     fields = fields.concat([
@@ -202,7 +202,7 @@ var $$directionDropdown = $$dropdown({
 var $$typeDropdown = $$dropdown({
   defaultText: '请选择仓储类型',
   $$value: $$obj.trans(R.prop('type')),
-  $$options: $$storeOrderTypes.trans(R.values),
+  $$options: $$storeSubjectTypes.trans(R.values),
   onchange(type) {
     $$obj.patch({ type });
   },
@@ -210,7 +210,7 @@ var $$typeDropdown = $$dropdown({
 });
 
 var $$form = $$.connect(
-  [$$errors, $$obj, $$storeOrderTypes, $$storeOrderDirections,
+  [$$errors, $$obj, $$storeSubjectTypes, $$storeOrderDirections,
     $$storeSubjectDropdown, $$tenantDropdown, $$directionDropdown,
     $$typeDropdown],
   formVf
@@ -264,15 +264,18 @@ export default {
       )(ctx)
     ])
     .then(function (
-      [storeSubjects, tenants, { storeOrderDirections, storeOrderTypes }, obj]
+      [
+        storeSubjects, tenants,
+        { STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, obj
+      ]
     ) {
       console.log(obj);
       copy = R.clone(obj);
       $$.update(
         [$$storeSubjects, storeSubjects],
         [$$tenants, tenants],
-        [$$storeOrderDirections, storeOrderDirections],
-        [$$storeOrderTypes, storeOrderTypes],
+        [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
+        [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
         [$$obj, obj],
         [$$loading, false]
       );

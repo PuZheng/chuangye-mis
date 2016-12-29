@@ -137,11 +137,11 @@ export default {
       voucherSubjectStore.fetchList(ctx.query),
       constStore.get()
     ])
-    .then(function ([list, { entityTypes }]) {
+    .then(function ([list, { ENTITY_TYPES }]) {
       $$.update(
         [$$loading, false],
         [$$list, list],
-        [$$entityTypes, entityTypes]
+        [$$entityTypes, ENTITY_TYPES]
       );
     });
   }

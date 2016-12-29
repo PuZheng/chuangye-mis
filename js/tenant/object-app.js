@@ -441,7 +441,8 @@ export default {
           ], function ([scrollable, grid]) {
             return [scrollable, grid];
           });
-          $$tabs.connect([$$activeTabIdx, $$chargeBills], tabsVf);
+          $$tabs.connect([$$activeTabIdx, $$chargeBills], tabsVf)
+          .refresh(null, true);
           break;
         }
         default:
