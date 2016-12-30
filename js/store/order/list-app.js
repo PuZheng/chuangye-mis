@@ -13,7 +13,8 @@ import $$paginator from 'widget/paginator';
 import config from '../../config';
 import $$myOth from 'widget/my-oth';
 import moment from 'moment';
-import tenantStore from '../../store/tenant-store';
+import departmentStore from '../../store/department-store';
+import accountTermStore from 'store/account-term-store';
 import page from 'page';
 
 var h = virtualDom.h;
@@ -24,7 +25,8 @@ var $$storeOrderDirections = $$({}, 'store-order-directions');
 var $$list = $$([], 'list');
 var $$totalCnt = $$(0, 'total-cnt');
 var $$loading = $$(false, 'loading');
-var $$tenants = $$([], 'tenants');
+var $$departments = $$([], 'departments');
+var $$accountTerms = $$([], 'account-terms');
 
 
 var contentVf = function (
@@ -48,21 +50,16 @@ var contentVf = function (
   ]);
 };
 
-var $$dateSpanDropdown = $$dropdown({
-  defaultText: '选择日期范围',
-  onchange(date_span) {
-    $$queryObj.patch({ date_span });
+var $$accountTermDropdown = $$dropdown({
+  defaultText: '选择账期',
+  onchange(account_term_id) {
+    $$queryObj.patch({ account_term_id });
   },
-  $$value: $$queryObj.trans(R.prop('date_span')),
-  $$options: $$([
-    {
-      text: '一周内',
-      value: 'in_7_days',
-    }, {
-      text: '一月内',
-      value: 'in_30_days',
-    }
-  ]),
+  $$value: $$queryObj.trans(R.propOr('', 'account_term_id')),
+  $$options: $$accountTerms.trans(R.map(({ id, name }) => ({
+    value: id,
+    text: name
+  }))),
 });
 
 var $$subjectDropdown = $$searchDropdown({
@@ -79,21 +76,23 @@ var $$subjectDropdown = $$searchDropdown({
 });
 
 var $$tenantDropdown = $$searchDropdown({
-  defaultText: '选择相关承包人',
-  onchange(tenant_id) {
-    $$queryObj.patch({ tenant_id });
+  defaultText: '选择车间',
+  onchange(department_id) {
+    $$queryObj.patch({ department_id });
   },
-  $$value: $$queryObj.trans(R.prop('tenant_id')),
-  $$options: $$tenants.trans(R.map(({ id, entity: { name, acronym } }) => ({
+  $$value: $$queryObj.trans(R.propOr('', 'department_id')),
+  $$options: $$departments.trans(R.map(({ id, name, acronym }) => ({
     value: id,
     text: name,
     acronym,
   }))),
 });
 
-var filtersVf = function ([dateSpanDropdown, subjectDropdown, tenantDropdown]) {
+var filtersVf = function (
+  [accountTermDropdown, subjectDropdown, tenantDropdown]
+) {
   return h('.filters', [
-    dateSpanDropdown,
+    accountTermDropdown,
     subjectDropdown,
     tenantDropdown,
   ]);
@@ -104,16 +103,21 @@ var $$totalPriceOth = $$myOth({
   column: 'total_price',
 });
 
-var $$createdOth = $$myOth({
-  label: '创建于',
-  column: 'created'
+var $$dateOth = $$myOth({
+  label: '日期',
+  column: 'date'
+});
+
+var $$accountTermOth = $$myOth({
+  label: '账期',
+  column: 'account_term_id'
 });
 
 var $$filters = $$.connect(
-  [$$dateSpanDropdown, $$subjectDropdown, $$tenantDropdown], filtersVf
+  [$$accountTermDropdown, $$subjectDropdown, $$tenantDropdown], filtersVf
 );
 
-var tableVf = function ([totalPriceOth, createdOth, list]) {
+var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
   return h('table.table.compact.striped', [
     h('thead', [
       h('tr', [
@@ -123,8 +127,9 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
         h('th', '单价(元)'),
         totalPriceOth,
         h('th', '发票'),
-        createdOth,
-        h('th', '承包人'),
+        dateOth,
+        accountTermOth,
+        h('th', '车间'),
       ])
     ]),
     h('tbody', list.map(function (record) {
@@ -146,18 +151,21 @@ var tableVf = function ([totalPriceOth, createdOth, list]) {
         )(record.unitPrice)),
         h('td', R.ifElse(
           R.identity,
-          R.prop('number'),
+          invoice => h('a', {
+            href: '/invoice/' + invoice.id,
+          }, invoice.number),
           R.always('--')
         )(record.invoice)),
-        h('td', moment(record.created).format('YYYY-MM-DD HH:mm')),
-        h('td', record.tenant.entity.name),
+        h('td', moment(record.date).format('YYYY-MM-DD HH:mm')),
+        h('td', record.accountTerm.name),
+        h('td', record.department.name),
       ]);
     }))
   ]);
 };
 
 var $$table = $$.connect(
-  [$$totalPriceOth, $$createdOth, $$list], tableVf
+  [$$totalPriceOth, $$dateOth, $$accountTermOth, $$list], tableVf
 );
 
 var $$tabNames = $$.connect(
@@ -209,11 +217,12 @@ export default {
       constStore.get(),
       storeSubjectStore.list,
       storeOrderStore.fetchList(ctx.query),
-      tenantStore.list,
+      departmentStore.list,
+      accountTermStore.list,
     ])
     .then(function (
       [{ STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, storeSubjects,
-        { totalCnt, data }, tenants]
+        { totalCnt, data }, departments, accountTerms]
     ) {
       $$.update(
         [$$loading, false],
@@ -222,7 +231,8 @@ export default {
         [$$storeSubjects, storeSubjects],
         [$$list, data],
         [$$totalCnt, totalCnt],
-        [$$tenants, tenants]
+        [$$departments, departments],
+        [$$accountTerms, accountTerms]
       );
     });
   }

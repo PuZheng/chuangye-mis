@@ -9,15 +9,15 @@ import constStore from 'store/const-store';
 var validate = function (obj) {
   return constStore.get()
   .then(function ({ STORE_SUBJECT_TYPES, STORE_ORDER_DIRECTIONS }) {
-    let relateInvoice = (obj.type === STORE_SUBJECT_TYPES.PRODUCT &&
+    let relateInvoice = (obj.storeSubject.type === STORE_SUBJECT_TYPES.PRODUCT &&
                          obj.direction === STORE_ORDER_DIRECTIONS.OUTBOUND) ||
-                         (obj.type === STORE_SUBJECT_TYPES.MATERIAL &&
+                         (obj.storeSubject.type === STORE_SUBJECT_TYPES.MATERIAL &&
                           obj.direction === STORE_ORDER_DIRECTIONS.INBOUND);
     return validateObj(obj, {
       storeSubjectId: notEmpty(),
       direction: notEmpty(),
-      type: notEmpty(),
       quantity: notEmpty(),
+      date: notEmpty(),
       unitPrice: relateInvoice && notEmpty(),
     });
   });
