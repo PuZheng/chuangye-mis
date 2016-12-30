@@ -34,6 +34,7 @@ var tableVf = function ([list]) {
       h('th', '名称'),
       h('th', '单位'),
       h('th', '缩写'),
+      h('th', '类型'),
     ])),
     h('tbody', list.map(function (it) {
       return h('tr', [
@@ -42,6 +43,7 @@ var tableVf = function ([list]) {
         }, it.name)),
         h('td', it.unit),
         h('td', it.acronym),
+        h('td', it.type)
       ]);
     })),
   ]);
