@@ -222,7 +222,7 @@ var formVf = function ([
           type: 'checkbox',
           checked: obj.isVat,
           disabled: obj.id && !editable,
-          oninput() {
+          onchange() {
             $$obj.patch({ isVat: this.checked });
           }
         }),
