@@ -8,6 +8,7 @@ var validate = R.partialRight(validateObj, [{
   name: notEmpty(),
   acronym: notEmpty(),
   unit: notEmpty(),
+  type: notEmpty()
 }]);
 
 export default {
