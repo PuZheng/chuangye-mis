@@ -127,6 +127,7 @@ var vf = ([uninitializedList, list]) => {
                         if (R.path(['response', 'status'])(e) == 400) {
                           $$toast.val({
                             type: 'error',
+                            duration: 3000,
                             message: '出错了!' +
                               R.path(['response', 'data', 'reason'])(e),
                           });
