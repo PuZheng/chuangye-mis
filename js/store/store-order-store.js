@@ -5,20 +5,37 @@ import config from '../config';
 import { notEmpty } from '../checkers';
 import validateObj from '../validate-obj';
 import constStore from 'store/const-store';
+import accountTermStore from 'store/account-term-store';
+import moment from 'moment';
 
 var validate = function (obj) {
-  return constStore.get()
-  .then(function ({ STORE_SUBJECT_TYPES, STORE_ORDER_DIRECTIONS }) {
-    let relateInvoice = (obj.type === STORE_SUBJECT_TYPES.PRODUCT &&
-                         obj.direction === STORE_ORDER_DIRECTIONS.OUTBOUND) ||
-                         (obj.type === STORE_SUBJECT_TYPES.MATERIAL &&
-                          obj.direction === STORE_ORDER_DIRECTIONS.INBOUND);
+  return Promise.all([
+    constStore.get(),
+    accountTermStore.list,
+  ])
+  .then(function (
+    [{ STORE_SUBJECT_TYPES, STORE_ORDER_DIRECTIONS }, accountTerms]
+  ) {
+    let consumeMaterial = obj.storeSubject.type == STORE_SUBJECT_TYPES.MATERIAL
+    && obj.direction == STORE_ORDER_DIRECTIONS.OUTBOUND;
     return validateObj(obj, {
+      number: notEmpty(),
       storeSubjectId: notEmpty(),
       direction: notEmpty(),
-      type: notEmpty(),
       quantity: notEmpty(),
-      unitPrice: relateInvoice && notEmpty(),
+      date: function (v) {
+        notEmpty()(v);
+        let accountTerm = R.find(
+          R.propEq('name', moment(v).format('YYYY-MM'))
+        )(accountTerms);
+        if (!accountTerm) {
+          throw new Error('账期尚未创建，请通知管理员创建账期');
+        }
+        if (accountTerm.closed) {
+          throw new Error('账期已经关闭');
+        }
+      },
+      unitPrice:  consumeMaterial && notEmpty(),
     });
   });
 };
@@ -41,5 +58,9 @@ export default {
   },
   get(id) {
     return request.get('/store-order/object/' + id).then(R.prop('data'));
+  },
+  getHints(text) {
+    return request.get('/store-order/hints/' + text)
+    .then(R.path(['data', 'data']));
   }
 };

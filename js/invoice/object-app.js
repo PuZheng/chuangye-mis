@@ -139,7 +139,7 @@ var formVf = function ([
         label: '发票日期',
         input: h('input', {
           type: 'date',
-          value: obj.date? obj.date: moment().format('YYYY-MM-DD'),
+          value: obj.date || moment().format('YYYY-MM-DD'),
           oninput() {
             $$obj.patch({ date: this.value });
           }

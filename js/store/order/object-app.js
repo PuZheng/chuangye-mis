@@ -5,20 +5,21 @@ import $$searchDropdown from 'widget/search-dropdown';
 import R from 'ramda';
 import storeSubjectStore from 'store/store-subject-store';
 import classNames from '../../class-names';
-import tenantStore from 'store/tenant-store';
+import departmentStore from 'store/department-store';
 import page from 'page';
 import constStore from 'store/const-store';
 import $$dropdown from 'widget/dropdown';
 import co from 'co';
 import storeOrderStore from 'store/store-order-store';
 import { $$toast } from '../../toast.js';
+import moment from 'moment';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
 var $$errors = $$({}, 'errors');
 var $$obj = $$({}, 'obj');
 var $$storeSubjects = $$([], 'store-subjects');
-var $$tenants = $$([], 'tenants');
+var $$departments = $$([], 'departments');
 var $$storeOrderDirections = $$({}, 'store-order-directions');
 var $$storeSubjectTypes = $$({}, 'store-order-types');
 var copy = {};
@@ -28,11 +29,24 @@ var dirty = function (obj) {
 };
 
 var formVf = function (
-  [errors, obj, storeSubjectTypes, storeOrderDirections,
-    storeSubjectDropdown, tenantDropdown, directionDropdown,
-    typeDropdown]
+  [
+    errors, obj, storeSubjectTypes, storeOrderDirections,
+    storeSubjectDropdown, departmentsDropdown, directionDropdown
+  ]
 ) {
   let fields = [
+    field({
+      key: 'number',
+      label: '编号',
+      input: h('input', {
+        value: obj.number,
+        oninput() {
+          $$obj.patch({ number: this.value });
+        },
+      }),
+      required: true,
+      errors,
+    }),
     field({
       key: 'storeSubjectId',
       label: '仓储科目',
@@ -44,13 +58,6 @@ var formVf = function (
       key: 'direction',
       label: '仓储方向',
       input: directionDropdown,
-      errors,
-      required: true
-    }),
-    field({
-      key: 'type',
-      label: '仓储类型',
-      input: typeDropdown,
       errors,
       required: true
     }),
@@ -71,46 +78,59 @@ var formVf = function (
       errors,
       required: true
     }),
-    field({
-      key: 'tenantId',
-      label: '相关承包人',
-      input: tenantDropdown,
-      errors,
-    }),
-  ];
-  if (
-    (obj.type === storeSubjectTypes.PRODUCT &&
-     obj.direction === storeOrderDirections.OUTBOUND) ||
-    (obj.type === storeSubjectTypes.MATERIAL &&
-     obj.direction === storeOrderDirections.INBOUND)
-  ) {
-    fields = fields.concat([
-      field({
-        key: 'unitPrice',
-        label: '单价(元)',
-        input: h('input', {
-          type: 'number',
-          value: obj.unitPrice,
-          oninput() {
-            $$obj.patch({ unitPrice: this.value });
-          }
+    ...R.ifElse(
+      obj => R.path(['storeSubject', 'type'])(obj) == storeSubjectTypes.MATERIAL
+      && obj.direction == storeOrderDirections.OUTBOUND,
+      obj => [
+        field({
+          key: 'unitPrice',
+          label: '单价(元)',
+          input: h('input', {
+            type: 'number',
+            value: obj.unitPrice,
+            oninput() {
+              $$obj.patch({ unitPrice: this.value });
+            }
+          }),
+          errors,
+          required: true,
         }),
-        errors,
-        required: true,
+        field({
+          key: '',
+          label: '金额',
+          input: h('.ca.text', R.ifElse(
+            (quantity, unitPrice) => quantity && unitPrice,
+              (quantity, unitPrice) => quantity * unitPrice + '(元)',
+              R.always('--')
+          )(obj.quantity, obj.unitPrice)),
+        }),
+      ],
+      () => []
+    )(obj),
+    field({
+      key: 'departmentId',
+      label: '车间',
+      input: departmentsDropdown,
+      errors,
+      require: true,
+    }),
+    field({
+      key: 'date',
+      label: '日期',
+      input: h('input', {
+        type: 'date',
+        value: obj.date || moment().format('YYYY-MM-DD'),
+        oninput() {
+          $$obj.patch({ date: this.value });
+        }
       }),
-      field({
-        key: '',
-        label: '金额',
-        input: h('.ca.text', R.ifElse(
-          (quantity, unitPrice) => quantity && unitPrice,
-            (quantity, unitPrice) => quantity * unitPrice + '(元)',
-            R.always('--')
-        )(obj.quantity, obj.unitPrice)),
-      }),
-    ]);
-  }
+      errors,
+      required: true,
+    })
+  ];
   return h('form.form', {
     onsubmit() {
+      $$errors.val({});
       co(function *() {
         try {
           yield storeOrderStore.validate(obj);
@@ -159,7 +179,7 @@ var formVf = function (
 var $$storeSubjectDropdown = $$searchDropdown({
   defaultText: '选择仓储科目',
   onchange(storeSubjectId, option) {
-    $$obj.patch({ storeSubjectId, storeSubject: option.bundle });
+    $$obj.patch({ storeSubjectId, storeSubject: option && option.bundle });
   },
   $$value: $$obj.trans(R.prop('storeSubjectId')),
   $$options: $$storeSubjects.trans(R.map(function (record) {
@@ -172,20 +192,16 @@ var $$storeSubjectDropdown = $$searchDropdown({
   }))
 });
 
-var $$tenantDropdown = $$searchDropdown({
-  defaultText: '选择承包人',
-  $$value: $$obj.trans(R.prop('tenantId')),
-  $$options: $$tenants.trans(function (rows) {
-    return rows.map(function (row) {
-      return {
-        text: row.entity.name,
-        value: row.id,
-        acronym: row.entity.acronym
-      };
-    });
-  }),
-  onchange(tenantId) {
-    $$obj.patch({ tenantId, });
+var $$departmentsDropdown = $$searchDropdown({
+  defaultText: '选择车间',
+  $$value: $$obj.trans(R.propOr('', 'departmentId')),
+  $$options: $$departments.map(R.map(({ id, name, acronym }) => ({
+    value: id,
+    text: name,
+    acronym,
+  }))),
+  onchange(departmentId) {
+    $$obj.patch({ departmentId, });
   }
 });
 
@@ -199,20 +215,11 @@ var $$directionDropdown = $$dropdown({
   $$disabled: $$(true),
 });
 
-var $$typeDropdown = $$dropdown({
-  defaultText: '请选择仓储类型',
-  $$value: $$obj.trans(R.prop('type')),
-  $$options: $$storeSubjectTypes.trans(R.values),
-  onchange(type) {
-    $$obj.patch({ type });
-  },
-  $$disabled: $$(true),
-});
-
 var $$form = $$.connect(
-  [$$errors, $$obj, $$storeSubjectTypes, $$storeOrderDirections,
-    $$storeSubjectDropdown, $$tenantDropdown, $$directionDropdown,
-    $$typeDropdown],
+  [
+    $$errors, $$obj, $$storeSubjectTypes, $$storeOrderDirections,
+    $$storeSubjectDropdown, $$departmentsDropdown, $$directionDropdown
+  ],
   formVf
 );
 
@@ -252,28 +259,36 @@ export default {
     $$loading.toggle();
     Promise.all([
       storeSubjectStore.list,
-      tenantStore.list,
+      departmentStore.list,
       constStore.get(),
       R.ifElse(
         R.path(['params', 'id']),
         ctx => storeOrderStore.get(ctx.params.id),
         ctx => ({
-          type: R.path(['query', 'type'])(ctx),
-          direction: R.path(['query', 'direction'])(ctx)
+          direction: R.path(['query', 'direction'])(ctx),
+          date: moment().format('YYYY-MM-DD'),
         })
       )(ctx)
     ])
     .then(function (
       [
-        storeSubjects, tenants,
+        storeSubjects, departments,
         { STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, obj
       ]
     ) {
-      console.log(obj);
+      if (obj.storeSubjectId) {
+        obj.storeSubject = R.find(
+          it => it.id == obj.storeSubjectId
+        )(storeSubjects);
+      }
       copy = R.clone(obj);
+      let type = R.path(['query', 'type'])(ctx);
+      if (type) {
+        storeSubjects = storeSubjects.filter(R.propEq('type', type));
+      }
       $$.update(
         [$$storeSubjects, storeSubjects],
-        [$$tenants, tenants],
+        [$$departments, departments],
         [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
         [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
         [$$obj, obj],

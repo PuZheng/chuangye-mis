@@ -18,7 +18,7 @@ export var field = function field({
     label? h('label.align-middle', label): '',
     h('.input', [
       input,
-      err? h('.label.pointing.error', err): ''
+      err? h('div', h('.label.pointing.error', err)): ''
     ]),
   ]);
 };
