@@ -16,6 +16,7 @@ import moment from 'moment';
 import departmentStore from '../../store/department-store';
 import accountTermStore from 'store/account-term-store';
 import page from 'page';
+import $$searchBox from 'widget/search-box';
 
 var h = virtualDom.h;
 var $$storeSubjects = $$([], 'store-subjects');
@@ -28,9 +29,8 @@ var $$loading = $$(false, 'loading');
 var $$departments = $$([], 'departments');
 var $$accountTerms = $$([], 'account-terms');
 
-
 var contentVf = function (
-  [qo, loading, filters, table, tableHints, paginator]
+  [qo, loading, filters, table, tableHints, paginator, numberSearchBox]
 ) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
@@ -42,6 +42,7 @@ var contentVf = function (
       }, [
         h('i.fa.fa-plus'),
       ]),
+      h('.search', numberSearchBox)
     ]),
     filters,
     table,
@@ -121,15 +122,16 @@ var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
   return h('table.table.compact.striped', [
     h('thead', [
       h('tr', [
+        h('th', 'id'),
         h('th', '编号'),
         h('th', '科目'),
+        h('th', '车间'),
         h('th', '数量'),
         h('th', '单价(元)'),
         totalPriceOth,
         h('th', '发票'),
         dateOth,
         accountTermOth,
-        h('th', '车间'),
       ])
     ]),
     h('tbody', list.map(function (record) {
@@ -137,7 +139,9 @@ var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
         h('td', h('a', {
           href: '/store-order/' + record.id,
         }, '' + record.id)),
+        h('td', record.number),
         h('td', record.storeSubject.name),
+        h('td', record.department.name),
         h('td', `${record.quantity}(${record.storeSubject.unit})`),
         h('td', R.ifElse(
           R.identity,
@@ -156,9 +160,8 @@ var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
           }, invoice.number),
           R.always('--')
         )(record.invoice)),
-        h('td', moment(record.date).format('YYYY-MM-DD HH:mm')),
+        h('td', moment(record.date).format('YYYY-MM-DD')),
         h('td', record.accountTerm.name),
-        h('td', record.department.name),
       ]);
     }))
   ]);
@@ -179,6 +182,18 @@ var $$tabNames = $$.connect(
   },
   'tab-names'
 );
+
+var $$numberSearchBox = $$searchBox({
+  minLen: 2,
+  defaultText: '搜索编号',
+  $$searchText: $$queryObj.trans(R.propOr('', 'number__like')),
+  onsearch(number__like) {
+    $$queryObj.patch({ number__like, page: 1 });
+  },
+  getHints(text) {
+    return storeOrderStore.getHints(text);
+  }
+});
 
 export default {
   page: {
@@ -206,7 +221,7 @@ export default {
             $$totalCnt,
             $$queryObj,
             pageSize: config.getPageSize('invoice'),
-          })], contentVf
+          }), $$numberSearchBox], contentVf
         ),
       });
     }

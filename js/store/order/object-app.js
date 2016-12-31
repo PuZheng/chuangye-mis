@@ -36,6 +36,18 @@ var formVf = function (
 ) {
   let fields = [
     field({
+      key: 'number',
+      label: '编号',
+      input: h('input', {
+        value: obj.number,
+        oninput() {
+          $$obj.patch({ number: this.value });
+        },
+      }),
+      required: true,
+      errors,
+    }),
+    field({
       key: 'storeSubjectId',
       label: '仓储科目',
       input: storeSubjectDropdown,
@@ -66,6 +78,35 @@ var formVf = function (
       errors,
       required: true
     }),
+    ...R.ifElse(
+      obj => R.path(['storeSubject', 'type'])(obj) == storeSubjectTypes.MATERIAL
+      && obj.direction == storeOrderDirections.OUTBOUND,
+      obj => [
+        field({
+          key: 'unitPrice',
+          label: '单价(元)',
+          input: h('input', {
+            type: 'number',
+            value: obj.unitPrice,
+            oninput() {
+              $$obj.patch({ unitPrice: this.value });
+            }
+          }),
+          errors,
+          required: true,
+        }),
+        field({
+          key: '',
+          label: '金额',
+          input: h('.ca.text', R.ifElse(
+            (quantity, unitPrice) => quantity && unitPrice,
+              (quantity, unitPrice) => quantity * unitPrice + '(元)',
+              R.always('--')
+          )(obj.quantity, obj.unitPrice)),
+        }),
+      ],
+      () => []
+    )(obj),
     field({
       key: 'departmentId',
       label: '车间',
@@ -87,39 +128,9 @@ var formVf = function (
       required: true,
     })
   ];
-  if (
-    (obj.type === storeSubjectTypes.PRODUCT &&
-     obj.direction === storeOrderDirections.OUTBOUND) ||
-    (obj.type === storeSubjectTypes.MATERIAL &&
-     obj.direction === storeOrderDirections.INBOUND)
-  ) {
-    fields = fields.concat([
-      field({
-        key: 'unitPrice',
-        label: '单价(元)',
-        input: h('input', {
-          type: 'number',
-          value: obj.unitPrice,
-          oninput() {
-            $$obj.patch({ unitPrice: this.value });
-          }
-        }),
-        errors,
-        required: true,
-      }),
-      field({
-        key: '',
-        label: '金额',
-        input: h('.ca.text', R.ifElse(
-          (quantity, unitPrice) => quantity && unitPrice,
-            (quantity, unitPrice) => quantity * unitPrice + '(元)',
-            R.always('--')
-        )(obj.quantity, obj.unitPrice)),
-      }),
-    ]);
-  }
   return h('form.form', {
     onsubmit() {
+      $$errors.val({});
       co(function *() {
         try {
           yield storeOrderStore.validate(obj);
@@ -168,7 +179,7 @@ var formVf = function (
 var $$storeSubjectDropdown = $$searchDropdown({
   defaultText: '选择仓储科目',
   onchange(storeSubjectId, option) {
-    $$obj.patch({ storeSubjectId, storeSubject: option.bundle });
+    $$obj.patch({ storeSubjectId, storeSubject: option && option.bundle });
   },
   $$value: $$obj.trans(R.prop('storeSubjectId')),
   $$options: $$storeSubjects.trans(R.map(function (record) {
@@ -265,6 +276,11 @@ export default {
         { STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, obj
       ]
     ) {
+      if (obj.storeSubjectId) {
+        obj.storeSubject = R.find(
+          it => it.id == obj.storeSubjectId
+        )(storeSubjects);
+      }
       copy = R.clone(obj);
       let type = R.path(['query', 'type'])(ctx);
       if (type) {
