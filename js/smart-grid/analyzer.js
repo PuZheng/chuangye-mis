@@ -12,7 +12,7 @@ import { Lexer, Token, unlex } from './engine/lexer.js';
  *  [nextCellDef, nextRow, nextCol], or [void(0] if there's no next cell
  *  definition
  * */
-export var getNextCellDef = function getNextCellDef(grid, i, j) {
+var getNextCellDef = function getNextCellDef(grid, i, j) {
   let cellDef;
   while (i < grid.length) {
     let row = grid[i];

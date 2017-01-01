@@ -1,4 +1,4 @@
-import $$ from 'slot/';
+import $$ from 'slot';
 import { Lexer, Token } from './engine/lexer.js';
 import { Interpreter } from './engine/interpreter.js';
 import { Parser } from './engine/parser.js';
