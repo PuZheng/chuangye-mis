@@ -3,6 +3,7 @@ import virtualDom from 'virtual-dom';
 import $$ from 'slot';
 import { field } from '../field.js';
 import R from 'ramda';
+import storeOrderStore from 'store/store-order-store';
 
 var h = virtualDom.h;
 
@@ -34,7 +35,7 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
         h(
           '.title',
           /* eslint-disable max-len */
-          `${so.storeSubject.name}-${so.quantity}${so.storeSubject.unit}x${so.unitPrice}元, 共${so.quantity*so.unitPrice}元`
+          `${so.number}-${so.storeSubject.name}-${so.quantity}${so.storeSubject.unit}x${so.unitPrice}元, 共${so.quantity*so.unitPrice}元`
           /* eslint-enable max-len */
         ),
         h('.ops', h('button', {
@@ -54,6 +55,18 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
     [errors, obj, storeSubjectDropdown, storeOrderListEl]
   ) {
     return h('.form.border.border-box.store-order-editor', [
+      field({
+        key: 'number',
+        label: '编号',
+        input: h('input', {
+          value: obj.number || '',
+          oninput() {
+            $$obj.patch({ number: this.value });
+          }
+        }),
+        errors,
+        required: true
+      }),
       field({
         key: 'storeSubjectId',
         label: '仓储科目',
@@ -105,7 +118,8 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
             onclick(e) {
               e.preventDefault();
               let errors = {};
-              for (let k of ['storeSubjectId', 'quantity', 'unitPrice']) {
+              for (let k of
+                   ['storeSubjectId', 'quantity', 'unitPrice', 'number']) {
                 if (!obj[k]) {
                   errors[k] = '不能为空';
                 }
@@ -114,10 +128,18 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
                 $$errors.val(errors);
                 return false;
               }
-              $$.update(
-                [$$storeOrders, $$storeOrders.val().concat([obj])],
-                [$$obj, {}]
-              );
+              storeOrderStore.fetchList({ number: obj['number'] })
+              .then(function ({ data: [ so ] }) {
+                if (so) {
+                  $$errors.val({ number: '该编号已经存在!' });
+                  return;
+                }
+                $$errors.val({});
+                $$.update(
+                  [$$storeOrders, $$storeOrders.val().concat([obj])],
+                  [$$obj, {}]
+                );
+              });
               return false;
             }
           }, '添加'),
