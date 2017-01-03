@@ -14,10 +14,11 @@ var validate = function (obj) {
     accountTermStore.list,
   ])
   .then(function (
-    [{ STORE_SUBJECT_TYPES, STORE_ORDER_DIRECTIONS }, accountTerms]
+    [
+      { STORE_SUBJECT_TYPES: { MATERIAL, PRODUCT },
+        STORE_ORDER_DIRECTIONS: { INBOUND, OUTBOUND } }, accountTerms
+    ]
   ) {
-    let consumeMaterial = obj.storeSubject.type == STORE_SUBJECT_TYPES.MATERIAL
-    && obj.direction == STORE_ORDER_DIRECTIONS.OUTBOUND;
     return validateObj(obj, {
       number: notEmpty(),
       storeSubjectId: notEmpty(),
@@ -35,7 +36,12 @@ var validate = function (obj) {
           throw new Error('账期已经关闭');
         }
       },
-      unitPrice:  consumeMaterial && notEmpty(),
+      unitPrice: R.path(['storeSubject', 'type'])(obj) == MATERIAL &&
+        obj.direction == OUTBOUND && notEmpty(),
+      supplierId: R.path(['storeSubject', 'type'])(obj) == MATERIAL &&
+        obj.direction == INBOUND && notEmpty(),
+      customerId: R.path(['storeSubject', 'type'])(obj) == PRODUCT &&
+        obj.direction == OUTBOUND && notEmpty(),
     });
   });
 };

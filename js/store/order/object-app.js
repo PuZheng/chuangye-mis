@@ -11,6 +11,7 @@ import constStore from 'store/const-store';
 import $$dropdown from 'widget/dropdown';
 import co from 'co';
 import storeOrderStore from 'store/store-order-store';
+import entityStore from 'store/entity-store';
 import { $$toast } from '../../toast.js';
 import moment from 'moment';
 
@@ -22,16 +23,19 @@ var $$storeSubjects = $$([], 'store-subjects');
 var $$departments = $$([], 'departments');
 var $$storeOrderDirections = $$({}, 'store-order-directions');
 var $$storeSubjectTypes = $$({}, 'store-order-types');
+var $$entities = $$([], 'entities');
+var $$ENTITY_TYPES = $$({}, 'ENTITY_TYPES');
 var copy = {};
 
 var dirty = function (obj) {
   return !R.equals(obj, copy);
 };
 
-var formVf = function (
+var formVf = function formVf(
   [
     errors, obj, storeSubjectTypes, storeOrderDirections,
-    storeSubjectDropdown, departmentsDropdown, directionDropdown
+    storeSubjectDropdown, departmentsDropdown, directionDropdown,
+    supplierDropdown, customerDropdown,
   ]
 ) {
   let fields = [
@@ -39,7 +43,7 @@ var formVf = function (
       key: 'number',
       label: '编号',
       input: h('input', {
-        value: obj.number,
+        value: R.propOr('', 'number')(obj),
         oninput() {
           $$obj.patch({ number: this.value });
         },
@@ -61,16 +65,40 @@ var formVf = function (
       errors,
       required: true
     }),
+    R.ifElse()(
+      obj => R.path(['storeSubject', 'type'])(obj) == storeSubjectTypes.MATERIAL
+      && obj.direction == storeOrderDirections.INBOUND,
+      R.always(field({
+        key: 'supplierId',
+        label: '供应商',
+        input: supplierDropdown,
+        errors,
+        required: true
+      })),
+      R.always('')
+    )(obj),
+    R.ifElse()(
+      obj => R.path(['storeSubject', 'type'])(obj) == storeSubjectTypes.PRODUCT
+      && obj.direction == storeOrderDirections.OUTBOUND,
+      R.always(field({
+        key: 'customerId',
+        label: '客户',
+        input: customerDropdown,
+        errors,
+        required: true
+      })),
+      R.always('')
+    )(obj),
     field({
       key: 'quantity',
       label: R.ifElse(
         R.identity,
-        (ss) => '数量(' + ss.unit + ')',
+        ss => '数量(' + ss.unit + ')',
         R.always('数量')
       )(obj.storeSubject),
       input: h('input', {
         type: 'number',
-        value: obj.quantity,
+        value: R.propOr('', 'quantity')(obj),
         oninput() {
           $$obj.patch({ quantity: this.value });
         },
@@ -156,6 +184,9 @@ var formVf = function (
           });
         } catch (e) {
           console.error(e);
+          if (e.response && e.response.status == 400) {
+            $$errors.val(e.response.data);
+          }
         } finally {
           $$loading.val(false);
         }
@@ -215,10 +246,45 @@ var $$directionDropdown = $$dropdown({
   $$disabled: $$(true),
 });
 
+var $$supplierDropdown = $$searchDropdown({
+  defaultText: '请选择供应商',
+  $$value: $$obj.trans(R.prop('supplierId')),
+  $$options: $$.connect(
+    [$$entities, $$ENTITY_TYPES], function ([entities, ENTITY_TYPES]) {
+      return entities.filter(R.propEq('type', ENTITY_TYPES.SUPPLIER))
+      .map(it => ({
+        value: it.id,
+        text: it.name
+      }));
+    }
+  ),
+  onchange(supplierId) {
+    $$obj.patch({ supplierId });
+  }
+});
+
+var $$customerDropdown = $$searchDropdown({
+  defaultText: '请选择供应商',
+  $$value: $$obj.trans(R.prop('customerId')),
+  $$options: $$.connect(
+    [$$entities, $$ENTITY_TYPES], function ([entities, ENTITY_TYPES]) {
+      return entities.filter(R.propEq('type', ENTITY_TYPES.CUSTOMER))
+      .map(it => ({
+        value: it.id,
+        text: it.name
+      }));
+    }
+  ),
+  onchange(customerId) {
+    $$obj.patch({ customerId });
+  }
+});
+
 var $$form = $$.connect(
   [
     $$errors, $$obj, $$storeSubjectTypes, $$storeOrderDirections,
-    $$storeSubjectDropdown, $$departmentsDropdown, $$directionDropdown
+    $$storeSubjectDropdown, $$departmentsDropdown, $$directionDropdown,
+    $$supplierDropdown, $$customerDropdown,
   ],
   formVf
 );
@@ -258,6 +324,7 @@ export default {
   init(ctx) {
     $$loading.toggle();
     Promise.all([
+      entityStore.list,
       storeSubjectStore.list,
       departmentStore.list,
       constStore.get(),
@@ -272,8 +339,8 @@ export default {
     ])
     .then(function (
       [
-        storeSubjects, departments,
-        { STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, obj
+        entities, storeSubjects, departments,
+        { STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES, ENTITY_TYPES }, obj
       ]
     ) {
       if (obj.storeSubjectId) {
@@ -292,7 +359,9 @@ export default {
         [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
         [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
         [$$obj, obj],
-        [$$loading, false]
+        [$$loading, false],
+        [$$ENTITY_TYPES, ENTITY_TYPES],
+        [$$entities, entities]
       );
     });
   }

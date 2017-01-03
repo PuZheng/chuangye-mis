@@ -15,6 +15,7 @@ import $$myOth from 'widget/my-oth';
 import moment from 'moment';
 import departmentStore from '../../store/department-store';
 import accountTermStore from 'store/account-term-store';
+import entityStore from 'store/entity-store';
 import page from 'page';
 import $$searchBox from 'widget/search-box';
 
@@ -28,6 +29,8 @@ var $$totalCnt = $$(0, 'total-cnt');
 var $$loading = $$(false, 'loading');
 var $$departments = $$([], 'departments');
 var $$accountTerms = $$([], 'account-terms');
+var $$entities = $$([], 'entities');
+var $$ENTITY_TYPES = $$({}, 'ENTITY_TYPES');
 
 var contentVf = function (
   [qo, loading, filters, table, tableHints, paginator, numberSearchBox]
@@ -90,12 +93,27 @@ var $$tenantDropdown = $$searchDropdown({
 });
 
 var filtersVf = function (
-  [accountTermDropdown, subjectDropdown, tenantDropdown]
+  [accountTermDropdown, subjectDropdown, tenantDropdown, supplierDropdown,
+  customerDropdown, queryObj, storeSubjectTypes, storeOrderDirections]
 ) {
   return h('.filters', [
     accountTermDropdown,
     subjectDropdown,
     tenantDropdown,
+    R.ifElse(
+      // 若是采购原材料
+      qo => qo.type == storeSubjectTypes.MATERIAL &&
+        qo.direction == storeOrderDirections.INBOUND,
+      R.always(supplierDropdown),
+      R.always('')
+    )(queryObj),
+    R.ifElse(
+      // 若是发货
+      qo => qo.type == storeSubjectTypes.PRODUCT &&
+        qo.direction == storeOrderDirections.OUTBOUND,
+      R.always(customerDropdown),
+      R.always('')
+    )(queryObj),
   ]);
 };
 
@@ -114,11 +132,54 @@ var $$accountTermOth = $$myOth({
   column: 'account_term_id'
 });
 
+var $$supplierDropdown = $$searchDropdown({
+  defaultText: '请选择供应商',
+  $$options: $$.connect(
+    [$$entities, $$ENTITY_TYPES], function ([entities, ENTITY_TYPES]) {
+      return entities.filter(R.propEq('type', ENTITY_TYPES.SUPPLIER))
+      .map(it => ({
+        value: it.id,
+        text: it.name,
+        acronym: it.acronym
+      }));
+    }
+  ),
+  $$value: $$queryObj.map(R.propOr('', 'supplier_id')),
+  onchange(supplier_id) {
+    $$queryObj.patch({ supplier_id });
+  }
+});
+
+var $$customerDropdown = $$searchDropdown({
+  defaultText: '请选择客户',
+  $$options: $$.connect(
+    [$$entities, $$ENTITY_TYPES], function ([entities, ENTITY_TYPES]) {
+      return entities.filter(R.propEq('type', ENTITY_TYPES.CUSTOMER))
+      .map(it => ({
+        value: it.id,
+        text: it.name,
+        acronym: it.acronym
+      }));
+    }
+  ),
+  $$value: $$queryObj.map(R.propOr('', 'customer_id')),
+  onchange(customer_id) {
+    $$queryObj.patch({ customer_id });
+  }
+});
+
 var $$filters = $$.connect(
-  [$$accountTermDropdown, $$subjectDropdown, $$tenantDropdown], filtersVf
+  [
+    $$accountTermDropdown, $$subjectDropdown, $$tenantDropdown,
+    $$supplierDropdown, $$customerDropdown, $$queryObj, $$storeSubjectTypes,
+    $$storeOrderDirections
+  ], filtersVf
 );
 
-var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
+var tableVf = function (
+  [totalPriceOth, dateOth, accountTermOth, list, queryObj,
+    storeSubjectTypes, storeOrderDirections]
+) {
   return h('table.table.compact.striped', [
     h('thead', [
       h('tr', [
@@ -126,6 +187,20 @@ var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
         h('th', '编号'),
         h('th', '科目'),
         h('th', '车间'),
+        R.ifElse(
+          // 如果是采购原材料
+          qo => qo.type == storeSubjectTypes.MATERIAL &&
+            qo.direction == storeOrderDirections.INBOUND,
+          R.always(h('th', '供应商')),
+          R.always('')
+        )(queryObj),
+        R.ifElse(
+          // 如果是发货
+          qo => qo.type == storeSubjectTypes.PRODUCT &&
+            qo.direction == storeOrderDirections.OUTBOUND,
+          R.always(h('th', '客户')),
+          R.always('')
+        )(queryObj),
         h('th', '数量'),
         h('th', '单价(元)'),
         totalPriceOth,
@@ -134,41 +209,56 @@ var tableVf = function ([totalPriceOth, dateOth, accountTermOth, list]) {
         accountTermOth,
       ])
     ]),
-    h('tbody', list.map(function (record) {
+    h('tbody', list.map(function (it) {
       return h('tr', [
         h('td', h('a', {
-          href: '/store-order/' + record.id,
-        }, '' + record.id)),
-        h('td', record.number),
-        h('td', record.storeSubject.name),
-        h('td', record.department.name),
-        h('td', `${record.quantity}(${record.storeSubject.unit})`),
+          href: '/store-order/' + it.id,
+        }, '' + it.id)),
+        h('td', it.number),
+        h('td', it.storeSubject.name),
+        h('td', it.department.name),
+        R.ifElse(
+          // 如果是采购原材料
+          qo => qo.type == storeSubjectTypes.MATERIAL &&
+            qo.direction == storeOrderDirections.INBOUND,
+          R.always(h('td', it.supplier.name)),
+          R.always('')
+        )(queryObj),
+        R.ifElse(
+          // 如果是发货
+          qo => qo.type == storeSubjectTypes.PRODUCT &&
+            qo.direction == storeOrderDirections.OUTBOUND,
+          R.always(h('td', it.customer.name)),
+          R.always('')
+        )(queryObj),
+        h('td', `${it.quantity}(${it.storeSubject.unit})`),
         h('td', R.ifElse(
           R.identity,
           R.concat(''),
           R.always('--')
-        )(record.unitPrice)),
+        )(it.unitPrice)),
         h('td', R.ifElse(
           R.identity,
-          R.pipe(R.multiply(record.quantity), R.concat('')),
+          R.pipe(R.multiply(it.quantity), R.concat('')),
           R.always('--')
-        )(record.unitPrice)),
+        )(it.unitPrice)),
         h('td', R.ifElse(
           R.identity,
           invoice => h('a', {
             href: '/invoice/' + invoice.id,
           }, invoice.number),
           R.always('--')
-        )(record.invoice)),
-        h('td', moment(record.date).format('YYYY-MM-DD')),
-        h('td', record.accountTerm.name),
+        )(it.invoice)),
+        h('td', moment(it.date).format('YYYY-MM-DD')),
+        h('td', it.accountTerm.name),
       ]);
     }))
   ]);
 };
 
 var $$table = $$.connect(
-  [$$totalPriceOth, $$dateOth, $$accountTermOth, $$list], tableVf
+  [$$totalPriceOth, $$dateOth, $$accountTermOth, $$list, $$queryObj,
+  $$storeSubjectTypes, $$storeOrderDirections], tableVf
 );
 
 var $$tabNames = $$.connect(
@@ -234,10 +324,13 @@ export default {
       storeOrderStore.fetchList(ctx.query),
       departmentStore.list,
       accountTermStore.list,
+      entityStore.list,
     ])
     .then(function (
-      [{ STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES }, storeSubjects,
-        { totalCnt, data }, departments, accountTerms]
+      [{ STORE_ORDER_DIRECTIONS, STORE_SUBJECT_TYPES, ENTITY_TYPES },
+        storeSubjects, { totalCnt, data }, departments, accountTerms,
+        entities,
+      ]
     ) {
       $$.update(
         [$$loading, false],
@@ -247,7 +340,9 @@ export default {
         [$$list, data],
         [$$totalCnt, totalCnt],
         [$$departments, departments],
-        [$$accountTerms, accountTerms]
+        [$$accountTerms, accountTerms],
+        [$$ENTITY_TYPES, ENTITY_TYPES],
+        [$$entities, entities]
       );
     });
   }
