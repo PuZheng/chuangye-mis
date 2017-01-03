@@ -194,7 +194,7 @@ var $$meter = function () {
             R.always('')
           )(mods),
           R.ifElse(
-            R.prop('editMeterReadings'),
+            R.prop('editMeterReading'),
             () => h(
               'a' + classNames(
                 'item', (currentMod === 'meter.meter_reading') && 'active'
@@ -363,10 +363,25 @@ var $$partner = (function() {
   return $$.connect([$$currentMod, $$mods, $$expanded, $$entityTypes], vf);
 }());
 
+var $$paymentRecord = $$.connect(
+  [$$currentMod, $$mods],
+  function ([currentMod, mods]) {
+    let classes = classNames('item',
+                             (currentMod == 'payment_record') && 'active');
+    return R.ifElse(
+      R.prop('editPaymentRecord'),
+      R.always(h('a' + classes, {
+        href: '/payment-record-list'
+      }, '扣费管理')),
+      R.always('')
+    )(mods);
+  }
+);
+
 var vf = function vf([
   home, invoice, store, voucher, department, tenant, settings, meter,
   accountTerm, invoiceType, voucherSubject, user, chargeBill, storeSubject,
-  partner,
+  partner, paymentRecord,
 ]) {
   return h('.menu.top', [
     home,
@@ -384,6 +399,7 @@ var vf = function vf([
     chargeBill,
     storeSubject,
     partner,
+    paymentRecord,
     R.ifElse(
       R.prop('user'),
       () => h('.right.color-gray', [
@@ -415,7 +431,7 @@ export var $$navBar = $$.connect(
   [
     $$home, $$invoice, $$store, $$voucher, $$department, $$tenant,
     $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user,
-    $$chargeBill, $$storeSubject, $$partner,
+    $$chargeBill, $$storeSubject, $$partner, $$paymentRecord
   ],
   vf,
   'nav-bar'
@@ -444,12 +460,13 @@ export var setupNavBar = function (mod) {
     .could('edit.store_subject')
     .could('edit.partner')
     .could('edit.meter_reading')
+    .could('edit.payment_record')
     .then(function (
       viewInvoiceList, viewVoucherList, editDepartment,
       viewTenantList, editSettings, editMeter, editMeterType,
       editAccountTerm, editInvoiceType, editVoucherSubject,
       editUser, manageStore, editChargeBill, editStoreSubject,
-      editPartner, editMeterReadings
+      editPartner, editMeterReading, editPaymentRecord
     ) {
       constStore.get()
       .then(function ({ INVOICE_STATES, ENTITY_TYPES }) {
@@ -470,7 +487,8 @@ export var setupNavBar = function (mod) {
             editChargeBill,
             editStoreSubject,
             editPartner,
-            editMeterReadings,
+            editMeterReading,
+            editPaymentRecord
           }],
           [$$currentMod, mod],
           [$$invoiceStates, INVOICE_STATES],

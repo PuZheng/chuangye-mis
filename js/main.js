@@ -40,6 +40,7 @@ import storeSubjectObjectApp from './store-subject/object-app';
 import partnerListApp from './partner/list-app';
 import partnerObjectApp from './partner/object-app';
 import meterReadingsApp from './meter-readings/index';
+import paymentRecordListApp from './payment-record/list-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -287,6 +288,12 @@ page(
     setupNavBar('partner.' + ctx.query.type).then(next);
   },
   _could('edit.partner'), useWith(partnerObjectApp)
+);
+
+page(
+  '/payment-record-list', loginRequired,
+  _setupNavBar('payment_record'),
+  _could('edit.payment_record'), useWith(paymentRecordListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

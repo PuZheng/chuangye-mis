@@ -317,7 +317,7 @@ export default {
     }
   },
   init(ctx) {
-    $$loading.val(true);
+    $$loading.on();
     Promise.all([
       constStore.get(),
       storeSubjectStore.list,
