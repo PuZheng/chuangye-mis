@@ -42,7 +42,7 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
         h('.username', obj.username),
         h('.role', obj.role),
         h(classNames(
-          'toggle', 'ml4', 'align-middle', obj.enabled && 'checked',
+          '_', 'toggle', 'ml4', 'align-middle', obj.enabled && 'checked',
           obj.username == 'admin' && 'disabled'
         ), {
           onclick(e) {

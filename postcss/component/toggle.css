@@ -1,10 +1,10 @@
-.toggle {
+._.toggle {
     min-height: 1.5rem;
     font-size: 1rem;
     display: inline-block;
     position: relative;
     min-width: 3.5rem;
-    
+
     & label {
         padding-left: 4.5rem;
         min-height: 1.5rem;
@@ -40,7 +40,7 @@
     }
     &.checked:before {
         background-color: var(--color-primary);
-        
+
     }
     &:after {
         background: linear-gradient(transparent,rgba(0,0,0,.05)) #FFF;

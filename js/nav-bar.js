@@ -383,7 +383,7 @@ var vf = function vf([
   accountTerm, invoiceType, voucherSubject, user, chargeBill, storeSubject,
   partner, paymentRecord,
 ]) {
-  return h('.menu.top', [
+  return h('._.menu.top', [
     home,
     invoice,
     store,
