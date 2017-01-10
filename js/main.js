@@ -42,7 +42,6 @@ import meterReadingsApp from './meter-readings/index';
 import paymentRecordListApp from './payment-record/list-app';
 import config from './config';
 import object2qs from './utils/object2qs';
-import constStore from 'store/const-store';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -309,18 +308,6 @@ page(
   '/payment-record-list', loginRequired,
   _setupNavBar('payment_record'),
   _could('edit.payment_record'), assurePageNPageSize('payment_record'),
-  function (ctx, next) {
-    if (!ctx.query.status) {
-      constStore.get()
-      .then(function ({ PAYMENT_RECORD_STATES }) {
-        page(ctx.pathname + '?' + object2qs(Object.assign(ctx.query, {
-          status: PAYMENT_RECORD_STATES.UNPROCESSED
-        })));
-      });
-      return;
-    }
-    next();
-  },
   useWith(paymentRecordListApp)
 );
 

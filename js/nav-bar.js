@@ -10,6 +10,7 @@ import constStore from 'store/const-store';
 
 var $$invoiceStates = $$({}, 'invoice-status');
 var $$entityTypes = $$({}, 'entity-types');
+var $$PAYMENT_RECORD_STATES = $$({}, 'PAYMENT_RECORD_STATES');
 export var $$mods = $$({}, 'mods');
 export var $$currentMod = $$('home', 'current-module');
 
@@ -364,14 +365,14 @@ var $$partner = (function() {
 }());
 
 var $$paymentRecord = $$.connect(
-  [$$currentMod, $$mods],
-  function ([currentMod, mods]) {
+  [$$currentMod, $$mods, $$PAYMENT_RECORD_STATES],
+  function ([currentMod, mods, PAYMENT_RECORD_STATES]) {
     let classes = classNames('item',
                              (currentMod == 'payment_record') && 'active');
     return R.ifElse(
       R.prop('editPaymentRecord'),
       R.always(h('a' + classes, {
-        href: '/payment-record-list'
+        href: '/payment-record-list?status=' + PAYMENT_RECORD_STATES.UNPROCESSED
       }, '扣费管理')),
       R.always('')
     )(mods);
@@ -469,7 +470,7 @@ export var setupNavBar = function (mod) {
       editPartner, editMeterReading, editPaymentRecord
     ) {
       constStore.get()
-      .then(function ({ INVOICE_STATES, ENTITY_TYPES }) {
+      .then(function ({ INVOICE_STATES, ENTITY_TYPES, PAYMENT_RECORD_STATES }) {
         $$.update([
           [$$mods, {
             viewInvoiceList,
@@ -492,7 +493,8 @@ export var setupNavBar = function (mod) {
           }],
           [$$currentMod, mod],
           [$$invoiceStates, INVOICE_STATES],
-          [$$entityTypes, ENTITY_TYPES]
+          [$$entityTypes, ENTITY_TYPES],
+          [$$PAYMENT_RECORD_STATES, PAYMENT_RECORD_STATES]
         ]);
       });
     });

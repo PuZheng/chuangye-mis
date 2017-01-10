@@ -14,6 +14,9 @@ import $$searchDropdown from 'widget/search-dropdown';
 import $$dropdown from 'widget/dropdown';
 import accountTermStore from 'store/account-term-store';
 import departmentStore from 'store/department-store';
+import page from 'page';
+import { $$toast } from '../toast';
+import object2qs from '../utils/object2qs';
 
 var {
   h
@@ -50,7 +53,7 @@ var filtersVf = function filtersVf(
   ]);
 };
 
-var tableVf = function tableVf([list, ...actionButtons]) {
+var tableVf = function ([PAYMENT_RECORD_STATES, list, ...actionButtons]) {
   return h('table.compact.striped', [
     h('thead', h('tr', [
 
@@ -69,7 +72,7 @@ var tableVf = function tableVf([list, ...actionButtons]) {
       .map(function ([it, actionButton]) {
         return h('tr', [
           h('td', h('a', {
-            href: '/payment-record/object/' + it.id,
+            href: '/payment-record/' + it.id,
           }, it.id)),
           h('td', it.department.name),
           h('td', String(it.amount)),
@@ -77,11 +80,15 @@ var tableVf = function tableVf([list, ...actionButtons]) {
           h('td', it.accountTerm.name),
           h('td', moment(it.created)
             .format('YY-MM-DD')),
-          h('td', it.status),
+          h('td', R.ifElse(
+            R.equals(PAYMENT_RECORD_STATES.REJECTED),
+            status => h('span.ca', status),
+            R.identity()
+          )(it.status)),
           h('td', R.ifElse(
             R.prop('voucherId'),
             paymentRecord => h('a', {
-              href: '/voucher/object' + paymentRecord.voucherId,
+              href: '/voucher/' + paymentRecord.voucherId,
             }, paymentRecord.voucher.number),
             R.always('--')
           )(it)),
@@ -183,6 +190,9 @@ export default {
     accountTerms, departments
     ]) {
       let $$actionsButtons = data.map(function (it) {
+        if (!it.actions || it.actions.length == 0) {
+          return $$('--');
+        }
         return $$actionButton({
           defaultActionIdx: R.indexOf(
             PAYMENT_RECORD_ACTIONS.PASS
@@ -199,13 +209,22 @@ export default {
                   h('button.ca.btn.btn-outline', {
                     onclick() {
                       paymentRecordStore.pass(it.id)
-                      .then(function (paymentRecord) {
-                        let staleIdx = R.findIndex(
-                          it => it.id == paymentRecord.id
-                        )(data);
-                        data[staleIdx] = paymentRecord;
-                        $$list.val(data);
+                      .then(function () {
+                        $$toast.val({
+                          type: 'success',
+                          message: '操作成功!',
+                        });
+                        overlay.dismiss();
+                        page('/payment-record-list?' + object2qs(ctx.query));
+                      }, function (e) {
+                        if ((e.response || {}).status == 400) {
+                          overlay.show({
+                            type: 'error',
+                            message: e.response.data
+                          });
+                        }
                       });
+                      return false;
                     }
                   }, '确认')
                 ]
@@ -221,7 +240,14 @@ export default {
                   h('button.ca.btn.btn-outline', {
                     onclick() {
                       paymentRecordStore.reject(it.id)
-                      .then(function () {});
+                      .then(function () {
+                        $$toast.val({
+                          type: 'success',
+                          message: '操作成功!',
+                        });
+                        overlay.dismiss();
+                        page('/payment-record-list?' + object2qs(ctx.query));
+                      });
                     }
                   }, '确认')
                 ]
@@ -234,7 +260,8 @@ export default {
           }
         });
       });
-      $$table.connect([$$list, ...$$actionsButtons], tableVf);
+      $$table.connect([$$PAYMENT_RECORD_STATES, $$list, ...$$actionsButtons],
+                      tableVf);
       $$.update([
         [$$loading, false], [$$totalCnt, totalCnt], [$$list, data],
         [$$accountTerms, accountTerms], [$$departments, departments],
