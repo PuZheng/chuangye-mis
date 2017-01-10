@@ -181,7 +181,11 @@ export default {
                   h('button.ca.btn.btn-outline', {
                     onclick() {
                       paymentRecordStore.pass(it.id)
-                      .then(function () {
+                      .then(function (paymentRecord) {
+                        let staleIdx =
+                          R.findIndex(it => it.id == paymentRecord.id)(data);
+                        data[staleIdx] = paymentRecord;
+                        $$list.val(data);
                       });
                     }
                   }, '确认')
