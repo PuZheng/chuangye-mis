@@ -320,7 +320,7 @@ var connect = function connect(
   return self.connect(slots, valueFunc, lazy);
 };
 
-var update = function (...slotValuePairs) {
+var update = function (slotValuePairs) {
   let cleanSlots = {};
   slotValuePairs.forEach(function ([slot, value]) {
     slot.debug && console.info(`slot ${slot.tag} changed`, slot.value, value);

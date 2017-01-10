@@ -353,7 +353,7 @@ export default {
       if (type) {
         storeSubjects = storeSubjects.filter(R.propEq('type', type));
       }
-      $$.update(
+      $$.update([
         [$$storeSubjects, storeSubjects],
         [$$departments, departments],
         [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
@@ -362,7 +362,7 @@ export default {
         [$$loading, false],
         [$$ENTITY_TYPES, ENTITY_TYPES],
         [$$entities, entities]
-      );
+      ]);
     });
   }
 };

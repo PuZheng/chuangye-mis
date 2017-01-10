@@ -165,11 +165,11 @@ export default {
     .then(function ([obj, { ROLES }]) {
       obj.passwordAg = obj.password;
       copy = R.clone(obj);
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$obj, obj],
         [$$roles, ROLES]
-      );
+      ]);
     });
   },
   get dirty() {

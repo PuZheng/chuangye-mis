@@ -60,10 +60,10 @@ export var $$dropdown = function (
     let optionElms = options.map(function (o, idx) {
       return h(optionClassNames(o, idx), {
         onmousedown: function (e) {
-          $$.update(
+          $$.update([
             [$$activated, !activated],
             [$$selection, -1]
-          );
+          ]);
           onchange(optionValue(o), o);
           // we don't want the parent to handle onmousedown
           e.stopPropagation();
@@ -84,10 +84,10 @@ export var $$dropdown = function (
         $$activated.toggle();
       },
       onblur: function () {
-        $$.update(
+        $$.update([
           [$$activated, false],
           [$$selection, -1]
-        );
+        ]);
       },
       onkeydown: function (e) {
         if (e.which === UP || e.keyCode === UP) {

@@ -40,13 +40,13 @@ var vf = function vf([obj, errors, queryObj, entityTypeDropdown, loading]) {
           try {
             let { id } = yield partnerStore.save(obj);
             copy = R.clone(obj);
-            $$.update(
+            $$.update([
               [$$toast, {
                 type: 'success',
                 message: '提交成功',
               }],
               [$$errors, {}]
-            );
+            ]);
             !obj.id && page('/partner/' + id);
           } catch (e) {
             if ((e.response || {}).status == 400) {
@@ -198,11 +198,11 @@ export default {
     ])
     .then(function ([{ ENTITY_TYPES }, obj]) {
       copy = R.clone(obj);
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$entityTypes, ENTITY_TYPES],
         [$$obj, obj]
-      );
+      ]);
     });
   }
 };

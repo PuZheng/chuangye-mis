@@ -55,13 +55,13 @@ var formVf = function ([obj, errors, typeDropdown]) {
           $$loading.val(true);
           let { id } = yield storeSubjectStore.save(obj);
           copy = R.clone(obj);
-          $$.update(
+          $$.update([
             [$$loading, false],
             [$$toast, {
               type: 'success',
               message: obj.id? '更新成功': '创建成功',
             }]
-          );
+          ]);
           !obj.id && page('/store-subject/' + id);
         } catch (e) {
           if ((e.response || {}).status == 400) {
@@ -157,11 +157,11 @@ export default {
     ])
     .then(function ([obj, { STORE_SUBJECT_TYPES }]) {
       copy = R.clone(obj);
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$obj, obj],
         [$$storeSubjectTypes, STORE_SUBJECT_TYPES]
-      );
+      ]);
     });
   }
 };

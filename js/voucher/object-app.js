@@ -375,7 +375,7 @@ default {
       .then(function([voucherTypes, voucherSubjects, entities, obj]) {
         console.log(obj);
         copy = R.clone(obj);
-        $$.update(
+        $$.update([
           [$$voucherTypes, voucherTypes],
           // why not R.propEq, since it use '===' instead of '=='
           [
@@ -388,7 +388,7 @@ default {
           [$$voucherSubjects, voucherSubjects],
           [$$obj, obj],
           [$$entities, entities]
-        );
+        ]);
       });
   }
 };

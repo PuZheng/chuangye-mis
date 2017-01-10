@@ -81,38 +81,38 @@ export var $$searchBox = function (
           if (searchText && searchText.length >= minLen) {
             $$loading.val(true);
             getHints(searchText).then(function (hints) {
-              $$.update(
+              $$.update([
                 [$$totalCnt, hints.length],
                 [$$selection, -1],
                 [$$options, hints.slice(0, maxOptions)],
                 [$$loading, false]
-              );
+              ]);
             });
           }
         },
         onblur() {
-          $$.update(
+          $$.update([
             [$$active, false],
             [$$options, []],
             [$$loading, false]
-          );
+          ]);
         },
         oninput() {
-          $$.update(
+          $$.update([
             [$$searchText, this.value],
             [$$selection, -1]
-          );
+          ]);
           if (this.value.length < minLen) {
             $$options.val([]);
             return;
           }
           $$loading.toggle();
           getHints(this.value).then(function (hints) {
-            $$.update(
+            $$.update([
               [$$totalCnt, hints.length],
               [$$options, hints.slice(0, maxOptions)],
               [$$loading, false]
-            );
+            ]);
           });
           return false;
         },
@@ -133,12 +133,12 @@ export var $$searchBox = function (
           }
           if (e.which == ENTER || e.keyCode == ENTER) {
             selection = options[selection];
-            $$.update(
+            $$.update([
               [$$searchText, searchText],
               [$$loading, false],
               [$$options, []],
               [$$selection, -1]
-            );
+            ]);
 
             onsearch(getText(selection) || searchText);
             inputEl.blur();
@@ -169,11 +169,11 @@ export var $$searchBox = function (
             return h('.item' + (idx == selection? '.selected': ''), {
               // don't use onclick, becauase onclick fired after onblur
               onmousedown() {
-                $$.update(
+                $$.update([
                   [$$searchText, getText(o)],
                   [$$options, []],
                   [$$searchText, -1]
-                );
+                ]);
                 onsearch(getText(o), o);
                 inputEl.blur();
                 return false;

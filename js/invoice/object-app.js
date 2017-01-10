@@ -531,7 +531,7 @@ export default {
                            R.path(['invoiceType', 'storeSubjectType'])(obj)));
         };
       }(storeSubjects));
-      $$.update(
+      $$.update([
         [$$entities, entities],
         [$$invoiceTypes, invoiceTypes],
         [$$accountTerms, accountTerms],
@@ -540,7 +540,7 @@ export default {
         [$$storeOrders, obj.storeOrders],
         [$$invoiceActions, INVOICE_ACTIONS],
         [$$invoiceStates, INVOICE_STATES]
-      );
+      ]);
     });
   }
 };

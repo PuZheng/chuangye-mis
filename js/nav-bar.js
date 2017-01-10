@@ -470,7 +470,7 @@ export var setupNavBar = function (mod) {
     ) {
       constStore.get()
       .then(function ({ INVOICE_STATES, ENTITY_TYPES }) {
-        $$.update(
+        $$.update([
           [$$mods, {
             viewInvoiceList,
             viewVoucherList,
@@ -493,7 +493,7 @@ export var setupNavBar = function (mod) {
           [$$currentMod, mod],
           [$$invoiceStates, INVOICE_STATES],
           [$$entityTypes, ENTITY_TYPES]
-        );
+        ]);
       });
     });
   }

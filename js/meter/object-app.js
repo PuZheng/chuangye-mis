@@ -63,13 +63,13 @@ var formVf = function (
           $$loading.val(true);
           let id = yield meterStore.save(obj);
           copy = R.clone(obj);
-          $$.update(
+          $$.update([
             [$$loading, false],
             [$$toast, {
               type: 'success',
               message: obj.id? '更新成功': '创建成功',
             }]
-          );
+          ]);
           !obj.id && page('/meter/' + id);
         } catch (e) {
           if ((e.response || {}).status == 400) {
@@ -273,13 +273,13 @@ export default {
     ) {
       copy = R.clone(obj);
       allMeters = meters;
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$statusList, R.values(METER_STATES)],
         [$$meterTypeList, R.values(meterTypes)],
         [$$departments, departments],
         [$$obj, obj]
-      );
+      ]);
       obj.id && $$parentMeters.val(
         allMeters.filter(m => m.isTotal && m.type == obj.type)
       );

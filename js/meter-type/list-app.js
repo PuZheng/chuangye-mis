@@ -89,10 +89,10 @@ export default {
     $$loading.toggle();
     meterTypeStore.list
     .then(function (list) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, list]
-      );
+      ]);
     });
   }
 };

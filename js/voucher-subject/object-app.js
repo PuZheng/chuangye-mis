@@ -37,13 +37,13 @@ var formVf = function (
           return;
         }
         if (!dirty(obj)) {
-          $$.update(
+          $$.update([
             [$$toast, {
               type: 'info',
               message: '没有做出任何修改',
             }],
             [$$loading, false]
-          );
+          ]);
           return;
         }
         try {
@@ -188,11 +188,11 @@ export default {
     ])
     .then(function ([obj, { ENTITY_TYPES }]) {
       copy = R.clone(obj);
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$entityTypes, ENTITY_TYPES],
         [$$obj, obj]
-      );
+      ]);
     });
   },
   get dirty() {

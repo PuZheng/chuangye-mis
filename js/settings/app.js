@@ -87,10 +87,10 @@ export default {
   init() {
     $$loading.toggle();
     settingsStore.list.then(function (settings) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$settings, settings]
-      );
+      ]);
     });
   }
 };

@@ -130,11 +130,11 @@ export default {
     tenantStore
     .fetchList($$queryObj.val())
     .then(function ({data: tenants, totalCnt}) {
-      $$.update(
+      $$.update([
         [$$tenants, tenants],
         [$$totalCnt, totalCnt],
         [$$loading, false]
-      );
+      ]);
     });
   }
 };

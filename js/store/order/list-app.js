@@ -332,7 +332,7 @@ export default {
         entities,
       ]
     ) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
         [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
@@ -343,7 +343,7 @@ export default {
         [$$accountTerms, accountTerms],
         [$$ENTITY_TYPES, ENTITY_TYPES],
         [$$entities, entities]
-      );
+      ]);
     });
   }
 };

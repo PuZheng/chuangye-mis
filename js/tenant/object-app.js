@@ -449,14 +449,14 @@ export default {
 
         }
       }
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$departments, departments],
         [$$obj, obj],
         [$$account, account],
         [$$accountTerms, accountTerms],
         [$$activeAccountTermId, activeAccountTermId]
-      );
+      ]);
     })
     .catch(function (e) {
       console.log(e);

@@ -15,7 +15,9 @@ import $$dropdown from 'widget/dropdown';
 import accountTermStore from 'store/account-term-store';
 import departmentStore from 'store/department-store';
 
-var { h } = virtualDom;
+var {
+  h
+} = virtualDom;
 
 var $$totalCnt = $$(0, 'total-cnt');
 var $$loading = $$(false, 'loading');
@@ -26,7 +28,7 @@ var $$PAYMENT_RECORD_TYPES = $$({}, 'PAYMENT_RECORD_TYPES');
 var $$PAYMENT_RECORD_STATES = $$({}, 'PAYMENT_RECORD_STATES');
 
 var vf = function vf([loading, filters, table, tableHints, paginator]) {
-  return h('.list-app' + (loading? '.loading': ''), [
+  return h('.list-app' + (loading ? '.loading' : ''), [
     h('.header', [
       h('.title', '扣费记录列表'),
     ]),
@@ -63,28 +65,30 @@ var tableVf = function tableVf([list, ...actionButtons]) {
       h('th', '类型'),
       h('th', '操作'),
     ])),
-    h('tbody', R.zip(list, actionButtons).map(function ([it, actionButton]) {
-      return h('tr', [
-        h('td', h('a', {
-          href: '/payment-record/object/' + it.id,
-        }, it.id)),
-        h('td', it.department.name),
-        h('td', String(it.amount)),
-        h('td', String(it.tax)),
-        h('td', it.accountTerm.name),
-        h('td', moment(it.created).format('YY-MM-DD')),
-        h('td', it.status),
-        h('td', R.ifElse(
-          R.prop('voucherId'),
-          paymentRecord => h('a', {
-            href: '/voucher/object' + paymentRecord.voucherId,
-          }, paymentRecord.voucher.number),
-          R.always('--')
-        )(it)),
-        h('td', it.type),
-        h('td', actionButton),
-      ]);
-    })),
+    h('tbody', R.zip(list, actionButtons)
+      .map(function ([it, actionButton]) {
+        return h('tr', [
+          h('td', h('a', {
+            href: '/payment-record/object/' + it.id,
+          }, it.id)),
+          h('td', it.department.name),
+          h('td', String(it.amount)),
+          h('td', String(it.tax)),
+          h('td', it.accountTerm.name),
+          h('td', moment(it.created)
+            .format('YY-MM-DD')),
+          h('td', it.status),
+          h('td', R.ifElse(
+            R.prop('voucherId'),
+            paymentRecord => h('a', {
+              href: '/voucher/object' + paymentRecord.voucherId,
+            }, paymentRecord.voucher.number),
+            R.always('--')
+          )(it)),
+          h('td', it.type),
+          h('td', actionButton),
+        ]);
+      })),
   ]);
 };
 
@@ -98,7 +102,9 @@ var $$accountTermFilter = $$searchDropdown({
     };
   })),
   onchange(account_term_id) {
-    $$queryObj.patch({ account_term_id });
+    $$queryObj.patch({
+      account_term_id
+    });
   }
 });
 
@@ -111,7 +117,9 @@ var $$departmentDropdown = $$searchDropdown({
     acronym: it.acronym,
   }))),
   onchange(department_id) {
-    $$queryObj.patch({ department_id });
+    $$queryObj.patch({
+      department_id
+    });
   }
 });
 
@@ -120,7 +128,9 @@ var $$typeDropdown = $$dropdown({
   $$value: $$queryObj.map(R.propOr('', 'type')),
   $$options: $$PAYMENT_RECORD_TYPES.map(R.values),
   onchange(type) {
-    $$queryObj.patch({ type });
+    $$queryObj.patch({
+      type
+    });
   }
 });
 
@@ -129,7 +139,9 @@ var $$statusDropdown = $$dropdown({
   $$value: $$queryObj.map(R.propOr('', 'status')),
   $$options: $$PAYMENT_RECORD_STATES.map(R.values),
   onchange(status) {
-    $$queryObj.patch({ status });
+    $$queryObj.patch({
+      status
+    });
   }
 });
 
@@ -155,20 +167,26 @@ export default {
   },
   init(ctx) {
     $$loading.on();
-    Promise.all([
-      paymentRecordStore.fetchList(ctx.query),
-      constStore.get(),
-      accountTermStore.list,
-      departmentStore.list,
-    ])
-    .then(function (
-      [{ totalCnt, data, },
-        { PAYMENT_RECORD_ACTIONS, PAYMENT_RECORD_TYPES, PAYMENT_RECORD_STATES },
-        accountTerms, departments]
-    ) {
+    let promises = [
+      paymentRecordStore.fetchList(ctx.query), constStore.get(),
+      accountTermStore.list, departmentStore.list
+    ];
+    Promise.all(promises)
+    .then(function ([{
+      totalCnt,
+      data,
+    }, {
+      PAYMENT_RECORD_ACTIONS,
+      PAYMENT_RECORD_TYPES,
+      PAYMENT_RECORD_STATES
+    },
+    accountTerms, departments
+    ]) {
       let $$actionsButtons = data.map(function (it) {
         return $$actionButton({
-          defaultActionIdx: R.indexOf(PAYMENT_RECORD_ACTIONS.PASS)(it.actions),
+          defaultActionIdx: R.indexOf(
+            PAYMENT_RECORD_ACTIONS.PASS
+          )(it.actions),
           items: it.actions,
           ontrigger(action) {
             switch (action) {
@@ -182,8 +200,9 @@ export default {
                     onclick() {
                       paymentRecordStore.pass(it.id)
                       .then(function (paymentRecord) {
-                        let staleIdx =
-                          R.findIndex(it => it.id == paymentRecord.id)(data);
+                        let staleIdx = R.findIndex(
+                          it => it.id == paymentRecord.id
+                        )(data);
                         data[staleIdx] = paymentRecord;
                         $$list.val(data);
                       });
@@ -202,8 +221,7 @@ export default {
                   h('button.ca.btn.btn-outline', {
                     onclick() {
                       paymentRecordStore.reject(it.id)
-                      .then(function () {
-                      });
+                      .then(function () {});
                     }
                   }, '确认')
                 ]
@@ -217,15 +235,12 @@ export default {
         });
       });
       $$table.connect([$$list, ...$$actionsButtons], tableVf);
-      $$.update(
-        [$$loading, false],
-        [$$totalCnt, totalCnt],
-        [$$list, data],
-        [$$accountTerms, accountTerms],
-        [$$departments, departments],
+      $$.update([
+        [$$loading, false], [$$totalCnt, totalCnt], [$$list, data],
+        [$$accountTerms, accountTerms], [$$departments, departments],
         [$$PAYMENT_RECORD_TYPES, PAYMENT_RECORD_TYPES],
         [$$PAYMENT_RECORD_STATES, PAYMENT_RECORD_STATES]
-      );
+      ]);
     });
   }
 };

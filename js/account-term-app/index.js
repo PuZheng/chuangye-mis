@@ -159,11 +159,11 @@ var init = function () {
   $$loading.val(true);
   accountTermStore.list
   .then(function (list) {
-    $$.update(
+    $$.update([
       [$$loading, false],
       [$$list, list],
       [$$uninitialized, calcUninitialized(list)]
-    );
+    ]);
   });
 };
 

@@ -135,13 +135,13 @@ export default {
       departmentStore.list,
     ])
     .then(function ([{totalCnt, data}, meterTypes, departments]) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, data],
         [$$totalCnt, totalCnt],
         [$$meterTypes, meterTypes],
         [$$departments, departments]
-      );
+      ]);
     });
   }
 };

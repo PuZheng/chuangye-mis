@@ -74,10 +74,10 @@ export default {
     $$loading.val(true);
     storeSubjectStore.fetchList(ctx.query)
     .then(function (list) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, list]
-      );
+      ]);
     });
   }
 };

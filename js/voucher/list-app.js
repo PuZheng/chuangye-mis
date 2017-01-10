@@ -254,7 +254,7 @@ export default {
     ]).then(function (
       [data, voucherTypes, voucherSubjects, entities, accountTerms]
     ) {
-      $$.update(
+      $$.update([
         [$$list, data.data],
         [$$totalCnt, data.totalCnt],
         [$$voucherTypes, voucherTypes],
@@ -262,7 +262,7 @@ export default {
         [$$entities, entities],
         [$$loading, false],
         [$$accountTerms, accountTerms]
-      );
+      ]);
     });
   }
 };

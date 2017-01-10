@@ -90,10 +90,10 @@ export default {
     $$loading.val(true);
     userStore.list
     .then(function (list) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, list]
-      );
+      ]);
     }, function (e) {
       if ((e.response || {}).status == '403') {
         page('/unauthorized');
