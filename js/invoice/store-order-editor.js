@@ -135,10 +135,10 @@ var $$storeOrderEditor = function ($$storeSubjects, $$storeOrders) {
                   return;
                 }
                 $$errors.val({});
-                $$.update(
+                $$.update([
                   [$$storeOrders, $$storeOrders.val().concat([obj])],
                   [$$obj, {}]
-                );
+                ]);
               });
               return false;
             }

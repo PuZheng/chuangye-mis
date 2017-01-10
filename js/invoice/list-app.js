@@ -270,7 +270,7 @@ export default {
     ]).then(function (
       [data, invoiceTypes, accountTerms, entities, { INVOICE_STATUS }]
     ) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, data.data],
         [$$totalCnt, data.totalCnt],
@@ -278,7 +278,7 @@ export default {
         [$$accountTerms, accountTerms],
         [$$entities, entities],
         [$$invoiceStates, INVOICE_STATUS]
-      );
+      ]);
     });
   }
 };

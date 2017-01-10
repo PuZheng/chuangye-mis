@@ -12,7 +12,7 @@ var $$tabs = function ({
     [$$tabNames, $$activeIdx, $$content],
     function ([tabNames, activeIdx, content]) {
       return h('.tabs', [
-        h('.tabular.menu', tabNames.map(function (tn, idx) {
+        h('.tabular._.menu', tabNames.map(function (tn, idx) {
           return h('.item' + (idx === activeIdx? '.active': ''), {
             onclick() {
               onchange(idx, tn);

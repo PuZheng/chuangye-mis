@@ -124,17 +124,17 @@ export class SmartGrid {
           }
         }
         // force update cells (remember resetView won't update)
-        $$.update.apply(null, $$views);
+        $$.update.apply(null, [$$views]);
       };
     }(this);
     this.$$topmostRow.change(onScreenScroll);
     this.$$leftmostCol.change(onScreenScroll);
     this.$$activeSheetIdx.change(function (sg) {
       return function () {
-        $$.update(
+        $$.update([
           [sg.$$leftmostCol, 0],
           [sg.$$topmostRow, 0]
-        );
+        ]);
         onScreenScroll();
       };
     }(this));
@@ -177,12 +177,12 @@ export class SmartGrid {
       });
     }(this);
 
-    $$.update(
+    $$.update([
       [this.$$viewportWidth, viewportWidth],
       [this.$$viewportHeight, viewportHeight],
       [this.$$actualWidth, 2 * viewportWidth],
       [this.$$actualHeight, 2 * viewportHeight]
-    );
+    ]);
     let sheetNames = [];
     for (var {label} of this.analyzer.sheets) {
       sheetNames.push(label);
@@ -435,7 +435,7 @@ export class SmartGrid {
               }
               lastX = e.clientX;
               updates.push([smartGrid.$$left, left]);
-              $$.update(...updates);
+              $$.update(updates);
             };
             document.addEventListener('mousemove', onmousemove);
           },
@@ -499,7 +499,7 @@ export class SmartGrid {
               }
               updates.push([smartGrid.$$top, top]);
               lastY = e.clientY;
-              $$.update(...updates);
+              $$.update(updates);
             };
             document.addEventListener('mouseup', onmouseup);
             document.addEventListener('mousemove', onmousemove);
@@ -594,7 +594,7 @@ export class SmartGrid {
       [this.$$left, left / this.$$actualWidth.val()]
     );
     top != null && updates.push([this.$$top, top / this.$$actualHeight.val()]);
-    $$.update(...updates);
+    $$.update(updates);
   }
   /**
    * edit a given position

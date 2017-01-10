@@ -13,7 +13,7 @@ export var $$paginator = function (
       page: queryObj.page || 1,
       pageSize,
     });
-    return h('.paginator.menu', [
+    return h('.paginator._.menu', [
       h('a' + function () {
         let s = '.item.celled';
         if (!pg.hasPrev) {

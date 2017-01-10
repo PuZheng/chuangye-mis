@@ -6,7 +6,9 @@ import field from '../field';
 import page from 'page';
 import co from 'co';
 import meterTypeStore from 'store/meter-type-store';
-import { $$toast } from '../toast';
+import {
+  $$toast
+} from '../toast';
 import $$searchDropdown from 'widget/search-dropdown';
 import settingsStore from 'store/settings-store';
 
@@ -26,11 +28,11 @@ var vf = function ([loading, obj, errors, readingTypeEditor]) {
     h(classNames('header', dirty(obj) && 'dirty'), R.ifElse(
       R.prop('id'),
       () => `编辑表设备类型${obj.name}`,
-        () => '创建表设备类型'
+      () => '创建表设备类型'
     )(obj)),
     h('form.form', {
       onsubmit() {
-        co(function *() {
+        co(function* () {
           try {
             yield meterTypeStore.validate(obj);
           } catch (e) {
@@ -46,16 +48,19 @@ var vf = function ([loading, obj, errors, readingTypeEditor]) {
           }
           try {
             $$loading.val(true);
-            let { id=obj.id } = yield meterTypeStore.save(obj);
+            let {
+              id = obj.id
+            } = yield meterTypeStore.save(obj);
             copy = R.clone(obj);
             $$toast.val({
               type: 'success',
-              message: obj.id? '修改成功': '成功创建表设备类型',
+              message: obj.id ? '修改成功' : '成功创建表设备类型',
             });
             !obj.id && page('/meter-type/' + id);
           } catch (e) {
             console.error(e);
-            if ((e.response || {}).status == 400) {
+            if ((e.response || {})
+              .status == 400) {
               $$errors.val(e.response.data.fields || {});
             }
           } finally {
@@ -71,7 +76,9 @@ var vf = function ([loading, obj, errors, readingTypeEditor]) {
         input: h('input', {
           value: obj.name || '',
           oninput() {
-            $$obj.patch({ name: this.value });
+            $$obj.patch({
+              name: this.value
+            });
           }
         }),
         errors,
@@ -97,7 +104,11 @@ var $$readingTypeEditor = function () {
   let $$settingsDropdown = $$searchDropdown({
     defaultText: '选择相关价格配置项',
     $$value: $$meterReadingType.trans(R.propOr('', 'priceSettingId')),
-    $$options: $$settings.trans(R.map(function ({ id, name, group }) {
+    $$options: $$settings.trans(R.map(function ({
+      id,
+      name,
+      group
+    }) {
       return {
         value: id,
         text: name,
@@ -105,7 +116,9 @@ var $$readingTypeEditor = function () {
       };
     })),
     onchange(priceSettingId) {
-      $$meterReadingType.patch({ priceSettingId });
+      $$meterReadingType.patch({
+        priceSettingId
+      });
     },
     optionGroup: R.prop('group')
   });
@@ -118,7 +131,9 @@ var $$readingTypeEditor = function () {
         h('input', {
           placeholder: '输入读数名称',
           oninput() {
-            $$meterReadingType.patch({ name: this.value });
+            $$meterReadingType.patch({
+              name: this.value
+            });
           },
           value: meterReadingType.name || '',
         }),
@@ -132,7 +147,7 @@ var $$readingTypeEditor = function () {
             if (meterReadingType.name && meterReadingType.priceSettingId) {
               $$obj.patch({
                 meterReadingTypes: (obj.meterReadingTypes || [])
-                .concat([R.clone(meterReadingType)])
+                  .concat([R.clone(meterReadingType)])
               });
               $$meterReadingType.patch({
                 name: '',
@@ -144,9 +159,9 @@ var $$readingTypeEditor = function () {
         }, '添加读数'),
         R.ifElse(
           meterReadingTypes => meterReadingTypes == void 0 ||
-            R.isEmpty(meterReadingTypes),
+          R.isEmpty(meterReadingTypes),
           R.always(''),
-          function (meterReadingTypes=[]) {
+          function (meterReadingTypes = []) {
             return h('.segment', meterReadingTypes.map(function (it, idx) {
               let setting = R.find(R.propEq('id', it.priceSettingId))(settings);
               return h('.item', [
@@ -169,7 +184,7 @@ var $$readingTypeEditor = function () {
           }
         )(obj.meterReadingTypes),
       ]),
-      err? h('.label.pointing.error', err): '',
+      err ? h('.label.pointing.error', err) : '',
     ]);
   };
   return $$.connect(
@@ -185,19 +200,18 @@ export default {
     }
   },
   init(ctx) {
-    let { id } = ctx.params;
+    let {
+      id
+    } = ctx.params;
     $$loading.val(true);
-    Promise.all([
-      id? meterTypeStore.get(id): {},
-      settingsStore.list
-    ])
-    .then(function ([obj, settings]) {
-      copy = R.clone(obj);
-      $$.update(
-        [$$obj, obj],
-        [$$settings, settings],
-        [$$loading, false]
-      );
-    });
+    Promise.all([id ? meterTypeStore.get(id) : {}, settingsStore.list])
+      .then(function ([obj, settings]) {
+        copy = R.clone(obj);
+        $$.update([
+          [$$obj, obj],
+          [$$settings, settings],
+          [$$loading, false]
+        ]);
+      });
   }
 };

@@ -145,11 +145,11 @@ export default {
       constStore.get()
     ])
     .then(function ([list, { ENTITY_TYPES }]) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, list],
         [$$entityTypes, ENTITY_TYPES]
-      );
+      ]);
     });
   }
 };

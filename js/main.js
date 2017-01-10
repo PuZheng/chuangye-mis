@@ -15,7 +15,6 @@ import authStore from 'store/auth-store';
 import tenantListApp from './tenant/list-app';
 import tenantObjectApp from './tenant/object-app';
 import settingsApp from './settings/app.js';
-import R from 'ramda';
 import mount from './mount';
 import { navBar, setupNavBar } from './nav-bar';
 import toast from './toast';
@@ -40,6 +39,9 @@ import storeSubjectObjectApp from './store-subject/object-app';
 import partnerListApp from './partner/list-app';
 import partnerObjectApp from './partner/object-app';
 import meterReadingsApp from './meter-readings/index';
+import paymentRecordListApp from './payment-record/list-app';
+import config from './config';
+import object2qs from './utils/object2qs';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -93,9 +95,7 @@ page('/unauthorized', function () {
 });
 
 var goto = function (queryObj) {
-  page(location.pathname + '?' +
-       R.toPairs(queryObj).filter(it => it[1] !== void 0)
-  .map(p => p.join('=')).join('&'));
+  page(location.pathname + '?' + object2qs(queryObj));
 };
 
 page(function parseQuery(ctx, next) {
@@ -112,6 +112,7 @@ page.exit(function (ctx, next) {
     if (confirm('你已经作出了修改，退出页面将丢失数据, 是否确认退出?')) {
       next();
     }
+    // 确保不会修改location
     ctx.handled = false;
     return;
   }
@@ -287,6 +288,27 @@ page(
     setupNavBar('partner.' + ctx.query.type).then(next);
   },
   _could('edit.partner'), useWith(partnerObjectApp)
+);
+
+var assurePageNPageSize = function assurePageNPageSize(mod) {
+  return function (ctx, next) {
+    let { page: page_, page_size } = ctx.query;
+    if (!(page_ && page_size)) {
+      page(ctx.pathname + '?' + object2qs(Object.assign(ctx.query, {
+        page: 1,
+        page_size: config.getPageSize(mod || ''),
+      })));
+      return;
+    }
+    next();
+  };
+};
+
+page(
+  '/payment-record-list', loginRequired,
+  _setupNavBar('payment_record'),
+  _could('edit.payment_record'), assurePageNPageSize('payment_record'),
+  useWith(paymentRecordListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

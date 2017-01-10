@@ -41,13 +41,13 @@ var formVf = function (
           return false;
         }
         if (obj.id && !dirty(obj)) {
-          $$.update(
+          $$.update([
             [$$toast, {
               type: 'info',
               message: '没有做出任何修改',
             }],
             [$$loading, false]
-          );
+          ]);
           return false;
         }
         try {
@@ -220,10 +220,10 @@ export default {
     }
   },
   init(ctx) {
-    $$.update(
+    $$.update([
       [$$loading, true],
       [$$errors, {}]
-    );
+    ]);
     Promise.all([
       ctx.params.id? invoiceTypeStore.get(ctx.params.id): {},
       constStore.get(),
@@ -234,14 +234,14 @@ export default {
         voucherSubjects]
     ) {
       copy = R.clone(obj);
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$obj, obj],
         [$$storeSubjectTypes, STORE_SUBJECT_TYPES],
         [$$storeOrderDirections, STORE_ORDER_DIRECTIONS],
         [$$entityTypes, ENTITY_TYPES],
         [$$voucherSubjects, voucherSubjects]
-      );
+      ]);
     });
   },
   get dirty() {

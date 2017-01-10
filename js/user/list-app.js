@@ -42,7 +42,7 @@ var $$listVNode = $$.connect([$$list], function ([list]) {
         h('.username', obj.username),
         h('.role', obj.role),
         h(classNames(
-          'toggle', 'ml4', 'align-middle', obj.enabled && 'checked',
+          '_', 'toggle', 'ml4', 'align-middle', obj.enabled && 'checked',
           obj.username == 'admin' && 'disabled'
         ), {
           onclick(e) {
@@ -90,10 +90,10 @@ export default {
     $$loading.val(true);
     userStore.list
     .then(function (list) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, list]
-      );
+      ]);
     }, function (e) {
       if ((e.response || {}).status == '403') {
         page('/unauthorized');

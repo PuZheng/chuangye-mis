@@ -290,7 +290,7 @@ var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
 
 var tabsVf = function ([activeTabIdx, content]) {
   return h('.tabs', [
-    h('.tabular.menu', [
+    h('.tabular._.menu', [
       ...['账户信息', '基本信息', '收支明细', '账单'].map(function (tabName, idx) {
         return h(classNames('item', activeTabIdx == idx && 'active'), {
           onclick() {
@@ -449,14 +449,14 @@ export default {
 
         }
       }
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$departments, departments],
         [$$obj, obj],
         [$$account, account],
         [$$accountTerms, accountTerms],
         [$$activeAccountTermId, activeAccountTermId]
-      );
+      ]);
     })
     .catch(function (e) {
       console.log(e);

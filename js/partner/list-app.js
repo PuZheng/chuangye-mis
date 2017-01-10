@@ -109,11 +109,11 @@ export default {
     $$loading.on();
     partnerStore.fetchList(ctx.query)
     .then(function ({ data, totalCnt, }) {
-      $$.update(
+      $$.update([
         [$$loading, false],
         [$$list, data],
         [$$totalCnt, totalCnt]
-      );
+      ]);
     });
   }
 };

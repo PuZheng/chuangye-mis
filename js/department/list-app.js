@@ -83,10 +83,10 @@ export default {
     $$loading.val(true);
     departmentStore.list
     .then(function (departments) {
-      $$.update(
+      $$.update([
         [$$departments, departments],
         [$$loading, false]
-      );
+      ]);
     });
   }
 };

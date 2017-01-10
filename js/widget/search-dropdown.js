@@ -177,11 +177,11 @@ export var $$searchDropdown = function (
           }
         },
         onblur: function () {
-          $$.update(
+          $$.update([
             [$$searchText, ''],
             [$$selection, -1],
             [$$activated, false]
-          );
+          ]);
           return false;
         },
         onkeydown: function (e) {

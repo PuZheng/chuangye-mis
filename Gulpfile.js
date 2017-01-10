@@ -76,7 +76,9 @@ gulp.task('config', function (cb) {
       beautify(
         `
         // this file generated automatically, don't MODIFY this file
+        /* eslint-disable quotes */
         var _config = ((${config}));
+        /* eslint-enable quotes */
         export default Object.assign(_config, {
           getPageSize(type) {
             return _config[type + 'PageSize'] || _config.pageSize;

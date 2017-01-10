@@ -100,10 +100,10 @@ class Scrollable {
       });
   }
   setupLayout() {
-    $$.update(
+    $$.update([
       [this.$$height, this.el.offsetHeight],
       [this.$$contentHeight, this.el.querySelector('.container').offsetHeight]
-    );
+    ]);
   }
 }
 

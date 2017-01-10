@@ -104,7 +104,7 @@ export default {
       let sidebar = new Scrollable({
         tag: 'aside',
         $$content: $$(
-          h('.borderless.vertical.fluid.menu',
+          h('.borderless.vertical.fluid._.menu',
             accountTerms.map(function (at) {
               return h(
                 'a' + classNames(

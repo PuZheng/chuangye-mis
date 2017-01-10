@@ -147,10 +147,10 @@ test('changed3', function (t) {
   });
   t.is($$s5.val(), 5);
   t.is(cnt, 1);
-  $$.update(
+  $$.update([
     [$$s1, 2],
     [$$s2, 3]
-  );
+  ]);
   t.is(cnt, 2);
   t.is($$s5.val(), 7);
 });
@@ -168,7 +168,7 @@ test('changed4', function (t) {
     return false;
   });
   t.is($$s3.val(), 2);
-  $$.update([$$s1, 2]);
+  $$.update([[$$s1, 2]]);
   t.is($$s3.val(), 2);
   let $$s4 = $$.connect([$$s2], function([s2]) {
     return s2 + 1;
@@ -182,10 +182,10 @@ test('changed4', function (t) {
   });
   t.is($$s5.val(), 5);
   t.is(cnt, 1);
-  $$.update(
+  $$.update([
     [$$s1, 2],
     [$$s2, 3]
-  );
+  ]);
   t.is(cnt, 1);
   t.is($$s5.val(), 5);
 });
