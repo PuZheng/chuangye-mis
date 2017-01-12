@@ -61,6 +61,7 @@ var tableVf = function ([PAYMENT_RECORD_STATES, list, ...actionButtons]) {
       h('th', '车间'),
       h('th', '金额(元)'),
       h('th', '税金(元)'),
+      h('th', '费用清单'),
       h('th', '账期'),
       h('th', '创建于'),
       h('th', '状态'),
@@ -77,6 +78,12 @@ var tableVf = function ([PAYMENT_RECORD_STATES, list, ...actionButtons]) {
           h('td', it.department.name),
           h('td', String(it.amount)),
           h('td', String(it.tax)),
+          h('td', h('a', {
+            /* eslint-disable max-len */
+            href: `/tenant/${it.department.tenant.id}?active_tab_idx=3&active_account_term_id=${it.accountTerm.id}`,
+            /* eslint-enable max-len */
+            target: '_blank',
+          }, '点击查看')),
           h('td', it.accountTerm.name),
           h('td', moment(it.created)
             .format('YY-MM-DD')),
