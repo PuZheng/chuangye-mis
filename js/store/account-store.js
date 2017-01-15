@@ -9,6 +9,7 @@ var validate = R.partialRight(validateObj, [
     thisMonthExpense: notEmpty(),
     thisYearIncome: notEmpty(),
     thisYearExpense: notEmpty(),
+    taxOffsetBalance: notEmpty()
   }
 ]);
 

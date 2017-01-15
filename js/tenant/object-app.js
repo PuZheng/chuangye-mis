@@ -170,6 +170,7 @@ var $$form = $$.connect(
 var accountFormVf = function accountFormVf(
   [accountErrors, account, accountTerms]
 ) {
+  // 如果不关联内部资金账号，需要先为承包人创建内部账号
   return h('form.form', {
     onsubmit() {
       if (accountTerms.map(R.prop('name'))
@@ -277,6 +278,21 @@ var accountFormVf = function accountFormVf(
           disabled: account.id
         }),
         h('label', '注意!不包含当月支出(即累计至上月)')
+      ]
+    }),
+    field({
+      label: '内部抵税结转额',
+      key: 'taxOffsetBalance',
+      errors: accountErrors,
+      required: true,
+      input: [
+        h('input', {
+          oninput() {
+            $$account.patch({ taxOffsetBalance: this.value });
+          },
+          value: account.taxOffsetBalance || '',
+          disabled: account.id,
+        }),
       ]
     }),
     h('hr'),
