@@ -1,13 +1,12 @@
 import request from '../request';
 import R from 'ramda';
+import object2qs from '../utils/object2qs';
 
 export default {
-  get(entityId, accountTermId) {
+  get(tenantId, accountTermId) {
     return request
-    .get(
-      /* eslint-disable max-len */
-      `/account-book/object?entity_id=${entityId}&&account_term_id=${accountTermId}`
-      /* eslint-enable max-len */
+    .get('/account-book/object?' +
+         object2qs({ tenant_id: tenantId, account_term_id: accountTermId })
     )
     .then(R.prop('data'))
     .catch(function (e) {
