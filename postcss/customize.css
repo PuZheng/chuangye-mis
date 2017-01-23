@@ -250,6 +250,13 @@ a {
     }
 }
 
+#account-term-app {
+    height: 100%;
+    & > aside {
+        width: 18rem;
+    }
+}
+
 .user-list {
     & .username, & .role {
         display: inline-block;

@@ -417,7 +417,8 @@ export default {
           ], function ([scrollable, grid]) {
             return [scrollable, grid];
           });
-          $$tabs.connect([$$activeTabIdx, $$accountBooks], tabsVf);
+          $$tabs.connect([$$activeTabIdx, $$accountBooks], tabsVf)
+          .refresh(null, true);
           break;
         }
         case 3: {

@@ -42,6 +42,7 @@ import meterReadingsApp from './meter-readings/index';
 import paymentRecordListApp from './payment-record/list-app';
 import config from './config';
 import object2qs from './utils/object2qs';
+import accountTermStore from './store/account-term-store';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -178,9 +179,20 @@ page(
 );
 
 page(
-  '/account-term-list', loginRequired,
+  '/account-term/:id?', loginRequired,
   _setupNavBar('account_term'),
-  _could('edit.account_term'), useWith(accountTermApp)
+  _could('edit.account_term'), function (ctx, next) {
+    let { id } = ctx.params;
+    if (id === void 0) {
+      accountTermStore.list.then(function (accountTerms) {
+        if (accountTerms && accountTerms.length) {
+          page('/account-term/' + accountTerms[0].id);
+        }
+      });
+      return;
+    }
+    next();
+  }, useWith(accountTermApp)
 );
 
 page(

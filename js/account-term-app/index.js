@@ -5,6 +5,7 @@ import { $$toast } from '../toast';
 import moment from 'moment';
 import virtualDom from 'virtual-dom';
 import overlay from '../overlay';
+import Scrollable from '../scrollable';
 
 var h = virtualDom.h;
 
@@ -68,7 +69,7 @@ var create = function (at) {
   };
 };
 
-var vf = ([uninitializedList, list]) => {
+var contentVf = ([uninitializedList, list]) => {
   let uninitializedListEl = uninitializedList.map(
     at => [
       h('.item.uninitialized', [
@@ -144,14 +145,9 @@ var vf = ([uninitializedList, list]) => {
       ]),
     ])
   );
-  return h('.list-app.account-term-list', [
-    h('.header', [
-      h('.title', '账期列表'),
-    ]),
-    h('.segment.large', [
-      uninitializedListEl,
-      listEl,
-    ])
+  return h('.segment', [
+    uninitializedListEl,
+    listEl,
   ]);
 };
 
@@ -170,7 +166,13 @@ var init = function () {
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$uninitialized, $$list], vf);
+      let $$content = $$.connect([$$uninitialized, $$list], contentVf);
+      let myScrollable = new Scrollable({ tag: 'aside', $$content });
+      return $$.connect([myScrollable.$$view], function ([scrollable]) {
+        return h('#account-term-app.object-app', [
+          scrollable,
+        ]);
+      });
     }
   },
   init,
