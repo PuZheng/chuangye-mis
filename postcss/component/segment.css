@@ -53,6 +53,9 @@
         &:not(:last-child) {
             border-bottom: 1px solid rgba(34,36,38,.15);
         }
+        &.active {
+            color: var(--color-primary);
+        }
     }
 
     &.large {

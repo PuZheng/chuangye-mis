@@ -6,12 +6,15 @@ import moment from 'moment';
 import virtualDom from 'virtual-dom';
 import overlay from '../overlay';
 import Scrollable from '../scrollable';
+import $$tabs from 'widget/tabs';
 
 var h = virtualDom.h;
 
 var $$list = $$([], 'list');
 var $$loading = $$(false, 'loading');
 var $$uninitialized = $$([], 'uninitialized');
+var $$id = $$(-1, 'id');
+var $$activeIdx = $$(0, 'active-idx');
 
 const NUMBER_IN_ADVANCE = 3; // 可以预先创建的月份
 
@@ -69,7 +72,7 @@ var create = function (at) {
   };
 };
 
-var contentVf = ([uninitializedList, list]) => {
+var scrollableContentVf = ([uninitializedList, list, id]) => {
   let uninitializedListEl = uninitializedList.map(
     at => [
       h('.item.uninitialized', [
@@ -84,7 +87,7 @@ var contentVf = ([uninitializedList, list]) => {
   );
   let listEl = list.map(
     (at) => ([
-      h('.item.initialized', [
+      h('.item.initialized' + (at.id == id? '.active': ''), [
         (at.closed? '(已关闭)': '') + at.name,
         at.closed?
         void 0:
@@ -151,14 +154,16 @@ var contentVf = ([uninitializedList, list]) => {
   ]);
 };
 
-var init = function () {
+var init = function (ctx) {
+  let { id } = ctx.params;
   $$loading.val(true);
   accountTermStore.list
   .then(function (list) {
     $$.update([
       [$$loading, false],
       [$$list, list],
-      [$$uninitialized, calcUninitialized(list)]
+      [$$uninitialized, calcUninitialized(list)],
+      [$$id, id],
     ]);
   });
 };
@@ -166,13 +171,36 @@ var init = function () {
 export default {
   page: {
     get $$view() {
-      let $$content = $$.connect([$$uninitialized, $$list], contentVf);
-      let myScrollable = new Scrollable({ tag: 'aside', $$content });
-      return $$.connect([myScrollable.$$view], function ([scrollable]) {
-        return h('#account-term-app.object-app', [
-          scrollable,
-        ]);
+      let myScrollable = new Scrollable({
+        tag: 'aside',
+        $$content: $$.connect([$$uninitialized, $$list, $$id],
+                              scrollableContentVf)
       });
+      let $$content = $$.connect([$$activeIdx], function ([activeIdx]) {
+        switch (Number(activeIdx)) {
+        case 0: {
+          return h('div', '运营报表');
+        }
+        default:
+          break;
+        }
+      });
+      let $$myTabs = $$tabs({
+        $$tabNames: $$(['车间经营报表']),
+        $$activeIdx,
+        onchange(idx) {
+          $$activeIdx.val(idx);
+        },
+        $$content,
+      });
+      return $$.connect(
+        [myScrollable.$$view, $$myTabs], function ([scrollable, tabs]) {
+          return h('#account-term-app', [
+            scrollable,
+            tabs
+          ]);
+        }
+      );
     }
   },
   init,

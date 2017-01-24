@@ -306,7 +306,7 @@ var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
 
 var tabsVf = function ([activeTabIdx, content]) {
   return h('.tabs', [
-    h('.tabular._.menu', [
+    h('._.tabular.menu', [
       ...['账户信息', '基本信息', '各期收支明细', '各期账单'].map(function (tabName, idx) {
         return h(classNames('item', activeTabIdx == idx && 'active'), {
           onclick() {
