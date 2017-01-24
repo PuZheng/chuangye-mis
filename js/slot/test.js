@@ -235,3 +235,18 @@ test('refresh', function (t) {
   $$s1.refresh(null, true);
   t.is($$s2.val(), 2);
 });
+
+test('override', function (t) {
+  let $$s1 = $$(1, 's1');
+  let $$s2 = $$.connect([$$s1], ([s1]) => s1 + 1);
+  t.is($$s2.val(), 2);
+  let $$s3 = $$.connect([$$s2], ([s2]) => s2 * 2);
+  t.is($$s3.val(), 4);
+  let $$s1_ = $$(3, 's1_');
+  let $$s2_ = $$.connect([$$s1_], ([s1_]) => s1_ * 3); // 9
+  $$s2_.override($$s2).refresh(null, true);
+  t.is($$s3.val(), 18);
+  // s3 won't correspond with s1, s2's changes
+  $$s1.val(2);
+  t.is($$s3.val(), 18);
+});

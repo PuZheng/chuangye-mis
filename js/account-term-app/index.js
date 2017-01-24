@@ -7,11 +7,12 @@ import virtualDom from 'virtual-dom';
 import overlay from '../overlay';
 import Scrollable from '../scrollable';
 import $$tabs from 'widget/tabs';
+import operatingReportStore from 'store/operating-report-store';
+import { SmartGrid } from 'smart-grid';
 
 var h = virtualDom.h;
 
 var $$list = $$([], 'list');
-var $$loading = $$(false, 'loading');
 var $$uninitialized = $$([], 'uninitialized');
 var $$id = $$(-1, 'id');
 var $$activeIdx = $$(0, 'active-idx');
@@ -72,6 +73,8 @@ var create = function (at) {
   };
 };
 
+var $$content = $$(h('.loading'), 'content');
+
 var scrollableContentVf = ([uninitializedList, list, id]) => {
   let uninitializedListEl = uninitializedList.map(
     at => [
@@ -88,7 +91,13 @@ var scrollableContentVf = ([uninitializedList, list, id]) => {
   let listEl = list.map(
     (at) => ([
       h('.item.initialized' + (at.id == id? '.active': ''), [
-        (at.closed? '(已关闭)': '') + at.name,
+        R.ifElse(
+          at => at.id == id,
+          at => (at.closed? '(已关闭)': '') + at.name,
+          at => h('a', {
+            href: '/account-term/' + at.id
+          }, (at.closed? '(已关闭)': '') + at.name)
+        )(at),
         at.closed?
         void 0:
         h('.ops', [
@@ -155,17 +164,34 @@ var scrollableContentVf = ([uninitializedList, list, id]) => {
 };
 
 var init = function (ctx) {
-  let { id } = ctx.params;
-  $$loading.val(true);
+  let { id, active_idx=0 } = ctx.params;
+  $$content.val(h('.loading'));
   accountTermStore.list
   .then(function (list) {
     $$.update([
-      [$$loading, false],
       [$$list, list],
       [$$uninitialized, calcUninitialized(list)],
       [$$id, id],
     ]);
   });
+  switch (active_idx) {
+  case 0: {
+    operatingReportStore.getByAccountTermId(id)
+    .then(function (operatingReport) {
+      if (!operatingReport) {
+        $$content.val(h('h3', '运营报告尚未生成!'));
+      } else {
+        let $$smartGrid = new SmartGrid(operatingReport.def, {
+          translateLabel: true
+        }).$$view;
+        $$smartGrid.override($$content).refresh(null, true);
+      }
+    });
+    break;
+  }
+  default:
+    break;
+  }
 };
 
 export default {
@@ -175,15 +201,6 @@ export default {
         tag: 'aside',
         $$content: $$.connect([$$uninitialized, $$list, $$id],
                               scrollableContentVf)
-      });
-      let $$content = $$.connect([$$activeIdx], function ([activeIdx]) {
-        switch (Number(activeIdx)) {
-        case 0: {
-          return h('div', '运营报表');
-        }
-        default:
-          break;
-        }
       });
       let $$myTabs = $$tabs({
         $$tabNames: $$(['车间经营报表']),

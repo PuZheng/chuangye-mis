@@ -314,8 +314,8 @@ var tabsVf = function ([activeTabIdx, content]) {
           }
         }, tabName);
       }),
-      h('.content', content)
     ]),
+    h('.content', content)
   ]);
 };
 
