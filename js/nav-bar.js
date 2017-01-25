@@ -224,7 +224,7 @@ var $$accountTerm = $$.connect(
       R.prop('editAccountTerm'),
       () => h(
         'a' + classNames('item', (currentMod === 'account_term') && 'active'), {
-          href: '/account-term-list',
+          href: '/account-term',
         }, '帐期管理'
       ),
       R.always('')

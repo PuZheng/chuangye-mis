@@ -170,6 +170,7 @@ var $$form = $$.connect(
 var accountFormVf = function accountFormVf(
   [accountErrors, account, accountTerms]
 ) {
+  // 如果不关联内部资金账号，需要先为承包人创建内部账号
   return h('form.form', {
     onsubmit() {
       if (accountTerms.map(R.prop('name'))
@@ -230,7 +231,7 @@ var accountFormVf = function accountFormVf(
         oninput() {
           $$account.patch({ thisMonthIncome: this.value });
         },
-        value: account.thisMonthIncome || '0',
+        value: account.thisMonthIncome || '',
         disabled: account.id
       })
     }),
@@ -243,7 +244,7 @@ var accountFormVf = function accountFormVf(
         oninput() {
           $$account.patch({ thisMonthExpense: this.value });
         },
-        value: account.thisMonthExpense || '0',
+        value: account.thisMonthExpense || '',
         disabled: account.id
       })
     }),
@@ -279,6 +280,21 @@ var accountFormVf = function accountFormVf(
         h('label', '注意!不包含当月支出(即累计至上月)')
       ]
     }),
+    field({
+      label: '内部抵税结转额',
+      key: 'taxOffsetBalance',
+      errors: accountErrors,
+      required: true,
+      input: [
+        h('input', {
+          oninput() {
+            $$account.patch({ taxOffsetBalance: this.value });
+          },
+          value: account.taxOffsetBalance || '',
+          disabled: account.id,
+        }),
+      ]
+    }),
     h('hr'),
     account.id? void 0: h('button.primary', '初始化'),
   ]);
@@ -290,16 +306,16 @@ var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
 
 var tabsVf = function ([activeTabIdx, content]) {
   return h('.tabs', [
-    h('.tabular._.menu', [
-      ...['账户信息', '基本信息', '收支明细', '账单'].map(function (tabName, idx) {
+    h('._.tabular.menu', [
+      ...['账户信息', '基本信息', '各期收支明细', '各期账单'].map(function (tabName, idx) {
         return h(classNames('item', activeTabIdx == idx && 'active'), {
           onclick() {
             page(location.pathname + '?active_tab_idx=' + idx);
           }
         }, tabName);
       }),
-      h('.content', content)
     ]),
+    h('.content', content)
   ]);
 };
 
@@ -346,15 +362,15 @@ export default {
       let accountTerms = yield accountTermStore.list;
       if (activeAccountTermId == void 0) {
         activeAccountTermId = (accountTerms.filter(R.prop('closed'))[0]
-          || {}).id;
+          || accountTerms[0]).id;
       }
       copy = R.clone(obj);
       let account = {};
-      if (obj.entityId) {
-        account = yield accountStore.getByEntityId(obj.entityId);
+      if (obj.id) {
+        account = yield accountStore.getByTenantId(obj.id);
         // 没有关联账户
         if (!account) {
-          account = { entityId: obj.entityId };
+          account = { tenantId: obj.id };
         }
         switch (Number(activeTabIdx)) {
         case 0: {
@@ -366,7 +382,7 @@ export default {
           break;
         }
         case 2: {
-          let accountBook = yield accountBookStore.get(obj.entityId,
+          let accountBook = yield accountBookStore.get(obj.id,
                                                        activeAccountTermId);
           let myScrollable = new Scrollable({
             tag: 'aside',
@@ -374,8 +390,8 @@ export default {
               [$$accountTerms, $$activeAccountTermId],
               function ([accountTerms, activeAccountTermId]) {
                 return h(
-                  '.borderless.vertical.fluid.menu',
-                  accountTerms.filter(R.prop('closed')).map(function (at) {
+                  '._.borderless.vertical.fluid.menu',
+                  accountTerms.map(function (at) {
                     return h(
                       'a' + classNames(
                         'item', at.id == activeAccountTermId && 'active'
@@ -401,7 +417,8 @@ export default {
           ], function ([scrollable, grid]) {
             return [scrollable, grid];
           });
-          $$tabs.connect([$$activeTabIdx, $$accountBooks], tabsVf);
+          $$tabs.connect([$$activeTabIdx, $$accountBooks], tabsVf)
+          .refresh(null, true);
           break;
         }
         case 3: {
@@ -411,7 +428,7 @@ export default {
               [$$accountTerms, $$activeAccountTermId],
               function ([accountTerms, activeAccountTermId]) {
                 return h(
-                  '.borderless.vertical.fluid.menu',
+                  '._.borderless.vertical.fluid.menu',
                   accountTerms.map(function (at) {
                     return h(
                       'a' + classNames(

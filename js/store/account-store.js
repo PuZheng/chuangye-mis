@@ -9,13 +9,14 @@ var validate = R.partialRight(validateObj, [
     thisMonthExpense: notEmpty(),
     thisYearIncome: notEmpty(),
     thisYearExpense: notEmpty(),
+    taxOffsetBalance: notEmpty()
   }
 ]);
 
 export default {
   validate,
-  getByEntityId(entityId) {
-    return request.get('/account/object?entity_id=' + entityId)
+  getByTenantId(tenantId) {
+    return request.get('/account/object?tenant_id=' + tenantId)
     .then(R.prop('data'))
     .catch(function (e) {
       if (R.path(['response', 'status'])(e) == 404) {

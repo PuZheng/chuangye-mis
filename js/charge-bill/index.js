@@ -184,7 +184,7 @@ export default {
                             h('ul.p4', [
                               h('li', '本账期的费用单将不能再次编辑'),
                               h('li', '将自动生成各个车间的本账期预扣记录'),
-                              h('li', '各表设备度数将刷新'),
+                              h('li', '各表设备读数将刷新'),
                             ]),
                             h('button.ca.btn.btn-outline', {
                               onclick() {

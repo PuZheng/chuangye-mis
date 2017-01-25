@@ -5,12 +5,17 @@ import { $$toast } from '../toast';
 import moment from 'moment';
 import virtualDom from 'virtual-dom';
 import overlay from '../overlay';
+import Scrollable from '../scrollable';
+import $$tabs from 'widget/tabs';
+import operatingReportStore from 'store/operating-report-store';
+import { SmartGrid } from 'smart-grid';
 
 var h = virtualDom.h;
 
 var $$list = $$([], 'list');
-var $$loading = $$(false, 'loading');
 var $$uninitialized = $$([], 'uninitialized');
+var $$id = $$(-1, 'id');
+var $$activeIdx = $$(0, 'active-idx');
 
 const NUMBER_IN_ADVANCE = 3; // 可以预先创建的月份
 
@@ -55,9 +60,10 @@ var calcUninitialized = function (initialized) {
 
 var create = function (at) {
   return function () {
+    $$content.val(h('.loading'));
     accountTermStore.save(at)
-    .then(function () {
-      init();
+    .then(function (id) {
+      init({ params: { id, active_idx: 0 } });
       $$toast.val({
         type: 'success',
         message: '账期创建成功!',
@@ -68,7 +74,9 @@ var create = function (at) {
   };
 };
 
-var vf = ([uninitializedList, list]) => {
+var $$content = $$(h('.loading'), 'content');
+
+var scrollableContentVf = ([uninitializedList, list, id]) => {
   let uninitializedListEl = uninitializedList.map(
     at => [
       h('.item.uninitialized', [
@@ -83,8 +91,10 @@ var vf = ([uninitializedList, list]) => {
   );
   let listEl = list.map(
     (at) => ([
-      h('.item.initialized', [
-        (at.closed? '(已关闭)': '') + at.name,
+      h('.item.initialized' + (at.id == id? '.active': ''), [
+        h('a', {
+          href: '/account-term/' + at.id
+        }, (at.closed? '(已关闭)': '') + at.name),
         at.closed?
         void 0:
         h('.ops', [
@@ -114,13 +124,14 @@ var vf = ([uninitializedList, list]) => {
                   h('button.btn.btn-outline', {
                     onclick() {
                       overlay.dismiss();
+                      $$content.val(h('.loading'));
                       accountTermStore.close(at.id)
                       .then(function () {
                         $$toast.val({
                           type: 'success',
                           message: '账期已经关闭'
                         });
-                        init();
+                        init({ params: { id: at.id, active_idx: 0 } });
                       })
                       .catch(function (e) {
                         console.error(e);
@@ -144,33 +155,67 @@ var vf = ([uninitializedList, list]) => {
       ]),
     ])
   );
-  return h('.list-app.account-term-list', [
-    h('.header', [
-      h('.title', '账期列表'),
-    ]),
-    h('.segment.large', [
-      uninitializedListEl,
-      listEl,
-    ])
+  return h('.segment', [
+    uninitializedListEl,
+    listEl,
   ]);
 };
 
-var init = function () {
-  $$loading.val(true);
+var init = function (ctx) {
+  let { id, active_idx=0 } = ctx.params;
+  $$content.val(h('.loading'));
   accountTermStore.list
   .then(function (list) {
     $$.update([
-      [$$loading, false],
       [$$list, list],
-      [$$uninitialized, calcUninitialized(list)]
+      [$$uninitialized, calcUninitialized(list)],
+      [$$id, id],
     ]);
   });
+  switch (active_idx) {
+  case 0: {
+    operatingReportStore.getByAccountTermId(id)
+    .then(function (operatingReport) {
+      if (!operatingReport) {
+        $$content.val(h('h3', '运营报告尚未生成!'));
+      } else {
+        let $$smartGrid = new SmartGrid(operatingReport.def, {
+          translateLabel: true
+        }).$$view;
+        $$smartGrid.override($$content).refresh(null, true);
+      }
+    });
+    break;
+  }
+  default:
+    break;
+  }
 };
 
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$uninitialized, $$list], vf);
+      let myScrollable = new Scrollable({
+        tag: 'aside',
+        $$content: $$.connect([$$uninitialized, $$list, $$id],
+                              scrollableContentVf)
+      });
+      let $$myTabs = $$tabs({
+        $$tabNames: $$(['车间经营报表']),
+        $$activeIdx,
+        onchange(idx) {
+          $$activeIdx.val(idx);
+        },
+        $$content,
+      });
+      return $$.connect(
+        [myScrollable.$$view, $$myTabs], function ([scrollable, tabs]) {
+          return h('#account-term-app', [
+            scrollable,
+            tabs
+          ]);
+        }
+      );
     }
   },
   init,

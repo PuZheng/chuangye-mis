@@ -46,6 +46,39 @@ Slot.prototype.change = function (proc) {
   return this;
 };
 
+/**
+ * detach the target slot from its parents, and let its children
+ * connect me.
+ * note! I won't respond with target slot's parents' change
+ * */
+Slot.prototype.override = function (slot) {
+  for (let parent of slot.parents) {
+    delete parent.children[slot.id];
+  }
+  for (let childId in slot.children) {
+    let child = slot.children[childId];
+    this.children[childId] = child;
+    for (let i = 0; i < child.parents.length; ++i) {
+      if (child.parents[i].id == slot.id) {
+        child.parents[i] = this;
+        break;
+      }
+    }
+  }
+  this.offsprings = this.offspringsByLevels = void 0;
+  // make offsprings of target's ancestors obsolete
+  slot.getAncestors().forEach(function (ancestor) {
+    ancestor.offsprings = void 0;
+    ancestor.offspringsByLevels = void 0;
+  });
+  // make my ancestors' offsprings obsolete
+  slot.getAncestors().forEach(function (ancestor) {
+    ancestor.offsprings = void 0;
+    ancestor.offspringsByLevels = void 0;
+  });
+  return this;
+};
+
 Slot.prototype.offChange = function (proc) {
   this.onChangeCbs = this.onChangeCbs.filter(cb => cb != proc);
 };
