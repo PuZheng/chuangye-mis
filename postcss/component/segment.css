@@ -55,6 +55,9 @@
         }
         &.active {
             color: var(--color-primary);
+            & a {
+                color: var(--color-primary);
+            }
         }
         & a {
             text-decoration: none;

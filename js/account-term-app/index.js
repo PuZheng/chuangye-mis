@@ -60,9 +60,10 @@ var calcUninitialized = function (initialized) {
 
 var create = function (at) {
   return function () {
+    $$content.val(h('.loading'));
     accountTermStore.save(at)
-    .then(function () {
-      init();
+    .then(function (id) {
+      init({ params: { id, active_idx: 0 } });
       $$toast.val({
         type: 'success',
         message: '账期创建成功!',
@@ -91,13 +92,9 @@ var scrollableContentVf = ([uninitializedList, list, id]) => {
   let listEl = list.map(
     (at) => ([
       h('.item.initialized' + (at.id == id? '.active': ''), [
-        R.ifElse(
-          at => at.id == id,
-          at => (at.closed? '(已关闭)': '') + at.name,
-          at => h('a', {
-            href: '/account-term/' + at.id
-          }, (at.closed? '(已关闭)': '') + at.name)
-        )(at),
+        h('a', {
+          href: '/account-term/' + at.id
+        }, (at.closed? '(已关闭)': '') + at.name),
         at.closed?
         void 0:
         h('.ops', [
@@ -127,13 +124,14 @@ var scrollableContentVf = ([uninitializedList, list, id]) => {
                   h('button.btn.btn-outline', {
                     onclick() {
                       overlay.dismiss();
+                      $$content.val(h('.loading'));
                       accountTermStore.close(at.id)
                       .then(function () {
                         $$toast.val({
                           type: 'success',
                           message: '账期已经关闭'
                         });
-                        init();
+                        init({ params: { id: at.id, active_idx: 0 } });
                       })
                       .catch(function (e) {
                         console.error(e);
