@@ -365,7 +365,7 @@ default {
     $$loading.val(true);
     let promises = [
       voucherTypeStore.list,
-      voucherSubjectStore.list,
+      voucherSubjectStore.fetchList({ only_unreserved: 1 }),
       entityStore.list,
       id ? voucherStore.get(id) : Object.assign({
         date: moment().format('YYYY-MM-DD')
