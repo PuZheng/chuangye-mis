@@ -23,7 +23,7 @@ var tableVf = function ([tenants]) {
       h('th', '联系方式'),
       h('th', '累计收入'),
       h('th', '累计开销'),
-      h('th', '账户结存')
+      h('th', '可抵税余额'),
     ])),
     h('tbody', tenants.map(function (t) {
       let income = R.path(['account', 'income'])(t);
@@ -33,11 +33,27 @@ var tableVf = function ([tenants]) {
         h('td', h('a', {
           href: '/tenant/' + t.id,
         }, t.entity.name)),
-        h('td', t.department.name),
+        h('td', R.ifElse(
+          R.identity,
+          function ({ name }) { return name; },
+          R.always('--')
+        )(t.deparment)),
         h('td', t.contact),
-        h('td', income === void 0? '--': '' + income),
-        h('td', expense === void 0? '--': '' + expense),
-        h('td', income && expense? income - expense + '': '--'),
+        h('td', R.ifElse(
+          R.identity,
+          function ({ income }) { return '' + income; },
+          R.always('0')
+        )(t.account)),
+        h('td', R.ifElse(
+          R.identity,
+          function ({ expense }) { return '' + expense; },
+          R.always('0')
+        )(t.account)),
+        h('td', R.ifElse(
+          R.identity,
+          function ({ taxOffsetBalance }) { return '' + taxOffsetBalance; },
+          R.always('0')
+        )(t.account))
       ]);
     })),
   ]);
@@ -61,7 +77,7 @@ var $$nameFilter = $$searchBox({
 });
 
 var vf = function (
-  [nameFilter, filters, table, loading, tableHints, paginator]
+  [nameFilter, table, loading, tableHints, paginator]
 ) {
   return h('#tenant-list-app.list-app' + (loading? '.loading': ''), [
     h('.header', [
@@ -74,46 +90,17 @@ var vf = function (
       }, h('i.fa.fa-plus')),
       h('.search', nameFilter),
     ]),
-    filters,
     table,
     tableHints,
     h('.paginator-container', paginator),
   ]);
 };
 
-var $$onlyAccountUninitialized = $$.connect([$$queryObj], function ([qo]) {
-  return h('.checkbox', [
-    h('input', {
-      type: 'checkbox',
-      checked: qo.only_account_uninitialized == '1',
-      onchange() {
-        $$queryObj.patch(
-          { only_account_uninitialized: this.checked? '1': '0' }
-        );
-      }
-    }),
-    h('label', {
-      onclick() {
-        $$queryObj.patch({
-          only_account_uninitialized:
-            qo.only_account_uninitialized == '1'? '0': '1'
-        });
-      }
-    }, '仅看账户未初始化'),
-  ]);
-});
-
-var $$filters = $$.connect(
-  [$$onlyAccountUninitialized], function ([onlyAccountUninitialized]) {
-    return h('.filters', [onlyAccountUninitialized]);
-  }
-);
-
 export default {
   page: {
     get $$view() {
       return $$.connect(
-        [$$nameFilter, $$filters, $$table, $$loading, $$tableHints({
+        [$$nameFilter, $$table, $$loading, $$tableHints({
           $$totalCnt,
           $$queryObj,
           pageSize: config.getPageSize('tenant'),

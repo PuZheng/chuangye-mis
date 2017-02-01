@@ -11,6 +11,7 @@ import page from 'page';
 import { $$toast } from '../toast';
 import classNames from '../class-names';
 import co from 'co';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -37,8 +38,11 @@ var formVf = function (
         try {
           yield invoiceTypeStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return false;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         if (obj.id && !dirty(obj)) {
           $$.update([

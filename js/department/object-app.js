@@ -6,6 +6,7 @@ import acronym from '../utils/acronym';
 import { $$toast } from '../toast';
 import departmentStore from '../store/department-store';
 import co from 'co';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 
@@ -49,8 +50,11 @@ let vf = function ([obj, errors, loading]) {
             try {
               yield departmentStore.validate(obj);
             } catch (e) {
-              $$errors.val(e);
-              return;
+              if (e instanceof ValidationError) {
+                $$errors.val(e.errors);
+                return;
+              }
+              throw e;
             }
             try {
               $$loading.toggle();

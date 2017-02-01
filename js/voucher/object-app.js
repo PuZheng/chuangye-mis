@@ -16,6 +16,7 @@ import { $$searchDropdown } from '../widget/search-dropdown';
 import entityStore from '../store/entity-store';
 import classNames from '../class-names';
 import overlay from '../overlay';
+import { ValidationError } from '../validate-obj';
 
 var $$obj = $$({}, 'obj');
 var $$voucherTypes = $$([], 'voucher-types');
@@ -69,8 +70,11 @@ const formVf = function formVf([
         try {
           yield voucherStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         try {
           $$loading.val(true);
@@ -365,7 +369,7 @@ default {
     $$loading.val(true);
     let promises = [
       voucherTypeStore.list,
-      voucherSubjectStore.list,
+      voucherSubjectStore.fetchList({ only_unreserved: 1 }),
       entityStore.list,
       id ? voucherStore.get(id) : Object.assign({
         date: moment().format('YYYY-MM-DD')

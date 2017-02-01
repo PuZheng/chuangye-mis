@@ -14,6 +14,7 @@ import storeOrderStore from 'store/store-order-store';
 import entityStore from 'store/entity-store';
 import { $$toast } from '../../toast.js';
 import moment from 'moment';
+import { ValidationError } from '../../validate-obj';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -163,8 +164,11 @@ var formVf = function formVf(
         try {
           yield storeOrderStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         if (obj.id && !dirty(obj)) {
           $$toast.val({

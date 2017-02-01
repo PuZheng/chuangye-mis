@@ -11,6 +11,7 @@ import { $$toast } from '../toast';
 import page from 'page';
 import departmentStore from '../store/department-store';
 import co from 'co';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 
@@ -49,8 +50,11 @@ var formVf = function (
         try {
           yield meterStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         if (obj.id && !dirty(obj)) {
           $$toast.val({

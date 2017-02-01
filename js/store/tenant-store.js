@@ -6,19 +6,34 @@ import request from '../request';
 import object2qs from '../utils/object2qs';
 
 var rules = {
-  'entity': function (entity) {
-    notEmpty(entity.name);
-    notEmpty(entity.acronym);
+  entity: {
+    name: notEmpty(),
+    acronym: notEmpty(),
   },
-  'departmentId': notEmpty(),
+  account: {
+    thisMonthIncome: notEmpty(),
+    thisMonthExpense: notEmpty(),
+    income: notEmpty(),
+    expense: notEmpty(),
+  }
 };
 
-var validate = function (obj) {
+var validateCreation = function (obj) {
   return validateObj(obj, rules);
 };
 
+var validateUpdate = function (obj) {
+  return validateObj(obj, {
+    entity: {
+      name: notEmpty(),
+      acronym: notEmpty(),
+    },
+  });
+};
+
 export default {
-  validate,
+  validateUpdate,
+  validateCreation,
   getHints(text) {
     return request.get('/tenant/hints/' + text)
     .then(R.path(['data', 'data']));
@@ -43,6 +58,10 @@ export default {
       (obj) => request.put('/tenant/object/' + obj.id, obj),
       (obj) => request.post('/tenant/object', obj)
     )(obj)
+    .then(R.prop('data'));
+  },
+  补足抵税(id) {
+    return request.post('/tenant/object/' + id + '/补足抵税')
     .then(R.prop('data'));
   }
 };
