@@ -9,6 +9,7 @@ import userStore from 'store/user-store';
 import { $$toast } from '../toast';
 import page from 'page';
 import co from 'co';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -39,8 +40,11 @@ var formVf = function ([errors, obj, roleDropdown]) {
         try {
           yield userStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         if (!dirty(obj)) {
           $$toast.val({

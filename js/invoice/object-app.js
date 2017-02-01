@@ -18,6 +18,7 @@ import { $$toast } from '../toast';
 import object2qs from '../utils/object2qs';
 import overlay from '../overlay';
 import constStore from 'store/const-store';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 
@@ -95,8 +96,11 @@ var formVf = function ([
         try {
           yield invoiceStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         try {
           $$loading.toggle();

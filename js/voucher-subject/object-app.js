@@ -10,6 +10,7 @@ import R from 'ramda';
 import page from 'page';
 import { $$toast } from '../toast';
 import co from 'co';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 
@@ -33,8 +34,11 @@ var formVf = function (
         try {
           yield voucherSubjectStore.validate(obj);
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         if (!dirty(obj)) {
           $$.update([

@@ -11,6 +11,7 @@ import {
 } from '../toast';
 import $$searchDropdown from 'widget/search-dropdown';
 import settingsStore from 'store/settings-store';
+import { ValidationError } from '../validate-obj';
 
 var h = virtualDom.h;
 var $$loading = $$(false, 'loading');
@@ -36,8 +37,11 @@ var vf = function ([loading, obj, errors, readingTypeEditor]) {
           try {
             yield meterTypeStore.validate(obj);
           } catch (e) {
-            $$errors.val(e);
-            return;
+            if (e instanceof ValidationError) {
+              $$errors.val(e.errors);
+              return;
+            }
+            throw e;
           }
           if (!dirty(obj)) {
             $$toast.val({

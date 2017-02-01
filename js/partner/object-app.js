@@ -11,6 +11,7 @@ import co from 'co';
 import classNames from '../class-names';
 import { $$toast } from '../toast';
 import page from 'page';
+import { ValidationError } from '../validate-obj';
 
 var $$obj = $$({ entity: {} }, 'obj');
 var $$errors = $$({}, 'errors');
@@ -32,9 +33,11 @@ var vf = function vf([obj, errors, queryObj, entityTypeDropdown, loading]) {
           try {
             yield partnerStore.validate(obj);
           } catch (e) {
-            console.error(e);
-            $$errors.val(e);
-            return;
+            if (e instanceof ValidationError) {
+              $$errors.val(e.errors);
+              return;
+            }
+            throw e;
           }
           $$loading.on();
           try {

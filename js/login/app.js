@@ -6,6 +6,7 @@ import authStore from '../store/auth-store.js';
 import classNames from '../class-names.js';
 import page from 'page';
 import co from 'co';
+import { ValidationError } from '../validate-obj';
 
 var $$username = $$('', 'username');
 var $$password = $$('', 'password');
@@ -41,8 +42,11 @@ export default {
                         password
                       });
                     } catch (e) {
-                      $$errors.val(e);
-                      return;
+                      if (e instanceof ValidationError) {
+                        $$errors.val(e.errors);
+                        return;
+                      }
+                      throw e;
                     }
                     try {
                       $$loading.val('loading');

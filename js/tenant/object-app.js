@@ -12,12 +12,12 @@ import acronym from '../utils/acronym';
 import classNames from '../class-names';
 import accountStore from 'store/account-store';
 import accountTermStore from 'store/account-term-store';
-import overlay from '../overlay';
-import moment from 'moment';
 import Scrollable from '../scrollable';
 import {SmartGrid} from 'smart-grid';
 import accountBookStore from 'store/account-book-store';
 import departmentChargeBillStore from 'store/department-charge-bill-store';
+import { ValidationError } from '../validate-obj';
+import overlay from '../overlay';
 
 var h = virtualDom.h;
 var $$obj = $$({}, 'obj');
@@ -27,7 +27,6 @@ var $$loading = $$(false, 'loading');
 var copy = {};
 var $$activeTabIdx = $$(0, 'active-tab-idx');
 var $$accountTerms = $$([], 'account-terms');
-var $$accountErrors = $$({}, 'account-errors');
 var $$account = $$({}, 'account');
 
 var dirty = function (obj) {
@@ -53,16 +52,23 @@ var $$departmentDropdown = $$searchDropdown({
   }
 });
 
-var formVf = function ([errors, departmentDropdown, obj]) {
-  return h('form.form', {
+var newFormVf = function ([errors, departmentDropdown, obj]) {
+  return h('form.form.clearfix', {
     onsubmit() {
       $$errors.val({});
       co(function *() {
         try {
-          yield tenantStore.validate(obj);
+          if (obj.id) {
+            yield tenantStore.validateUpdate(obj);
+          } else {
+            yield tenantStore.vaalidateCreation(obj);
+          }
         } catch (e) {
-          $$errors.val(e);
-          return;
+          if (e instanceof ValidationError) {
+            $$errors.val(e.errors);
+            return;
+          }
+          throw e;
         }
         if (!dirty(obj)) {
           $$toast.val({
@@ -73,13 +79,8 @@ var formVf = function ([errors, departmentDropdown, obj]) {
         }
         try {
           $$loading.toggle();
-          let newTenant = !obj.id;
           Object.assign(obj, yield tenantStore.save(obj));
           copy = R.clone(obj);
-          // 新创建了承包人，需要关联账户
-          if (newTenant) {
-            $$account.val({ entityId: obj.entityId });
-          }
           $$toast.val({
             type: 'success',
             message: obj.id? '更新成功': '承包人创建成功',
@@ -88,7 +89,14 @@ var formVf = function ([errors, departmentDropdown, obj]) {
         } catch (e) {
           console.error(e);
           if (e.response && e.response.status == 400)  {
-            $$errors.val(e.response.data.fields || {});
+            let { reason, fields } = e.response.data;
+            if (reason) {
+              $$toast.val({
+                type: 'error',
+                message: reason
+              });
+            }
+            fields && $$errors.val(fields || {});
             return;
           }
         } finally {
@@ -98,216 +106,210 @@ var formVf = function ([errors, departmentDropdown, obj]) {
       return false;
     }
   }, [
-    field({
-      key: 'name',
-      label: '姓名',
-      input: h('input', {
-        value: (obj.entity || {}).name,
-        oninput() {
-          $$obj.patch({
-            entity: Object.assign(obj.entity || {}, {
-              name: this.value,
-              acronym: acronym(this.value)
-            }),
-          });
-        }
-      }),
-      errors,
-      required: true
-    }),
-    field({
-      key: 'acronym',
-      label: '缩写',
-      input: h('input', {
-        value: (obj.entity || {}).acronym,
-        oninput() {
-          $$obj.patch({
-            entity: Object.assign(obj.entity || {}, {
-              acronym: this.value,
-            })
-          });
-        }
-      }),
-      errors,
-      required: true,
-    }),
-    field({
-      key: 'contact',
-      label: '联系方式',
-      input: h('input', {
-        value: obj.contact,
-        oninput() {
-          $$obj.patch({
-            contact: this.value,
-          });
-        }
-      }),
-      errors,
-    }),
-    field({
-      key: 'departmentId',
-      label: '车间',
-      input: departmentDropdown,
-      errors,
-      required: true
-    }),
-    h('hr'),
-    h('button.primary', '提交'),
-    h('button', {
-      onclick(e) {
-        page('/tenant-list');
-        e.preventDefault();
-        return false;
-      }
-    }, '返回'),
-  ]);
-};
-
-var $$form = $$.connect(
-  [$$errors, $$departmentDropdown, $$obj], formVf
-);
-
-var accountFormVf = function accountFormVf(
-  [accountErrors, account, accountTerms]
-) {
-  // 如果不关联内部资金账号，需要先为承包人创建内部账号
-  return h('form.form', {
-    onsubmit() {
-      if (accountTerms.map(R.prop('name'))
-          .indexOf(moment().format('YYYY-MM')) == -1) {
-        $$toast.val({
-          type: 'warning',
-          message: '请先创建当月账期'
-        });
-        return false;
-      }
-      overlay.show({
-        type: 'warning',
-        title: '请再次确认初始数据，初始化后无法修改!',
-        message: h('button.btn.btn-outline', {
-          onclick() {
-            overlay.dismiss();
-            co(function *() {
-              try {
-                yield accountStore.validate(account);
-              } catch (e) {
-                $$accountErrors.val(e);
-                return;
-              }
-              try {
-                $$loading.on();
-                let { id } = yield accountStore.save(account);
-                $$toast.val({
-                  type: 'success',
-                  message: '初始化成功'
-                });
-                $$account.patch({ id });
-              } catch (e) {
-                console.error(e);
-              } finally {
-                $$loading.off();
-              }
+    h('.col.col-5', [
+      field({
+        key: ['entity', 'name'],
+        label: '姓名',
+        input: h('input', {
+          value: obj.entity.name,
+          oninput() {
+            $$obj.patch({
+              entity: Object.assign(obj.entity || {}, {
+                name: this.value,
+                acronym: acronym(this.value)
+              }),
             });
           }
-        }, '确认')
-      });
-      return false;
-    }
-  }, [
-    h('.inline.field', h('h3', [
-      h('span', '当前账期: ' + moment().format('YYYY-MM')),
-      ~accountTerms.map(R.prop('name')).indexOf(moment().format('YYYY-MM'))?
-      void 0:
-      h('a', {
-        href: '/account-term-list'
-      }, '(去创建)')
-    ])),
-    field({
-      label: '当月累计收入',
-      key: 'thisMonthIncome',
-      errors: accountErrors,
-      required: true,
-      input: h('input', {
-        oninput() {
-          $$account.patch({ thisMonthIncome: this.value });
-        },
-        value: account.thisMonthIncome || '',
-        disabled: account.id
-      })
-    }),
-    field({
-      label: '当月累计支出',
-      key: 'thisMonthExpense',
-      errors: accountErrors,
-      required: true,
-      input: h('input', {
-        oninput() {
-          $$account.patch({ thisMonthExpense: this.value });
-        },
-        value: account.thisMonthExpense || '',
-        disabled: account.id
-      })
-    }),
-    field({
-      label: '当年累计收入',
-      key: 'thisYearIncome',
-      errors: accountErrors,
-      required: true,
-      input: [
-        h('input', {
-          oninput() {
-            $$account.patch({ thisYearIncome: this.value });
-          },
-          value: account.thisYearIncome || '',
-          disabled: account.id
         }),
-        h('label', '注意!不包含当月收入(即累计至上月)')
-      ]
-    }),
-    field({
-      label: '当年累计支出',
-      key: 'thisYearExpense',
-      errors: accountErrors,
-      required: true,
-      input: [
-        h('input', {
+        errors,
+        required: true
+      }),
+      field({
+        key: ['entity', 'acronym'],
+        label: '缩写',
+        input: h('input', {
+          value: obj.entity.acronym,
           oninput() {
-            $$account.patch({ thisYearExpense: this.value });
-          },
-          value: account.thisYearExpense || '',
-          disabled: account.id
+            $$obj.patch({
+              entity: Object.assign(obj.entity || {}, {
+                acronym: this.value,
+              })
+            });
+          }
         }),
-        h('label', '注意!不包含当月支出(即累计至上月)')
-      ]
-    }),
-    field({
-      label: '内部抵税结转额',
-      key: 'taxOffsetBalance',
-      errors: accountErrors,
-      required: true,
-      input: [
-        h('input', {
+        errors,
+        required: true,
+      }),
+      field({
+        key: 'contact',
+        label: '联系方式',
+        input: h('input', {
+          value: obj.contact,
           oninput() {
-            $$account.patch({ taxOffsetBalance: this.value });
-          },
-          value: account.taxOffsetBalance || '',
-          disabled: account.id,
+            $$obj.patch({
+              contact: this.value,
+            });
+          }
         }),
-      ]
-    }),
-    h('hr'),
-    account.id? void 0: h('button.primary', '初始化'),
+        errors,
+      }),
+      field({
+        key: 'departmentId',
+        label: '车间',
+        input: departmentDropdown,
+        errors,
+      }),
+    ]),
+    h('.col.col-7', [
+      field({
+        label: '当月累计收入',
+        key: ['account', 'thisMonthIncome'],
+        errors,
+        required: true,
+        input: h('input', {
+          type: 'number',
+          value: obj.account.thisMonthIncome,
+          disabled: obj.id,
+          oninput() {
+            $$obj.patch(
+              Object.assign(obj.account, { thisMonthIncome: this.value })
+            );
+          },
+        })
+      }),
+      field({
+        label: '当月累计支出',
+        key: ['account', 'thisMonthExpense'],
+        errors,
+        required: true,
+        input: h('input', {
+          type: 'number',
+          value: obj.account.thisMonthExpense,
+          disabled: obj.id,
+          oninput() {
+            $$obj.patch(
+              Object.assign(obj.account, { thisMonthExpense: this.value })
+            );
+          },
+        })
+      }),
+      field({
+        label: '当年累计收入',
+        key: ['account', 'income'],
+        errors,
+        required: true,
+        disabled: obj.id,
+        input: [
+          h('input', {
+            value: obj.account.income,
+            type: 'number',
+            disabled: obj.id,
+            oninput() {
+              $$obj.patch(
+                Object.assign(obj.account, { income: this.value })
+              );
+            },
+          }),
+          h('label', '注意!不包含当月收入(即累计至上月)')
+        ]
+      }),
+      field({
+        label: '当年累计支出',
+        key: ['account', 'expense'],
+        errors,
+        required: true,
+        input: [
+          h('input', {
+            disabled: obj.id,
+            value: obj.account.expense,
+            type: 'number',
+            oninput() {
+              $$obj.patch(
+                Object.assign(obj.account, { expense: this.value })
+              );
+            },
+          }),
+          h('label', '注意!不包含当月支出(即累计至上月)')
+        ]
+      }),
+      field({
+        label: '内部抵税结转额',
+        key: ['account', 'taxOffsetBalance'],
+        errors,
+        required: true,
+        input: [
+          h('input', {
+            disabled: obj.id,
+            value: obj.account.taxOffsetBalance,
+            type: 'number',
+            oninput() {
+              $$obj.patch(
+                Object.assign(obj.account, { taxOffsetBalance: this.value })
+              );
+            },
+          }),
+        ]
+      }),
+    ]),
+    h('.col.col-12', [
+      h('hr'),
+      h('button.primary', '提交'),
+      R.ifElse(
+        obj => obj.id && R.pathSatisfies(function (it) {
+          return Number(it) < 0;
+        }, ['account', 'taxOffsetBalance'])(obj),
+        obj => h('button', {
+          onclick(e) {
+            overlay.show({
+              type: 'warning',
+              title: '你确认要对承包人强制补足内部抵税?',
+              message: h('button.btn.btn-outline', {
+                onclick() {
+                  overlay.dismiss();
+                  co(function *() {
+                    $$loading.on();
+                    try {
+                      yield tenantStore.补足抵税(obj.id);
+                      $$toast.val({
+                        type: 'success',
+                        message: '操作成功',
+                      });
+                      page('/tenant/' + obj.id);
+                    } catch (e) {
+                      console.error(e);
+                    } finally {
+                      $$loading.off();
+                    }
+                  });
+                  return false;
+                }
+              }, '确认')
+            });
+            e.preventDefault();
+            return false;
+          }
+        }, '强制补足内部抵税'),
+        R.always(void 0)
+      )(obj),
+      h('button', {
+        onclick(e) {
+          page('/tenant-list');
+          e.preventDefault();
+          return false;
+        }
+      }, '返回'),
+    ])
   ]);
 };
 
-
-var $$accountForm = $$.connect([$$accountErrors, $$account, $$accountTerms],
-                               accountFormVf);
+var $$newForm = $$.connect(
+  [$$errors, $$departmentDropdown, $$obj], newFormVf
+);
 
 var tabsVf = function ([activeTabIdx, content]) {
   return h('.tabs', [
     h('._.tabular.menu', [
-      ...['账户信息', '基本信息', '各期收支明细', '各期账单'].map(function (tabName, idx) {
+      ...['基本信息', '各期收支明细', '各期账单'].map(function (tabName, idx) {
         return h(classNames('item', activeTabIdx == idx && 'active'), {
           onclick() {
             page(location.pathname + '?active_tab_idx=' + idx);
@@ -338,50 +340,50 @@ var vf = function ([obj, tabs, form, loading]) {
 
 var smartGrid;
 
-export default {
-  page: {
-    get $$view() {
-      return $$.connect([$$obj, $$tabs, $$form, $$loading], vf);
-    },
-    onUpdated() {
-      smartGrid && smartGrid.onUpdated();
-    },
-  },
-  get dirty() {
-    return !R.equals($$obj.val(), copy);
-  },
-  init(ctx) {
-    let { id } = ctx.params;
-    let { active_tab_idx: activeTabIdx=0 } = ctx.query;
-    let { active_account_term_id: activeAccountTermId } = ctx.query;
-    $$activeTabIdx.val(activeTabIdx);
-    return co(function *() {
-      $$loading.on();
-      let obj = id? (yield tenantStore.get(id)): {};
-      let departments = yield departmentStore.list;
-      let accountTerms = yield accountTermStore.list;
-      if (activeAccountTermId == void 0) {
-        activeAccountTermId = (accountTerms.filter(R.prop('closed'))[0]
-          || accountTerms[0]).id;
+// 创建承包人
+let newVf = function ([obj, form, loading]) {
+  return h('#tenant-app.object-app' + (loading? '.loading': ''), [
+    h(
+      classNames('header', dirty(obj) && 'dirty'),
+      obj.id? `承包人-${obj.entity.name}`: '创建承包人'
+    ),
+    form
+  ]);
+};
+
+let _$$view = $$(h(''), 'view');
+
+let init = function (ctx) {
+  let { id } = ctx.params;
+  let { active_tab_idx: activeTabIdx=0 } = ctx.query;
+  let { active_account_term_id: activeAccountTermId } = ctx.query;
+  $$activeTabIdx.val(activeTabIdx);
+  return co(function *() {
+    $$loading.on();
+    let obj = id? (yield tenantStore.get(id)): { account: {}, entity: {} };
+    let departments = (yield departmentStore.list).filter(function (it) {
+      // 候选人只能选择没有关联承包人的车间，以及关联本承包人的车间
+      return !it.tenant || it.id == obj.departmentId;
+    });
+    let accountTerms = yield accountTermStore.list;
+    if (activeAccountTermId == void 0) {
+      activeAccountTermId = (accountTerms.filter(R.prop('closed'))[0]
+        || accountTerms[0]).id;
+    }
+    copy = R.clone(obj);
+    let account = {};
+    if (obj.id) {
+      account = yield accountStore.getByTenantId(obj.id);
+      // 没有关联账户
+      if (!account) {
+        account = { tenantId: obj.id };
       }
-      copy = R.clone(obj);
-      let account = {};
-      if (obj.id) {
-        account = yield accountStore.getByTenantId(obj.id);
-        // 没有关联账户
-        if (!account) {
-          account = { tenantId: obj.id };
-        }
-        switch (Number(activeTabIdx)) {
+      switch (Number(activeTabIdx)) {
         case 0: {
-          $$tabs.connect([$$activeTabIdx, $$accountForm], tabsVf);
+          $$tabs.connect([$$activeTabIdx, $$newForm], tabsVf);
           break;
         }
         case 1: {
-          $$tabs.connect([$$activeTabIdx, $$form], tabsVf);
-          break;
-        }
-        case 2: {
           let accountBook = yield accountBookStore.get(obj.id,
                                                        activeAccountTermId);
           let myScrollable = new Scrollable({
@@ -412,7 +414,7 @@ export default {
             ...R.ifElse(
               R.identity,
               ({ def }) => [(new SmartGrid(def)).$$view],
-              () => []
+                () => []
             )(accountBook)
           ], function ([scrollable, grid]) {
             return [scrollable, grid];
@@ -421,7 +423,7 @@ export default {
           .refresh(null, true);
           break;
         }
-        case 3: {
+        case 2: {
           let myScrollable = new Scrollable({
             tag: 'aside',
             $$content: $$.connect(
@@ -445,15 +447,16 @@ export default {
                 );
               }),
           });
-          let chargeBill = yield departmentChargeBillStore.get(obj.departmentId,
-                                                           activeAccountTermId);
+          let chargeBill = yield departmentChargeBillStore.get(
+            obj.departmentId, activeAccountTermId
+          );
           let $$chargeBills = $$.connect([
             myScrollable.$$view,
             ...R.ifElse(
               R.identity,
               ({ def }) => [(new SmartGrid(def, { translateLabel: true }))
                 .$$view],
-              () => []
+                () => []
             )(chargeBill)
           ], function ([scrollable, grid]) {
             return [scrollable, grid];
@@ -463,20 +466,36 @@ export default {
           break;
         }
         default:
-
-        }
       }
-      $$.update([
-        [$$loading, false],
-        [$$departments, departments],
-        [$$obj, obj],
-        [$$account, account],
-        [$$accountTerms, accountTerms],
-        [$$activeAccountTermId, activeAccountTermId]
-      ]);
-    })
-    .catch(function (e) {
-      console.log(e);
-    });
-  }
+      _$$view.connect([$$obj, $$tabs, $$loading], vf);
+    } else {
+      _$$view.connect([$$obj, $$newForm, $$loading], newVf);
+    }
+    $$.update([
+      [$$loading, false],
+      [$$departments, departments],
+      [$$obj, obj],
+      [$$account, account],
+      [$$accountTerms, accountTerms],
+      [$$activeAccountTermId, activeAccountTermId]
+    ]);
+  })
+  .catch(function (e) {
+    console.log(e);
+  });
+};
+
+export default {
+  page: {
+    get $$view() {
+      return _$$view;
+    },
+    onUpdated() {
+      smartGrid && smartGrid.onUpdated();
+    },
+  },
+  get dirty() {
+    return !R.equals($$obj.val(), copy);
+  },
+  init,
 };
