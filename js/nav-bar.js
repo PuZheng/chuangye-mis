@@ -58,7 +58,7 @@ var $$store = function () {
       }, [
         '仓储管理',
         h('i.fa.fa-caret-down'),
-        h('.sub.menu', [
+        h('._.sub.menu', [
           h(
             'a' + classNames('item', (currentMod == 'store.order') && 'active'),
             {
@@ -163,7 +163,7 @@ var $$meter = function () {
       mods => [
         '设备管理',
         h('i.fa.fa-caret-down'),
-        h('.sub.menu', [
+        h('._.sub.menu', [
           R.ifElse(
             R.prop('editMeter'),
             () => h(
@@ -332,7 +332,7 @@ var $$partner = (function() {
       }, [
         '往来户管理',
         h('i.fa.fa-caret-down'),
-        h('.sub.menu', [
+        h('._.sub.menu', [
           h(
             'a' + classNames(
               'item', currentMod === 'partner.' + entityTypes.CUSTOMER

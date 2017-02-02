@@ -146,7 +146,7 @@ var vf = function vf([obj, errors, queryObj, entityTypeDropdown, loading]) {
       }),
       obj.id?
       h('.field.inline', [
-        h(classNames('toggle', obj.enabled && 'checked'), {
+        h(classNames('_', 'toggle', obj.enabled && 'checked'), {
           onclick() {
             $$obj.patch({ enabled: !obj.enabled });
           }
