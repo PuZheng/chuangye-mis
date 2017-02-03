@@ -43,6 +43,7 @@ import paymentRecordListApp from './payment-record/list-app';
 import config from './config';
 import object2qs from './utils/object2qs';
 import accountTermStore from './store/account-term-store';
+import chemicalSupplierListApp from './chemical-supplier/list-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -317,10 +318,20 @@ var assurePageNPageSize = function assurePageNPageSize(mod) {
 };
 
 page(
-  '/payment-record-list', loginRequired,
+  '/payment-record-list',
+  loginRequired,
   _setupNavBar('payment_record'),
-  _could('edit.payment_record'), assurePageNPageSize('payment_record'),
+  _could('edit.payment_record'),
+  assurePageNPageSize('payment_record'),
   useWith(paymentRecordListApp)
+);
+
+page('/chemical-supplier-list',
+  loginRequired,
+  _setupNavBar('chemical_supplier'),
+  _could('edit.chemical_supplier'),
+  assurePageNPageSize('chemial_supplier'),
+  useWith(chemicalSupplierListApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {
