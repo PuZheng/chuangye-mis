@@ -3,7 +3,6 @@ import virtualDom from 'virtual-dom';
 import classNames from '../class-names';
 import page from 'page';
 import $$queryObj from '../query-obj';
-import config from '../config';
 import $$tableHints from '../widget/table-hints';
 import $$paginator from '../widget/paginator';
 import invoiceStore from 'store/invoice-store';
@@ -244,18 +243,15 @@ var $$filters = $$.connect([
 export default {
   page: {
     get $$view() {
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
       return $$.connect([
         $$loading,
-        $$paginator({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('invoice'),
-        }),
-        $$tableHints({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('invoice'),
-        }), $$filters, $$table, $$numberSearchBox,
+        $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+          $$queryObj.patch({ page });
+        } }),
+        $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+        $$filters, $$table, $$numberSearchBox,
       ], vf);
     }
   },

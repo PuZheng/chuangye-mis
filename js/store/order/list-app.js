@@ -10,7 +10,6 @@ import storeSubjectStore from '../../store/store-subject-store';
 import storeOrderStore from '../../store/store-order-store';
 import $$tableHints from 'widget/table-hints';
 import $$paginator from 'widget/paginator';
-import config from '../../config';
 import $$myOth from 'widget/my-oth';
 import moment from 'moment';
 import departmentStore from '../../store/department-store';
@@ -288,6 +287,8 @@ var $$numberSearchBox = $$searchBox({
 export default {
   page: {
     get $$view() {
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
       return $$tabs({
         $$tabNames: $$tabNames,
         $$activeIdx: $$.connect(
@@ -303,15 +304,13 @@ export default {
           }
         },
         $$content: $$.connect(
-          [$$queryObj, $$loading, $$filters, $$table, $$tableHints({
-            $$totalCnt,
-            $$queryObj,
-            pageSize: config.getPageSize('storeOrder'),
-          }), $$paginator({
-            $$totalCnt,
-            $$queryObj,
-            pageSize: config.getPageSize('invoice'),
-          }), $$numberSearchBox], contentVf
+          [
+            $$queryObj, $$loading, $$filters, $$table,
+            $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+            $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+              $$queryObj.patch({ page });
+            } }),
+            $$numberSearchBox], contentVf
         ),
       });
     }

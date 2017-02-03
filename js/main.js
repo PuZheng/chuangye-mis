@@ -53,6 +53,21 @@ var useWith = function useWith(app) {
   };
 };
 
+var assurePageNPageSize = function assurePageNPageSize(mod) {
+  return function (ctx, next) {
+    let { page: page_, page_size } = ctx.query;
+    if (!(page_ && page_size)) {
+      page(ctx.pathname + '?' + object2qs(Object.assign(ctx.query, {
+        page: 1,
+        page_size: config.getPageSize(mod || ''),
+      })));
+      return;
+    }
+    next();
+  };
+};
+
+
 var currentApp;
 
 window.onbeforeunload = function (e) {
@@ -133,11 +148,13 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'),
      _setupNavBar('invoice'), useWith(invoiceObjectApp));
 
 page('/invoice-list', loginRequired, _could('view.invoice.list'),
-     _setupNavBar('invoice'), useWith(invoiceListApp));
+     _setupNavBar('invoice'), assurePageNPageSize('invoice'),
+     useWith(invoiceListApp));
 
 page(
   '/voucher-list', loginRequired,
   _could('view.voucher.list'), _setupNavBar('voucher'),
+  assurePageNPageSize('voucher'),
   useWith(voucherListApp)
 );
 
@@ -157,10 +174,14 @@ page(
      _setupNavBar('voucher'), useWith(voucherObjectApp)
 );
 
-page('/tenant-list',
-     loginRequired,
-     _could('view.tenant.list'),
-     _setupNavBar('tenant'), useWith(tenantListApp));
+page(
+  '/tenant-list',
+  loginRequired,
+  _could('view.tenant.list'),
+  _setupNavBar('tenant'),
+  assurePageNPageSize('tenant'),
+  useWith(tenantListApp)
+);
 
 page('/tenant/:id?', loginRequired,
     _could('edit.tenant.object'),
@@ -175,8 +196,10 @@ page('/settings', loginRequired, _setupNavBar('settings'),
 
 page(
   '/meter-list', loginRequired,
+  _could('edit.meter'),
   _setupNavBar('meter.meter'),
-  _could('edit.meter'), useWith(meterListApp)
+  assurePageNPageSize('meter.meter'),
+  useWith(meterListApp)
 );
 
 page(
@@ -266,7 +289,7 @@ page(
       return;
     }
     next();
-  }, useWith(storeOrderListApp)
+  }, assurePageNPageSize('store.order'), useWith(storeOrderListApp)
 );
 
 page(
@@ -292,7 +315,9 @@ page(
   function (ctx, next) {
     setupNavBar('partner.' + ctx.query.type).then(next);
   },
-  _could('edit.partner'), useWith(partnerListApp)
+  _could('edit.partner'),
+  assurePageNPageSize('partner'),
+  useWith(partnerListApp)
 );
 
 page(
@@ -302,20 +327,6 @@ page(
   },
   _could('edit.partner'), useWith(partnerObjectApp)
 );
-
-var assurePageNPageSize = function assurePageNPageSize(mod) {
-  return function (ctx, next) {
-    let { page: page_, page_size } = ctx.query;
-    if (!(page_ && page_size)) {
-      page(ctx.pathname + '?' + object2qs(Object.assign(ctx.query, {
-        page: 1,
-        page_size: config.getPageSize(mod || ''),
-      })));
-      return;
-    }
-    next();
-  };
-};
 
 page(
   '/payment-record-list',

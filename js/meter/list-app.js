@@ -109,18 +109,14 @@ var $$typeFilter = $$dropdown({
 export default {
   page: {
     get $$view() {
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
       return $$.connect([
         $$nameFilter, $$typeFilter, $$departmentFilter, $$list, $$loading,
-        $$tableHints({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('meter'),
-        }),
-        $$paginator({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('meter'),
-        })
+        $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+        $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+          $$queryObj.patch({ page });
+        } }),
       ], vf, 'list-app');
     }
   },

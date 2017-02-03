@@ -4,7 +4,6 @@ import classNames from '../class-names';
 import $$myOth from '../widget/my-oth';
 import $$queryObj from '../query-obj';
 import page from 'page';
-import config from '../config';
 import $$tableHints from '../widget/table-hints';
 import $$paginator from '../widget/paginator';
 import $$searchBox from '../widget/search-box';
@@ -230,17 +229,16 @@ var viewVf = function ([loading, table, paginator, tableHints,
 export default {
   page: {
     get $$view() {
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
       return $$.connect([
-        $$loading, $$table, $$paginator({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('voucher'),
-        }),
-        $$tableHints({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('voucher'),
-        }), $$filters], viewVf);
+        $$loading, $$table,
+        $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+          $$queryObj.patch({ page });
+        } }),
+        $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+        $$filters
+      ], viewVf);
     }
   },
   init() {

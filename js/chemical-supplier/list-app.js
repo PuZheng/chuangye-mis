@@ -4,12 +4,29 @@ import $$searchBox from 'widget/search-box';
 import $$queryObj from '../query-obj';
 import R from 'ramda';
 import chemicalSupplierStore from 'store/chemical-supplier-store';
+import $$tableHints from 'widget/table-hints';
+import $$paginator from 'widget/paginator';
 
-var $$loading = $$(false, 'loading');
-var $$totalCnt = $$(0, 'total-cnt');
-var $$list = $$([], 'list');
+const $$loading = $$(false, 'loading');
+const $$totalCnt = $$(0, 'total-cnt');
+const $$list = $$([], 'list');
 
-var vf = function ([loading, nameSearchBox]) {
+const $$table = $$.connect([$$list], function ([list]) {
+  return h('table.compact.striped', [
+    h('thead', h('tr', [
+      h('th', '名称'),
+      h('th', '联系方式'),
+    ])),
+    h('tbody', list.map(function (it) {
+      return h('tr', [
+        h('td', it.entity.name),
+        h('td', it.contact),
+      ]);
+    }))
+  ]);
+});
+
+const vf = function ([loading, nameSearchBox, table, tableHints, paginator]) {
   return h('.list-app' + (loading? '.loading': ''), [
     h('.header', [
       h('.title', '化学品供应商列表'),
@@ -19,11 +36,15 @@ var vf = function ([loading, nameSearchBox]) {
         title: '创建化学品供应商'
       })),
       h('.search', nameSearchBox)
-    ])
+    ]),
+    table,
+    tableHints,
+    h('.paginator-container', paginator),
   ]);
 };
 
-var $$nameSearchBox = $$searchBox({
+
+const $$nameSearchBox = $$searchBox({
   defaultText: '输入名称或者缩写',
   $$searchText: $$queryObj.trans(R.propOr('', 'kw')),
   onsearch(kw) {
@@ -38,7 +59,22 @@ var $$nameSearchBox = $$searchBox({
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$loading, $$nameSearchBox], vf);
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
+      return $$.connect(
+        [$$loading, $$nameSearchBox, $$table, $$tableHints({
+          $$totalCnt,
+          $$page,
+          $$pageSize
+        }), $$paginator({
+          $$totalCnt,
+          $$page,
+          $$pageSize,
+          onNavigate(page) {
+            $$queryObj.patch({ page });
+          }
+        })], vf
+      );
     },
   },
   init({ query}) {
