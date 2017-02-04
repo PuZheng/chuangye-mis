@@ -1,0 +1,20 @@
+snippet route "setup route for list app"
+page(
+    '$1',
+    loginRequired,
+    _setupNavBar('$2'),
+    _could('$3'),
+    assurePageNPageSize('$4'),
+    useWith($5)
+);
+endsnippet
+
+snippet route "setup route for object app"
+page(
+    '$1',
+    loginRequired,
+    _setupNavBar('$2'),
+    _could('$3'),
+    useWith($5)
+);
+endsnippet

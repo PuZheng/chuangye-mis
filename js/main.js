@@ -44,6 +44,7 @@ import config from './config';
 import object2qs from './utils/object2qs';
 import accountTermStore from './store/account-term-store';
 import chemicalSupplierListApp from './chemical-supplier/list-app';
+import chemicalSupplierObjectApp from './chemical-supplier/object-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -343,6 +344,14 @@ page('/chemical-supplier-list',
   _could('edit.chemical_supplier'),
   assurePageNPageSize('chemial_supplier'),
   useWith(chemicalSupplierListApp)
+);
+
+page(
+    '/chemical-supplier/:id?',
+    loginRequired,
+    _setupNavBar('chemical_supplier'),
+    _could('edit.chemical_supplier'),
+    useWith(chemicalSupplierObjectApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {
