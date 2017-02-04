@@ -7,7 +7,6 @@ import partnerStore from 'store/partner-store';
 import entityStore from 'store/entity-store';
 import $$paginator from '../widget/paginator';
 import $$tableHints from '../widget/table-hints';
-import config from '../config';
 import $$myOth from 'widget/my-oth';
 
 var { h } = virtualDom;
@@ -87,19 +86,15 @@ var $$table = $$.connect([$$idOth, $$enabledOth, $$list], tableVf);
 export default {
   page: {
     get $$view() {
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
       return $$.connect(
         [
           $$nameSearchBox, $$table, $$queryObj, $$loading,
-          $$tableHints({
-            $$totalCnt,
-            $$queryObj,
-            pageSize: config.getPageSize('meter'),
-          }),
-          $$paginator({
-            $$totalCnt,
-            $$queryObj,
-            pageSize: config.getPageSize('meter'),
-          })
+          $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+          $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+            $$queryObj.patch({ page });
+          } }),
         ],
         vf
       );

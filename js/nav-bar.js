@@ -1,28 +1,28 @@
 import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import page from 'page';
-var h = virtualDom.h;
+const h = virtualDom.h;
 import classNames from './class-names';
 import authStore from './store/auth-store';
 import principal from './principal';
 import R from 'ramda';
 import constStore from 'store/const-store';
 
-var $$invoiceStates = $$({}, 'invoice-status');
-var $$entityTypes = $$({}, 'entity-types');
-var $$PAYMENT_RECORD_STATES = $$({}, 'PAYMENT_RECORD_STATES');
-export var $$mods = $$({}, 'mods');
-export var $$currentMod = $$('home', 'current-module');
+const $$invoiceStates = $$({}, 'invoice-status');
+const $$entityTypes = $$({}, 'entity-types');
+const $$PAYMENT_RECORD_STATES = $$({}, 'PAYMENT_RECORD_STATES');
+export const $$mods = $$({}, 'mods');
+export const $$currentMod = $$('home', 'current-module');
 
-var $$home = $$.connect([$$currentMod], function ([currentMod]) {
-  return  h('a' + classNames('item', (currentMod === 'home') && 'active'), {
+const $$home = $$.connect([$$currentMod], function ([currentMod]) {
+  return h('a' + classNames('item', (currentMod === 'home') && 'active'), {
     href: '/',
   }, [
     h('i.fa.fa-home'),
   ]);
 });
 
-var $$invoice = $$.connect(
+const $$invoice = $$.connect(
   [$$currentMod, $$mods, $$invoiceStates],
   function ([currentMod, mods, invoiceStates]) {
     return R.ifElse(
@@ -37,13 +37,13 @@ var $$invoice = $$.connect(
   }
 );
 
-var $$store = function () {
+const $$store = function () {
   let $$expanded = $$(false, 'expanded');
   let vf = function ([currentMod, mods, expanded]) {
     let classes = classNames(
       'item',
-      (currentMod === 'store.order' || currentMod === 'store.checkbook')
-      && 'active',
+      (currentMod === 'store.order' || currentMod === 'store.checkbook') &&
+      'active',
       expanded && 'expanded'
     );
     return R.ifElse(
@@ -58,26 +58,26 @@ var $$store = function () {
       }, [
         '仓储管理',
         h('i.fa.fa-caret-down'),
-        h('.sub.menu', [
-          h(
-            'a' + classNames('item', (currentMod == 'store.order') && 'active'),
-            {
+        h('._.sub.menu', [
+          function () {
+            let classes = classNames('item',
+                                     (currentMod == 'store.order') && 'active');
+
+            return h('a' + classes, {
               href: '/store-order-list',
               onclick() {
                 $$expanded.off();
               }
-            },
-            '单据管理'
-          ),
+            }, '单据管理');
+          }(),
           h(
             'a' + classNames('item',
-                             (currentMod == 'store.checkbook' && 'active')),
-            {
-              href: '/store-checkbook',
-              onclick() {
-                $$expanded.off();
-              }
-            }, '账目'
+              (currentMod == 'store.checkbook' && 'active')), {
+                href: '/store-checkbook',
+                onclick() {
+                  $$expanded.off();
+                }
+              }, '账目'
           ),
         ])
       ]),
@@ -87,8 +87,9 @@ var $$store = function () {
   return $$.connect([$$currentMod, $$mods, $$expanded], vf);
 }();
 
-var $$voucher = $$.connect(
-  [$$currentMod, $$mods], function ([currentMod, mods]) {
+const $$voucher = $$.connect(
+  [$$currentMod, $$mods],
+  function ([currentMod, mods]) {
     return R.ifElse(
       R.prop('viewVoucherList'),
       () => h(
@@ -101,7 +102,7 @@ var $$voucher = $$.connect(
   }
 );
 
-var $$department = $$.connect(
+const $$department = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -116,7 +117,7 @@ var $$department = $$.connect(
   }
 );
 
-var $$tenant = $$.connect(
+const $$tenant = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -129,7 +130,7 @@ var $$tenant = $$.connect(
   }
 );
 
-var $$settings = $$.connect(
+const $$settings = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -144,13 +145,13 @@ var $$settings = $$.connect(
   }
 );
 
-var $$meter = function () {
+const $$meter = function () {
   let $$expanded = $$(false, 'expanded');
   let vf = function ([currentMod, mods, expanded]) {
     let classes = classNames(
       'item', expanded && 'expanded',
-      (currentMod == 'meter.meter' || currentMod == 'meter.meter_type')
-      && 'active');
+      (currentMod == 'meter.meter' || currentMod == 'meter.meter_type') &&
+      'active');
     return h(classes, {
       onmouseover() {
         $$expanded.on();
@@ -163,7 +164,7 @@ var $$meter = function () {
       mods => [
         '设备管理',
         h('i.fa.fa-caret-down'),
-        h('.sub.menu', [
+        h('._.sub.menu', [
           R.ifElse(
             R.prop('editMeter'),
             () => h(
@@ -217,7 +218,7 @@ var $$meter = function () {
 }();
 
 
-var $$accountTerm = $$.connect(
+const $$accountTerm = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -232,7 +233,7 @@ var $$accountTerm = $$.connect(
   }
 );
 
-var $$invoiceType = $$.connect(
+const $$invoiceType = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -247,7 +248,7 @@ var $$invoiceType = $$.connect(
   }
 );
 
-var $$voucherSubject = $$.connect(
+const $$voucherSubject = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -264,7 +265,7 @@ var $$voucherSubject = $$.connect(
   }
 );
 
-var $$user = $$.connect(
+const $$user = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -279,7 +280,7 @@ var $$user = $$.connect(
   }
 );
 
-var $$chargeBill = $$.connect(
+const $$chargeBill = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -294,7 +295,7 @@ var $$chargeBill = $$.connect(
   }
 );
 
-var $$storeSubject = $$.connect(
+const $$storeSubject = $$.connect(
   [$$currentMod, $$mods],
   function ([currentMod, mods]) {
     return R.ifElse(
@@ -311,64 +312,64 @@ var $$storeSubject = $$.connect(
   }
 );
 
-var $$partner = (function() {
+const $$partner = (function () {
   let $$expanded = $$(false, 'expanded');
   let vf = function vf([currentMod, mods, expanded, entityTypes]) {
-    return mods.editPartner?
-    h(
-      classNames(
-        'item',
-        (currentMod == 'partner.' + entityTypes.CUSTOMER ||
-         currentMod == 'partner.' + entityTypes.SUPPLIER)
-        && 'active',
-        expanded && 'expanded'
-      ), {
-        onmouseover() {
-          $$expanded.on();
-        },
-        onmouseout() {
-          $$expanded.off();
-        }
-      }, [
-        '往来户管理',
-        h('i.fa.fa-caret-down'),
-        h('.sub.menu', [
-          h(
-            'a' + classNames(
-              'item', currentMod === 'partner.' + entityTypes.CUSTOMER
-              && 'active'
-            ), {
-              href: '/partner-list?type=' + entityTypes.CUSTOMER,
-              onclick() {
-                $$expanded.off();
-              }
-            },
-            '客户管理'
-          ),
-          h(
-            'a' + classNames(
-              'item', currentMod === 'partner.' + entityTypes.SUPPLIER
-              && 'active'
-            ), {
-              href: '/partner-list?type=' + entityTypes.SUPPLIER,
-              onclick() {
-                $$expanded.off();
-              }
-            },
-            '供应商管理'
-          ),
-        ])
-      ]
-    ): void 0;
+    return mods.editPartner ?
+      h(
+        classNames(
+          'item',
+          (currentMod == 'partner.' + entityTypes.CUSTOMER ||
+          currentMod == 'partner.' + entityTypes.SUPPLIER) &&
+          'active',
+          expanded && 'expanded'
+        ), {
+          onmouseover() {
+            $$expanded.on();
+          },
+          onmouseout() {
+            $$expanded.off();
+          }
+        }, [
+          '往来户管理',
+          h('i.fa.fa-caret-down'),
+          h('._.sub.menu', [
+            h(
+              'a' + classNames(
+                'item', currentMod === 'partner.' + entityTypes.CUSTOMER &&
+                'active'
+              ), {
+                href: '/partner-list?type=' + entityTypes.CUSTOMER,
+                onclick() {
+                  $$expanded.off();
+                }
+              },
+              '客户管理'
+            ),
+            h(
+              'a' + classNames(
+                'item', currentMod === 'partner.' + entityTypes.SUPPLIER &&
+                'active'
+              ), {
+                href: '/partner-list?type=' + entityTypes.SUPPLIER,
+                onclick() {
+                  $$expanded.off();
+                }
+              },
+              '供应商管理'
+            ),
+          ])
+        ]
+      ) : void 0;
   };
   return $$.connect([$$currentMod, $$mods, $$expanded, $$entityTypes], vf);
 }());
 
-var $$paymentRecord = $$.connect(
+const $$paymentRecord = $$.connect(
   [$$currentMod, $$mods, $$PAYMENT_RECORD_STATES],
   function ([currentMod, mods, PAYMENT_RECORD_STATES]) {
     let classes = classNames('item',
-                             (currentMod == 'payment_record') && 'active');
+      (currentMod == 'payment_record') && 'active');
     return R.ifElse(
       R.prop('editPaymentRecord'),
       R.always(h('a' + classes, {
@@ -379,10 +380,25 @@ var $$paymentRecord = $$.connect(
   }
 );
 
-var vf = function vf([
+const $$checmicalSupplier = $$.connect(
+  [$$currentMod, $$mods],
+  function ([currentMod, mods]) {
+    let classes = classNames('item',
+                             (currentMod == 'chemical_supplier') && 'active');
+    return R.ifElse(
+      R.prop('editChemicalSupplier'),
+      R.always(h('a' + classes, {
+        href: '/chemical-supplier-list'
+      }, '化学品供应商管理')),
+      R.always('')
+    )(mods);
+  }
+);
+
+const vf = function vf([
   home, invoice, store, voucher, department, tenant, settings, meter,
   accountTerm, invoiceType, voucherSubject, user, chargeBill, storeSubject,
-  partner, paymentRecord,
+  partner, paymentRecord, chemicalSupplier
 ]) {
   return h('._.menu.top', [
     home,
@@ -401,6 +417,7 @@ var vf = function vf([
     storeSubject,
     partner,
     paymentRecord,
+    chemicalSupplier,
     R.ifElse(
       R.prop('user'),
       () => h('.right.color-gray', [
@@ -428,76 +445,82 @@ var vf = function vf([
   ].filter(R.identity));
 };
 
-export var $$navBar = $$.connect(
+export const $$navBar = $$.connect(
   [
     $$home, $$invoice, $$store, $$voucher, $$department, $$tenant,
     $$settings, $$meter, $$accountTerm, $$invoiceType, $$voucherSubject, $$user,
-    $$chargeBill, $$storeSubject, $$partner, $$paymentRecord
+    $$chargeBill, $$storeSubject, $$partner, $$paymentRecord,
+    $$checmicalSupplier
   ],
   vf,
   'nav-bar'
 );
 
-export var navBar = {
+export const navBar = {
   $$view: $$navBar,
 };
 
-export var setupNavBar = function (mod) {
+export const setupNavBar = function (mod) {
   if (R.isEmpty($$mods.val())) {
     return principal
-    .could('view.invoice.list')
-    .could('view.voucher.list')
-    .could('edit.department')
-    .could('view.tenant.list')
-    .could('edit.settings')
-    .could('edit.meter')
-    .could('edit.meter_type')
-    .could('edit.account_term')
-    .could('edit.invoice_type')
-    .could('edit.voucher_subject')
-    .could('edit.user')
-    .could('manage.store')
-    .could('edit.charge_bill')
-    .could('edit.store_subject')
-    .could('edit.partner')
-    .could('edit.meter_reading')
-    .could('edit.payment_record')
-    .then(function (
-      viewInvoiceList, viewVoucherList, editDepartment,
-      viewTenantList, editSettings, editMeter, editMeterType,
-      editAccountTerm, editInvoiceType, editVoucherSubject,
-      editUser, manageStore, editChargeBill, editStoreSubject,
-      editPartner, editMeterReading, editPaymentRecord
-    ) {
-      constStore.get()
-      .then(function ({ INVOICE_STATES, ENTITY_TYPES, PAYMENT_RECORD_STATES }) {
-        $$.update([
-          [$$mods, {
-            viewInvoiceList,
-            viewVoucherList,
-            editDepartment,
-            viewTenantList,
-            editSettings,
-            editMeter,
-            editMeterType,
-            editAccountTerm,
-            editInvoiceType,
-            editVoucherSubject,
-            editUser,
-            manageStore,
-            editChargeBill,
-            editStoreSubject,
-            editPartner,
-            editMeterReading,
-            editPaymentRecord
-          }],
-          [$$currentMod, mod],
-          [$$invoiceStates, INVOICE_STATES],
-          [$$entityTypes, ENTITY_TYPES],
-          [$$PAYMENT_RECORD_STATES, PAYMENT_RECORD_STATES]
-        ]);
+      .could('view.invoice.list')
+      .could('view.voucher.list')
+      .could('edit.department')
+      .could('view.tenant.list')
+      .could('edit.settings')
+      .could('edit.meter')
+      .could('edit.meter_type')
+      .could('edit.account_term')
+      .could('edit.invoice_type')
+      .could('edit.voucher_subject')
+      .could('edit.user')
+      .could('manage.store')
+      .could('edit.charge_bill')
+      .could('edit.store_subject')
+      .could('edit.partner')
+      .could('edit.meter_reading')
+      .could('edit.payment_record')
+      .could('edit.chemical_supplier')
+      .then(function (viewInvoiceList, viewVoucherList, editDepartment,
+                      viewTenantList, editSettings, editMeter, editMeterType,
+                      editAccountTerm, editInvoiceType, editVoucherSubject,
+                      editUser, manageStore, editChargeBill, editStoreSubject,
+                      editPartner, editMeterReading, editPaymentRecord,
+                      editChemicalSupplier) {
+        constStore.get()
+          .then(function ({
+            INVOICE_STATES,
+            ENTITY_TYPES,
+            PAYMENT_RECORD_STATES
+          }) {
+            $$.update([
+              [$$mods, {
+                viewInvoiceList,
+                viewVoucherList,
+                editDepartment,
+                viewTenantList,
+                editSettings,
+                editMeter,
+                editMeterType,
+                editAccountTerm,
+                editInvoiceType,
+                editVoucherSubject,
+                editUser,
+                manageStore,
+                editChargeBill,
+                editStoreSubject,
+                editPartner,
+                editMeterReading,
+                editPaymentRecord,
+                editChemicalSupplier,
+              }],
+              [$$currentMod, mod],
+              [$$invoiceStates, INVOICE_STATES],
+              [$$entityTypes, ENTITY_TYPES],
+              [$$PAYMENT_RECORD_STATES, PAYMENT_RECORD_STATES]
+            ]);
+          });
       });
-    });
   }
   $$currentMod.val(mod);
   return Promise.resolve();

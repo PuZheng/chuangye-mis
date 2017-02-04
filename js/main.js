@@ -43,6 +43,8 @@ import paymentRecordListApp from './payment-record/list-app';
 import config from './config';
 import object2qs from './utils/object2qs';
 import accountTermStore from './store/account-term-store';
+import chemicalSupplierListApp from './chemical-supplier/list-app';
+import chemicalSupplierObjectApp from './chemical-supplier/object-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -51,6 +53,21 @@ var useWith = function useWith(app) {
     app.init && app.init(ctx);
   };
 };
+
+var assurePageNPageSize = function assurePageNPageSize(mod) {
+  return function (ctx, next) {
+    let { page: page_, page_size } = ctx.query;
+    if (!(page_ && page_size)) {
+      page(ctx.pathname + '?' + object2qs(Object.assign(ctx.query, {
+        page: 1,
+        page_size: config.getPageSize(mod || ''),
+      })));
+      return;
+    }
+    next();
+  };
+};
+
 
 var currentApp;
 
@@ -132,11 +149,13 @@ page('/invoice/:id?', loginRequired, _could('edit.invoice.object'),
      _setupNavBar('invoice'), useWith(invoiceObjectApp));
 
 page('/invoice-list', loginRequired, _could('view.invoice.list'),
-     _setupNavBar('invoice'), useWith(invoiceListApp));
+     _setupNavBar('invoice'), assurePageNPageSize('invoice'),
+     useWith(invoiceListApp));
 
 page(
   '/voucher-list', loginRequired,
   _could('view.voucher.list'), _setupNavBar('voucher'),
+  assurePageNPageSize('voucher'),
   useWith(voucherListApp)
 );
 
@@ -156,10 +175,14 @@ page(
      _setupNavBar('voucher'), useWith(voucherObjectApp)
 );
 
-page('/tenant-list',
-     loginRequired,
-     _could('view.tenant.list'),
-     _setupNavBar('tenant'), useWith(tenantListApp));
+page(
+  '/tenant-list',
+  loginRequired,
+  _could('view.tenant.list'),
+  _setupNavBar('tenant'),
+  assurePageNPageSize('tenant'),
+  useWith(tenantListApp)
+);
 
 page('/tenant/:id?', loginRequired,
     _could('edit.tenant.object'),
@@ -174,8 +197,10 @@ page('/settings', loginRequired, _setupNavBar('settings'),
 
 page(
   '/meter-list', loginRequired,
+  _could('edit.meter'),
   _setupNavBar('meter.meter'),
-  _could('edit.meter'), useWith(meterListApp)
+  assurePageNPageSize('meter.meter'),
+  useWith(meterListApp)
 );
 
 page(
@@ -265,7 +290,7 @@ page(
       return;
     }
     next();
-  }, useWith(storeOrderListApp)
+  }, assurePageNPageSize('store.order'), useWith(storeOrderListApp)
 );
 
 page(
@@ -291,7 +316,9 @@ page(
   function (ctx, next) {
     setupNavBar('partner.' + ctx.query.type).then(next);
   },
-  _could('edit.partner'), useWith(partnerListApp)
+  _could('edit.partner'),
+  assurePageNPageSize('partner'),
+  useWith(partnerListApp)
 );
 
 page(
@@ -302,25 +329,29 @@ page(
   _could('edit.partner'), useWith(partnerObjectApp)
 );
 
-var assurePageNPageSize = function assurePageNPageSize(mod) {
-  return function (ctx, next) {
-    let { page: page_, page_size } = ctx.query;
-    if (!(page_ && page_size)) {
-      page(ctx.pathname + '?' + object2qs(Object.assign(ctx.query, {
-        page: 1,
-        page_size: config.getPageSize(mod || ''),
-      })));
-      return;
-    }
-    next();
-  };
-};
+page(
+  '/payment-record-list',
+  loginRequired,
+  _setupNavBar('payment_record'),
+  _could('edit.payment_record'),
+  assurePageNPageSize('payment_record'),
+  useWith(paymentRecordListApp)
+);
+
+page('/chemical-supplier-list',
+  loginRequired,
+  _setupNavBar('chemical_supplier'),
+  _could('edit.chemical_supplier'),
+  assurePageNPageSize('chemial_supplier'),
+  useWith(chemicalSupplierListApp)
+);
 
 page(
-  '/payment-record-list', loginRequired,
-  _setupNavBar('payment_record'),
-  _could('edit.payment_record'), assurePageNPageSize('payment_record'),
-  useWith(paymentRecordListApp)
+    '/chemical-supplier/:id?',
+    loginRequired,
+    _setupNavBar('chemical_supplier'),
+    _could('edit.chemical_supplier'),
+    useWith(chemicalSupplierObjectApp)
 );
 
 page('/', loginRequired, _setupNavBar('home'), function () {

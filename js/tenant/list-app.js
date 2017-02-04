@@ -5,7 +5,6 @@ import $$queryObj from '../query-obj';
 import $$paginator from '../widget/paginator';
 import $$tableHints from '../widget/table-hints';
 import tenantStore from '../store/tenant-store';
-import config from '../config';
 import page from 'page';
 import R from 'ramda';
 
@@ -99,16 +98,16 @@ var vf = function (
 export default {
   page: {
     get $$view() {
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
       return $$.connect(
-        [$$nameFilter, $$table, $$loading, $$tableHints({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('tenant'),
-        }), $$paginator({
-          $$totalCnt,
-          $$queryObj,
-          pageSize: config.getPageSize('voucher'),
-        })], vf
+        [
+          $$nameFilter, $$table, $$loading,
+          $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+          $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+            $$queryObj.patch({ page });
+          } }),
+        ], vf
       );
     }
   },

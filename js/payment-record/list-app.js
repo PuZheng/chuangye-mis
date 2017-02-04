@@ -2,7 +2,6 @@ import $$ from 'slot';
 import virtualDom from 'virtual-dom';
 import $$tableHints from 'widget/table-hints';
 import $$queryObj from '../query-obj';
-import config from '../config';
 import $$paginator from 'widget/paginator';
 import moment from 'moment';
 import R from 'ramda';
@@ -168,15 +167,15 @@ var $$table = $$('', 'table');
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$loading, $$filters, $$table, $$tableHints({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('paymentRecord')
-      }), $$paginator({
-        $$totalCnt,
-        $$queryObj,
-        pageSize: config.getPageSize('paymentRecord')
-      })], vf);
+      let $$page = $$queryObj.map(R.prop('page'));
+      let $$pageSize = $$queryObj.map(R.prop('page_size'));
+      return $$.connect([
+        $$loading, $$filters, $$table,
+        $$tableHints({ $$totalCnt, $$page, $$pageSize }),
+        $$paginator({ $$totalCnt, $$page, $$pageSize, onNavigate(page) {
+          $$queryObj.patch({ page });
+        } }),
+      ], vf);
     },
   },
   init(ctx) {
@@ -207,62 +206,62 @@ export default {
           items: it.actions,
           ontrigger(action) {
             switch (action) {
-            case PAYMENT_RECORD_ACTIONS.PASS: {
-              overlay.show({
-                type: 'warning',
-                title: '您确认要通过该预扣费记录?',
-                message: [
-                  h('h3', '预扣费记录通过后, 将自动从承包人账户扣款'),
-                  h('button.ca.btn.btn-outline', {
-                    onclick() {
-                      paymentRecordStore.pass(it.id)
-                      .then(function () {
-                        $$toast.val({
-                          type: 'success',
-                          message: '操作成功!',
-                        });
-                        overlay.dismiss();
-                        page('/payment-record-list?' + object2qs(ctx.query));
-                      }, function (e) {
-                        if ((e.response || {}).status == 400) {
-                          overlay.show({
-                            type: 'error',
-                            message: e.response.data
+              case PAYMENT_RECORD_ACTIONS.PASS: {
+                overlay.show({
+                  type: 'warning',
+                  title: '您确认要通过该预扣费记录?',
+                  message: [
+                    h('h3', '预扣费记录通过后, 将自动从承包人账户扣款'),
+                    h('button.ca.btn.btn-outline', {
+                      onclick() {
+                        paymentRecordStore.pass(it.id)
+                        .then(function () {
+                          $$toast.val({
+                            type: 'success',
+                            message: '操作成功!',
                           });
-                        }
-                      });
-                      return false;
-                    }
-                  }, '确认')
-                ]
-              });
-              break;
-            }
-            case PAYMENT_RECORD_ACTIONS.REJECT: {
-              overlay.show({
-                type: 'warning',
-                title: '您确认要驳回该预扣费记录?',
-                message: [
-                  h('h3', '预扣费记录被驳回后, 不能对承包人进行相应扣款'),
-                  h('button.ca.btn.btn-outline', {
-                    onclick() {
-                      paymentRecordStore.reject(it.id)
-                      .then(function () {
-                        $$toast.val({
-                          type: 'success',
-                          message: '操作成功!',
+                          overlay.dismiss();
+                          page('/payment-record-list?' + object2qs(ctx.query));
+                        }, function (e) {
+                          if ((e.response || {}).status == 400) {
+                            overlay.show({
+                              type: 'error',
+                              message: e.response.data
+                            });
+                          }
                         });
-                        overlay.dismiss();
-                        page('/payment-record-list?' + object2qs(ctx.query));
-                      });
-                    }
-                  }, '确认')
-                ]
-              });
-              break;
-            }
-            default:
-              break;
+                        return false;
+                      }
+                    }, '确认')
+                  ]
+                });
+                break;
+              }
+              case PAYMENT_RECORD_ACTIONS.REJECT: {
+                overlay.show({
+                  type: 'warning',
+                  title: '您确认要驳回该预扣费记录?',
+                  message: [
+                    h('h3', '预扣费记录被驳回后, 不能对承包人进行相应扣款'),
+                    h('button.ca.btn.btn-outline', {
+                      onclick() {
+                        paymentRecordStore.reject(it.id)
+                        .then(function () {
+                          $$toast.val({
+                            type: 'success',
+                            message: '操作成功!',
+                          });
+                          overlay.dismiss();
+                          page('/payment-record-list?' + object2qs(ctx.query));
+                        });
+                      }
+                    }, '确认')
+                  ]
+                });
+                break;
+              }
+              default:
+                break;
             }
           }
         });

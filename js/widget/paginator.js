@@ -1,16 +1,14 @@
-import virtualDom from 'virtual-dom';
+import { h } from 'virtual-dom';
 import $$ from 'slot';
 import pagination from '../pagination';
 
-var h = virtualDom.h;
-
 export var $$paginator = function (
-  {$$totalCnt, $$queryObj, pageSize}
+  {$$totalCnt, $$page, $$pageSize, onNavigate}
 ) {
-  let vf = function ([totalCnt, queryObj]) {
+  let vf = function ([totalCnt, page, pageSize]) {
     let pg = pagination({
       totalCnt,
-      page: queryObj.page || 1,
+      page: page || 1,
       pageSize,
     });
     return h('.paginator._.menu', [
@@ -24,9 +22,7 @@ export var $$paginator = function (
         href: '#',
         title: '上一页',
         onclick() {
-          $$queryObj.patch({
-            page: Number(queryObj.page) - 1,
-          });
+          onNavigate(Number(page) - 1);
           return false;
         }
       }, [
@@ -43,9 +39,7 @@ export var $$paginator = function (
         href: '#',
         title: '下一页',
         onclick() {
-          $$queryObj.patch({
-            page: Number(queryObj.page || 1) + 1,
-          });
+          onNavigate(Number(page || 1) + 1);
           return false;
         }
       }, [
@@ -53,6 +47,6 @@ export var $$paginator = function (
       ]),
     ]);
   };
-  return $$.connect([$$totalCnt, $$queryObj], vf);
+  return $$.connect([$$totalCnt, $$page, $$pageSize], vf);
 };
 export default $$paginator;

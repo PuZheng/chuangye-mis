@@ -22,6 +22,11 @@ var eslint = require('gulp-eslint');
 var includePaths = require('rollup-plugin-includepaths');
 var jsx = require('rollup-plugin-jsx');
 var beautify = require('js-beautify');
+var inquirer = require('inquirer');
+var conflict = require('gulp-conflict');
+var template = require('gulp-template');
+var casing = require('casing');
+var rename = require('gulp-rename');
 
 gulp.task('connect', function() {
   connect.server({
@@ -267,4 +272,70 @@ gulp.task('lint', function() {
   // To have the process exit with an error code (1) on
   // lint error, return the stream and pipe to failAfterError last.
   .pipe(eslint.failAfterError());
+});
+
+gulp.task('gen-object-app', function (done) {
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: '对象名称',
+      message: '输入对象名称, 使用snake case命名法',
+    }, {
+      type: 'input',
+      name: 'store模块文件',
+      message: '输入store模块文件',
+      default: function (answers) {
+        return answers.对象名称.replace('_', '-') + '-store';
+      }
+    }, {
+      type: 'input',
+      name: '对象中文名称',
+      message: '输入对象中文名称',
+    }, {
+      type: 'input',
+      name: '对象名称字段',
+      message: '输入对象名称字段',
+      default: 'name',
+    }
+  ]).then(function (answers) {
+    gulp.src(__dirname + '/templates/object-app.js')
+    .pipe(template(Object.assign({
+      'store模块引入名': casing.camelize(answers.对象名称) + 'Store',
+    }, answers)))
+    .pipe(conflict('./js/' + answers.对象名称.replace('_', '-'), {
+      defaultChoice: 'd'
+    }))
+    .pipe(gulp.dest('./js/' + answers.对象名称.replace('_', '-')))
+    .on('end', function () {
+      done();
+    })
+    .resume();
+  });
+});
+
+gulp.task('gen-store', function (done) {
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: '对象名称',
+      message: '输入对象名称, 使用snake case命名法',
+    }
+  ]).then(function (answers) {
+    let {对象名称} = answers;
+    对象名称 = 对象名称.replace('_', '-');
+    gulp.src(__dirname + '/templates/store.js')
+    .pipe(template({ 对象名称 }))
+    .pipe(rename(function (path) {
+      path.basename = 对象名称 + '-store';
+    }))
+    .pipe(conflict('./js/store/', {
+      defaultChoice: 'd'
+    }))
+    .pipe(gulp.dest('./js/store/'))
+    .on('end', function () {
+      done();
+    })
+    .resume();
+  });
+
 });
