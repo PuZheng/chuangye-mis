@@ -74,7 +74,7 @@ let formVf = function ([obj, errors]) {
 let $$form = $$.connect([$$obj, $$errors], formVf);
 
 let vf = function ([loading, obj, form]) {
-  let header = h(classNames('header', dirty(obj) && dirty),
+  let header = h(classNames('header', dirty(obj) && 'dirty'),
                  obj.id? '编辑<%= 对象中文名称 %>(' + obj.<%= 对象名称字段 %> + ')': '创建<%= 对象中文名称 %>');
   return h(classNames('object-app', loading && 'loading'), [
     header,

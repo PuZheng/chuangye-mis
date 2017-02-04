@@ -2,9 +2,14 @@ import request from '../request';
 import object2qs from '../utils/object2qs';
 import R from 'ramda';
 import validateObj from '../validate-obj.js';
+import { notEmpty } from '../checkers';
 
 let rules = {
-
+  entity: {
+    name: notEmpty(),
+    acronym: notEmpty(),
+  },
+  contact: notEmpty()
 };
 
 let validate = function (obj) {
@@ -32,7 +37,7 @@ export default {
         return request.put('/chemical-supplier/object/' + obj.id, obj);
       },
       function (obj) {
-        return request.post('/chemical-supplier/object/', obj);
+        return request.post('/chemical-supplier/object', obj);
       }
     )(obj).then(R.prop('data'));
   }

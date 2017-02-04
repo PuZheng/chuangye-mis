@@ -1,20 +1,39 @@
 snippet route "setup route for list app"
 page(
-    '$1',
-    loginRequired,
-    _setupNavBar('$2'),
-    _could('$3'),
-    assurePageNPageSize('$4'),
-    useWith($5)
+  '$1',
+  loginRequired,
+  _setupNavBar('$2'),
+  _could('$3'),
+  assurePageNPageSize('$4'),
+  useWith($5)
 );
 endsnippet
 
 snippet route "setup route for object app"
 page(
-    '$1',
-    loginRequired,
-    _setupNavBar('$2'),
-    _could('$3'),
-    useWith($5)
+  '$1',
+  loginRequired,
+  _setupNavBar('$2'),
+  _could('$3'),
+  useWith($5)
 );
+endsnippet
+
+snippet field
+field({
+  label: '$1',
+  key: '$2',
+  required: true,
+  errors,
+  input: $3
+})
+endsnippet
+
+snippet input
+h('input', {
+  oninput() {
+    $1
+  },
+  value: $2
+})
 endsnippet
