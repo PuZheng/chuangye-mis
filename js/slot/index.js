@@ -432,6 +432,16 @@ var update = function (slotValuePairs) {
   }
 };
 
+var fromP = function (promise, initVal, tag) {
+  let slot = new Slot(initVal, tag);
+  promise.then(function (v) {
+    slot.val(v);
+  }, function (e) {
+    throw e;
+  });
+  return slot;
+};
+
 export default (function ($$) {
   $$.Slot = Slot;
   $$.slot = function (...args) {
@@ -440,5 +450,6 @@ export default (function ($$) {
   $$.connect = connect;
   $$.calcOffsprings = calcOffsprings;
   $$.update = update;
+  $$.fromP = fromP;
   return $$;
 })((initial, tag, changed) => new Slot(initial, tag, changed));

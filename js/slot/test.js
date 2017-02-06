@@ -250,3 +250,17 @@ test('override', function (t) {
   $$s1.val(2);
   t.is($$s3.val(), 18);
 });
+
+test('fromP', function *(t) {
+  let p = new Promise(function (resolve) {
+    setTimeout(function () {
+      resolve(1);
+    }, 1000);
+  });
+  let $$s1 = $$.fromP(p);
+  let $$s2 = $$.connect([$$s1], function ([s1]) {
+    return s1 + 1;
+  });
+  yield p;
+  t.is($$s2.val(), 2);
+});
