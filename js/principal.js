@@ -24,5 +24,10 @@ export var could = function could(policy, ...args) {
 };
 
 export default {
-  could,
+  load(tests) {
+    return request.post('/auth/could', { tests })
+    .then(function (rsp) {
+      return new Set(rsp.data.data);
+    });
+  }
 };
