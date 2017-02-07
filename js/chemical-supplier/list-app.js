@@ -48,7 +48,6 @@ const $$nameSearchBox = $$searchBox({
   defaultText: '输入名称或者缩写',
   $$searchText: $$queryObj.trans(R.propOr('', 'kw')),
   onsearch(kw) {
-    console.log(kw);
     $$queryObj.patch({ kw, page: 1 });
   },
   getHints(kw) {

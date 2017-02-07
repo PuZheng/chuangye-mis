@@ -313,6 +313,40 @@ gulp.task('gen-object-app', function (done) {
   });
 });
 
+gulp.task('gen-list-app', function (done) {
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: '对象名称',
+      message: '输入对象名称, 使用snake case命名法',
+    }, {
+      type: 'input',
+      name: 'store模块文件',
+      message: '输入store模块文件',
+      default: function (answers) {
+        return answers.对象名称.replace('_', '-') + '-store';
+      }
+    }, {
+      type: 'input',
+      name: '对象label',
+      message: '输入对象label',
+    }
+  ]).then(function (answers) {
+    gulp.src(__dirname + '/templates/list-app.js')
+    .pipe(template(Object.assign({
+      'store模块引入名': casing.camelize(answers.对象名称) + 'Store',
+    }, answers)))
+    .pipe(conflict('./js/' + answers.对象名称.replace('_', '-'), {
+      defaultChoice: 'd'
+    }))
+    .pipe(gulp.dest('./js/' + answers.对象名称.replace('_', '-')))
+    .on('end', function () {
+      done();
+    })
+    .resume();
+  });
+});
+
 gulp.task('gen-store', function (done) {
   inquirer.prompt([
     {
