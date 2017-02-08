@@ -163,11 +163,12 @@ page(
 
 page(
   '/department-list', loginRequired, _could('edit.department'),
-  _setupNavBar('department'), useWith(departmentListApp)
+  _setupNavBar('department'), assurePageNPageSize('department'),
+  useWith(departmentListApp)
 );
 
 page(
-  '/department', loginRequired,
+  '/department/:id?', loginRequired,
     _could('edit.department'), _setupNavBar('department'),
     useWith(departmentApp)
 );

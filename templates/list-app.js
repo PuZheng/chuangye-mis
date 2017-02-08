@@ -14,7 +14,7 @@ const $$totalCnt = $$(0, 'total-cnt');
 
 const vf = function ([loading, searchBox, filters, table, tableHints,
                    paginator]) {
-  return h('.list-app' + (loading? '.loading': ''), [
+  return h(classNames('list-app', 'loading'), [
     h('.header', [
       h('.title', '<%= 对象label %>列表'),
       h('a.new-btn', {
@@ -47,7 +47,8 @@ const $$filters = $$.connect([], function (filters) {
 });
 
 const $$table = $$.connect([$$list], function ([list]) {
-  return h('table.compact.stripped', [
+  return h('table.compact.striped', [
+    // TODO fill lists
     h('thead', h('tr', [
 
     ])),

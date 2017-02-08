@@ -21,8 +21,9 @@ export default {
     return request.get('/<%= 对象名称 %>/list?' + object2qs(qo))
     .then(R.prop('data'));
   },
+  // whole list
   get list() {
-    return this.fetchList();
+    return this.fetchList().then(R.prop('data'));
   },
   get(id) {
     return request.get('/<%= 对象名称 %>/object/' + id)
