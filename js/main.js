@@ -45,6 +45,8 @@ import object2qs from './utils/object2qs';
 import accountTermStore from './store/account-term-store';
 import chemicalSupplierListApp from './chemical-supplier/list-app';
 import chemicalSupplierObjectApp from './chemical-supplier/object-app';
+import plantListApp from './plant/list-app';
+import plantObjectApp from './plant/object-app';
 
 var useWith = function useWith(app) {
   return function (ctx) {
@@ -359,10 +361,26 @@ page('/', loginRequired, _setupNavBar('home'), function () {
   mount(currentApp.page);
 });
 
+page(
+  '/plant-list',
+  loginRequired,
+  _setupNavBar('plant'),
+  _could('edit.plant'),
+  assurePageNPageSize('plant'),
+  useWith(plantListApp)
+);
+
+page(
+  '/plant/:id?',
+  loginRequired,
+  _setupNavBar('plant'),
+  _could('edit.plant'),
+  useWith(plantObjectApp)
+);
+
 
 page(function () {
   mount(notFoundApp.page);
 });
-
 
 page();

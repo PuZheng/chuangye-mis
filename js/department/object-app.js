@@ -1,5 +1,5 @@
 import $$ from 'slot';
-import virtualDom from 'virtual-dom';
+import { h } from 'virtual-dom';
 import field from '../field';
 import page from 'page';
 import acronym from '../utils/acronym';
@@ -7,14 +7,16 @@ import { $$toast } from '../toast';
 import departmentStore from '../store/department-store';
 import co from 'co';
 import { ValidationError } from '../validate-obj';
+import $$dropdown from '../widget/dropdown.js';
+import R from 'ramda';
+import plantStore from '../store/plant-store.js';
 
-var h = virtualDom.h;
+const $$errors = $$({}, 'errors');
+const $$obj = $$({}, 'obj');
+const $$loading = $$(false, 'loading');
+const $$plants = $$([], 'plants');
 
-var $$errors = $$({}, 'errors');
-var $$obj = $$({}, 'obj');
-var $$loading = $$(false, 'loading');
-
-let vf = function ([obj, errors, loading]) {
+const vf = function ([obj, errors, loading, plantDropdown]) {
   return h('.object-app', [
     h('.header', '创建车间'),
     h('form.form' + (loading? '.loading': ''), [
@@ -25,7 +27,7 @@ let vf = function ([obj, errors, loading]) {
           placeholder: '输入车间名称',
           value: obj.name,
           oninput() {
-            $$obj.val({
+            $$obj.patch({
               name: this.value,
               acronym: acronym(this.value),
             });
@@ -39,9 +41,19 @@ let vf = function ([obj, errors, loading]) {
         label: '车间缩写',
         input: h('input', {
           value: obj.acronym,
+          oninput() {
+            $$obj.patch({ acronym: this.value });
+          },
           placeholder: '输入车间缩写'
         }),
         errors,
+      }),
+      field({
+        label: '厂房',
+        key: 'plant_id',
+        required: true,
+        errors,
+        input: plantDropdown,
       }),
       h('hr'),
       h('button.primary', {
@@ -63,7 +75,7 @@ let vf = function ([obj, errors, loading]) {
                 type: 'success',
                 message: '车间创建成功'
               });
-              page('/department-list');
+              !obj.id && page('/department/' + obj.id);
             } catch(error) {
               console.error(error);
               if (error.response && error.response.status == 400) {
@@ -86,13 +98,35 @@ let vf = function ([obj, errors, loading]) {
   ]);
 };
 
+const $$plantDropdown = $$dropdown({
+  defaultText: '选择厂房',
+  $$options: $$plants.map(function (plants) {
+    return plants.map(function (it) {
+      return {
+        value: it.id,
+        text: it.name
+      };
+    });
+  }),
+  $$value: $$obj.map(R.prop('plant_id')),
+  onchange(plant_id) {
+    $$obj.patch({ plant_id });
+  }
+});
+
 export default {
   page: {
     get $$view() {
-      return $$.connect([$$obj, $$errors, $$loading], vf);
+      return $$.connect([$$obj, $$errors, $$loading, $$plantDropdown], vf);
     }
   },
   init() {
     $$errors.val({});
+    $$loading.on();
+    plantStore.list
+    .then(function ({ data }) {
+      $$loading.off();
+      $$plants.val(data);
+    });
   }
 };

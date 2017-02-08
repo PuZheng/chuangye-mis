@@ -2,7 +2,7 @@ import $$ from 'slot';
 import { h } from 'virtual-dom';
 import field from '../field';
 import R from 'ramda';
-import <%= store模块引入名 %> from 'store/<%= store模块文件 %>';
+import plantStore from 'store/plant-store';
 import co from 'co';
 import classNames from '../class-names';
 import { ValidationError } from '../validate-obj';
@@ -23,7 +23,7 @@ let formVf = function ([obj, errors]) {
     onsubmit() {
       co(function *() {
         try {
-          yield <%= store模块引入名 %>.validate(obj);
+          yield plantStore.validate(obj);
         } catch (e) {
           if (e instanceof ValidationError) {
             $$errors.val(e.errors);
@@ -33,7 +33,7 @@ let formVf = function ([obj, errors]) {
         }
         $$loading.on();
         try {
-          let { id } = yield <%= store模块引入名 %>.save(obj);
+          let { id } = yield plantStore.save(obj);
           copy = R.clone(obj);
           $$.update([
             [$$toast, {
@@ -42,7 +42,7 @@ let formVf = function ([obj, errors]) {
             }],
             [$$errors, {}]
           ]);
-          !obj.id && page('/<%= 对象名称.replace('_', '-') %>/' + id);
+          !obj.id && page('/plant/' + id);
         } catch (e) {
           if ((e.response || {}).status == 400) {
             $$errors.val(e.response.data || {});
@@ -56,18 +56,35 @@ let formVf = function ([obj, errors]) {
       return false;
     }
   }, [
-    // TODO add fields
     field({
-      label: '',
-      key: '',
+      label: '名称',
+      key: 'name',
       required: true,
       errors,
-      input: h()
+      input: h('input', {
+        oninput() {
+          $$obj.patch({ name: this.value });
+        },
+        value: obj.name
+      }),
+    }),
+    field({
+      label: '面积',
+      key: 'area',
+      required: true,
+      errors,
+      input: h('input', {
+        oninput() {
+          $$obj.patch({ area: this.value });
+        },
+        value: obj.area,
+        type: 'number'
+      }),
     }),
     h('hr'),
     h('button.primary', '提交'),
     h('a.btn.btn-outline', {
-      href: '/<%= 对象名称.replace('_', '-') %>-list',
+      href: '/plant-list',
     }, '返回')
   ]);
 };
@@ -76,7 +93,7 @@ let $$form = $$.connect([$$obj, $$errors], formVf);
 
 let vf = function ([loading, obj, form]) {
   let header = h(classNames('header', dirty(obj) && 'dirty'),
-                 obj.id? '编辑<%= 对象中文名称 %>(' + obj.<%= 对象名称字段 %> + ')': '创建<%= 对象中文名称 %>');
+                 obj.id? '编辑厂房(' + obj.name + ')': '创建厂房');
   return h(classNames('object-app', loading && 'loading'), [
     header,
     form,
@@ -97,7 +114,7 @@ export default {
   init({ params: { id } }) {
     return co(function *() {
       $$loading.on();
-      let obj = id? (yield <%= store模块引入名 %>.get(id)): {};
+      let obj = id? (yield plantStore.get(id)): {};
       copy = R.clone(obj);
       $$.update([
         [$$loading, false],
