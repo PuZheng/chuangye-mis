@@ -15,10 +15,17 @@ const $$errors = $$({}, 'errors');
 const $$obj = $$({}, 'obj');
 const $$loading = $$(false, 'loading');
 const $$plants = $$([], 'plants');
+let copy = {};
+
+const dirty = function dirty(obj) {
+  console.log(obj, copy);
+  return !R.equals(obj, copy);
+};
 
 const vf = function ([obj, errors, loading, plantDropdown]) {
   return h('.object-app', [
-    h('.header', '创建车间'),
+    h('.header' + (dirty(obj)? '.dirty': ''),
+      obj.id? '编辑车间(' + obj.name + ')':'创建车间'),
     h('form.form' + (loading? '.loading': ''), [
       field({
         key: 'name',
@@ -58,6 +65,10 @@ const vf = function ([obj, errors, loading, plantDropdown]) {
       h('hr'),
       h('button.primary', {
         onclick() {
+          if (!dirty(obj)) {
+            $$toast.val({ type: 'info', message: '没有任何变化' });
+            return false;
+          }
           co(function *() {
             try {
               yield departmentStore.validate(obj);
@@ -70,12 +81,14 @@ const vf = function ([obj, errors, loading, plantDropdown]) {
             }
             try {
               $$loading.toggle();
-              yield departmentStore.save(obj);
+              let { id } = yield departmentStore.save(obj);
+              copy = R.clone(obj);
               $$toast.val({
                 type: 'success',
-                message: '车间创建成功'
+                message: '提交成功'
               });
-              !obj.id && page('/department/' + obj.id);
+              $$errors.val({});
+              !obj.id && page('/department/' + id);
             } catch(error) {
               console.error(error);
               if (error.response && error.response.status == 400) {
@@ -120,13 +133,23 @@ export default {
       return $$.connect([$$obj, $$errors, $$loading, $$plantDropdown], vf);
     }
   },
-  init() {
+  get dirty() {
+    return !R.equals($$obj.val(), copy);
+  },
+  init({ params: { id } }) {
     $$errors.val({});
     $$loading.on();
-    plantStore.list
-    .then(function ({ data }) {
-      $$loading.off();
-      $$plants.val(data);
+    Promise.all([
+      plantStore.list,
+      id? departmentStore.get(id): {}
+    ])
+    .then(function ([plants, obj]) {
+      copy = R.clone(obj);
+      $$.update([
+        [$$loading, false],
+        [$$plants, plants],
+        [$$obj, obj]
+      ]);
     });
   }
 };
