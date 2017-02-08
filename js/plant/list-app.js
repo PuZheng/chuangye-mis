@@ -46,14 +46,20 @@ const $$table = $$.connect([$$list], function ([list]) {
       h('th', '名称'),
       h('th', '面积'),
       h('th', '车间数量'),
+      h('th', '已出租车间数量'),
     ])),
-    h('tbody', list.map(function ({ id, name, area, departmentCnt }) {
+    h('tbody', list.map(function (
+      { id, name, area, departmentCnt, leasedDepartmentCnt }
+    ) {
       return h('tr', [
         h('td', h('a', {
           href: '/plant/' + id
         }, name)),
         h('td', '' + area),
-        h('td', '' + departmentCnt),
+        h('td', h('a', {
+          href: '/department-list?plant_id=' + id,
+        }, '' + departmentCnt)),
+        h('td', '' + leasedDepartmentCnt),
       ]);
     })),
   ]);
